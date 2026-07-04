@@ -28,7 +28,7 @@ const TEAM: TeamMember[] = [
   },
   {
     name: 'Rasulbek',
-    photo: '/team/rasulbek.JPG',
+    photo: '/team/rasulbek.jpg',
     github: null,
     linkedin: null,
     bio: "Alright, let's do this one last time. I'm Rasulbek, a rising senior at Khiva Presidential School. I want to pursue mechanical / environmental engineering — passionate about solving local environmental problems, with the Aral Sea at the top of my list. Outside of that, I'm into videography, photography, and video editing: I make STEM content as a solo creator at Pozitron, and co-lead O'zbegim Merosi to promote cultural heritage.",
