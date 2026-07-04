@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { CommunityPreview } from '@/components/CommunityPreview'
 import { SettingsMenu } from '@/components/SettingsMenu'
-import { EngineeringCanvas } from '@/components/EngineeringCanvas'
 import { Button } from '@/components/ui/button'
 
 const fadeUp = {
@@ -38,12 +37,10 @@ const FEATURES = [
 
 export function Welcome() {
   return (
-    <div className="relative min-h-screen bg-corn-100 flex flex-col overflow-hidden">
-
-      <EngineeringCanvas />
+    <div className="min-h-screen bg-corn-100 flex flex-col">
 
       {/* Top bar */}
-      <header className="relative z-10 flex items-center justify-between px-10 pt-8 pb-0">
+      <header className="flex items-center justify-between px-10 pt-8 pb-0">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -70,7 +67,7 @@ export function Welcome() {
       </header>
 
       {/* Main two-column layout */}
-      <main className="relative z-10 flex-1 flex items-center px-10 py-12 gap-16">
+      <main className="flex-1 flex items-center px-10 py-12 gap-16">
 
         {/* LEFT — text content, ~52% */}
         <motion.div
@@ -174,8 +171,10 @@ export function Welcome() {
           </motion.div>
         </motion.div>
 
-        {/* RIGHT — product artifact, ~48%, top-aligned with eyebrow */}
-        <div className="flex-1 flex flex-col items-center justify-start min-w-0 pt-16">
+        {/* RIGHT — product artifact, ~48%. Generous top space above the card
+            is intentional breathing room, not a placeholder for future filler —
+            stays empty until Community/Opportunities (Step 7-8) land real content. */}
+        <div className="flex-1 flex flex-col items-center justify-start min-w-0 pt-32">
           <CommunityPreview />
         </div>
 
