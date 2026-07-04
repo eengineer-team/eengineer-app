@@ -10,7 +10,7 @@
 - [ ] **Шаг 1.5** — Custom UI design (Claude Design, человеческий gate) — не проверяется в коде
 - [x] **Шаг 2** — Welcome-страница — done (декоративный EngineeringCanvas удалён, правая колонка намеренно пустует сверху — см. журнал сессий)
 - [x] **Шаг 3** — Help-страница (accordion, 4 FAQ) — done
-- [ ] **Шаг 4** — Signup / Login (AuthForm, OAuth-моки) — not started (`Auth.tsx` — заглушка)
+- [x] **Шаг 4** — Signup / Login (AuthForm, OAuth-моки) — done (`components/ui/sign-in.tsx` рескин, `lib/auth-context.tsx` мок-сессии)
 - [ ] **Шаг 5** — Post-auth shell (сайдбар, хедер) — not started (`Dashboard.tsx` — заглушка)
 - [ ] **Шаг 6** — Лендинг дашборда (Joined Clubs, Calendar, Post a Project) — not started
 - [ ] **Шаг 7** — Community (Q&A, Webinars, My Network) — not started
@@ -37,3 +37,4 @@
 
 - 2026-07-04 — git инициализирован, документация перенесена в `docs/`, аудит Шагов 0–14 проведён, обнаружен конфликт EngineeringCanvas vs "отклонённые паттерны", создан этот файл.
 - 2026-07-04 — финальное решение по правой колонке Welcome: `EngineeringCanvas` удалён из `Welcome.tsx` и из кодовой базы, замены не добавлено, верхний padding карточки увеличен до `pt-32` — пустота задокументирована как намеренная.
+- 2026-07-04 — Шаг 4 реализован: `/auth` страница (`Auth.tsx`) с рескиненным `AuthForm` (`components/ui/sign-in.tsx`) под cornsilk-палитру; добавлены `ui/card.tsx`, `ui/input.tsx`, `ui/label.tsx`; GitHub/LinkedIn/Google — inline SVG-бренд-марки (lucide-react 1.x не содержит бренд-иконок). Мок-OAuth через `lib/auth-context.tsx`: GitHub/LinkedIn → persisted Builder-сессия (localStorage), Google → stateless preview (только in-memory, ничего не сохраняется). Email/password форма визуально присутствует по референсу, но логика мокнута как эквивалент GitHub-сайнина (нет отдельного backend). Проверено Playwright-скриптом: обе mode-варианты рендерятся, password show/hide переключается, клик по GitHub уводит на `/dashboard` без console errors.
