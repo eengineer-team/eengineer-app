@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { CommunityPreview } from '@/components/CommunityPreview'
+import { TeamAbout } from '@/components/TeamAbout'
 import { SettingsMenu } from '@/components/SettingsMenu'
 import { Button } from '@/components/ui/button'
 
@@ -179,6 +180,8 @@ export function Welcome() {
         </div>
 
       </main>
+
+      <TeamAbout />
 
       {/* Footer — contact, unchanged email */}
       <motion.footer
