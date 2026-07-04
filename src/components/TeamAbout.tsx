@@ -80,7 +80,7 @@ function MemberPhoto({ name, photo }: { name: string; photo: string }) {
       src={photo}
       alt={name}
       onError={() => setFailed(true)}
-      className="w-full aspect-square sm:w-[180px] sm:h-[180px] sm:aspect-auto rounded-xl object-cover flex-shrink-0"
+      className="w-full aspect-square sm:w-[180px] sm:h-[180px] sm:aspect-auto rounded-xl object-cover flex-shrink-0 [filter:sepia(0.10)_saturate(0.92)_contrast(1.02)]"
     />
   )
 }
