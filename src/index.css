@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    background: #FFF8DC;
+    color: #2A2118;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .hover-white-tint {
+    transition: background-color 150ms ease;
+  }
+  .hover-white-tint:hover {
+    background-color: rgba(255, 255, 255, 0.07);
+  }
+}
+
+/* ─── Accordion animation — grid-template-rows trick ─────────────────────────
+   No JS height measurement. Radix sets data-state on the Content element.
+   The outer element transitions grid-template-rows 0fr→1fr.
+   The inner element has overflow:hidden so content is clipped during transition.
+   ─────────────────────────────────────────────────────────────────────────── */
+.acc-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.acc-content[data-state="open"] {
+  grid-template-rows: 1fr;
+}
+.acc-content-body {
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Answer text: fades in with upward drift, delayed 0.1s after height starts */
+.acc-answer {
+  opacity: 0;
+  transform: translateY(-5px);
+  transition:
+    opacity  0.28s ease 0.1s,
+    transform 0.28s ease 0.1s;
+}
+.acc-content[data-state="open"] .acc-answer {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Plus icon: rotates 45° → becomes ×, synced with grid transition */
+.acc-icon {
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+[data-state="open"] .acc-icon {
+  transform: rotate(45deg);
+}
