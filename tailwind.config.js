@@ -42,6 +42,7 @@ export default {
       },
       backgroundImage: {
         'corn-subtle': 'radial-gradient(ellipse 80% 60% at 70% 40%, #FFF8DC 0%, #FAF4CC 60%, #F0E8AA 100%)',
+        'dark-radial': 'radial-gradient(ellipse 90% 70% at 75% 0%, #1C1C24 0%, #111118 55%, #08080F 100%)',
       },
       animation: {
         'float-slow': 'float 8s ease-in-out infinite',
