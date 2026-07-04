@@ -14,6 +14,8 @@ const buttonVariants = cva(
         ghost:   'border border-corn-900/30 text-corn-900 hover:bg-corn-900/8 active:bg-corn-900/12',
         // Post-auth white-tint (used in dark shell)
         shell:   'text-white/80 hover:bg-white/7 active:bg-white/12',
+        // Post-auth solid CTA (amber accent, dark shell)
+        accent:  'bg-corn-700 text-white hover:bg-corn-600 active:bg-corn-800',
       },
       size: {
         sm:   'px-4 py-2 text-sm rounded',

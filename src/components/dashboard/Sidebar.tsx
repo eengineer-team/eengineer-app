@@ -1,31 +1,24 @@
 import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle } from 'lucide-react'
-import { Link } from 'react-router-dom'
-
-export type DashboardSection = 'home' | 'community' | 'opportunities' | 'profiles' | 'calendar' | 'messages'
+import { Link, NavLink } from 'react-router-dom'
 
 interface NavItem {
-  id: DashboardSection
+  to: string
+  end?: boolean
   label: string
   icon: typeof Home
 }
 
 // Community listed first among sections (after Home) — spec: highest-priority product surface.
 const NAV_ITEMS: NavItem[] = [
-  { id: 'home', label: 'Home', icon: Home },
-  { id: 'community', label: 'Community', icon: Users },
-  { id: 'opportunities', label: 'Opportunities', icon: Briefcase },
-  { id: 'profiles', label: 'Profiles', icon: UserCircle },
-  { id: 'calendar', label: 'Calendar', icon: CalendarDays },
-  { id: 'messages', label: 'Messages', icon: MessageSquare },
+  { to: '/dashboard', end: true, label: 'Home', icon: Home },
+  { to: '/dashboard/community', label: 'Community', icon: Users },
+  { to: '/dashboard/opportunities', label: 'Opportunities', icon: Briefcase },
+  { to: '/dashboard/profiles', label: 'Profiles', icon: UserCircle },
+  { to: '/dashboard/calendar', label: 'Calendar', icon: CalendarDays },
+  { to: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
 ]
 
-export function Sidebar({
-  active,
-  onSelect,
-}: {
-  active: DashboardSection
-  onSelect: (section: DashboardSection) => void
-}) {
+export function Sidebar() {
   return (
     <aside className="w-[220px] flex-shrink-0 h-screen sticky top-0 flex flex-col border-r border-white/8 px-4 py-6">
       {/* Brand */}
@@ -42,19 +35,20 @@ export function Sidebar({
       <nav className="flex-1 flex flex-col gap-1">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon
-          const isActive = active === item.id
           return (
-            <button
-              key={item.id}
-              onClick={() => onSelect(item.id)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded font-sans text-[0.8125rem] font-medium transition-colors duration-150 ${
-                isActive ? 'bg-white/8 text-white' : 'text-white/55 hover-white-tint hover:text-white/90'
-              }`}
-              aria-current={isActive ? 'page' : undefined}
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded font-sans text-[0.8125rem] font-medium transition-colors duration-150 ${
+                  isActive ? 'bg-white/8 text-white' : 'text-white/55 hover-white-tint hover:text-white/90'
+                }`
+              }
             >
               <Icon size={16} strokeWidth={1.8} />
               {item.label}
-            </button>
+            </NavLink>
           )
         })}
       </nav>
