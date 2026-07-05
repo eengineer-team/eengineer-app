@@ -2,6 +2,7 @@ import { CalendarDays, Users, Plus } from 'lucide-react'
 import { JoinedClubs } from '@/components/dashboard/JoinedClubs'
 import { CompetitionCalendar } from '@/components/dashboard/CompetitionCalendar'
 import { Button } from '@/components/ui/button'
+import { Link } from 'react-router-dom'
 
 export function DashboardHome() {
   return (
@@ -12,10 +13,15 @@ export function DashboardHome() {
           <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-white/45">
             Overview
           </span>
-          {/* [DEFERRED] Post a Project — UI hook only, flow not implemented yet */}
-          <Button variant="shell" size="sm" disabled title="Coming soon">
-            <Plus size={14} strokeWidth={2} />
-            Post a Project
+          {/* [DEFERRED] Post a Project — the button is a real, mounted UI hook
+              per spec (Шаг 6 / Шаг 13): it must lead somewhere ("Coming soon"),
+              not just sit disabled with no destination. The submission flow
+              itself is intentionally not implemented. */}
+          <Button variant="shell" size="sm" asChild>
+            <Link to="/dashboard/projects/new">
+              <Plus size={14} strokeWidth={2} />
+              Post a Project
+            </Link>
           </Button>
         </div>
 

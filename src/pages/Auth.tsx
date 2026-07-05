@@ -25,10 +25,16 @@ export function Auth() {
     setLoadingProvider(provider)
     window.setTimeout(() => {
       signInWithProvider(provider)
-      // Preview lacks dashboard:home:view, so landing on the index route would
-      // immediately bounce back here via RequireAction — send it to a route
-      // preview can actually reach instead.
-      navigate(provider === 'google' ? '/dashboard/community' : '/dashboard')
+      if (provider === 'google') {
+        // Preview lacks dashboard:home:view, so landing on the index route
+        // would immediately bounce back here via RequireAction — send it to
+        // a route preview can actually reach instead.
+        navigate('/dashboard/community')
+      } else {
+        // New Builders pass through the (deferred, Step 13) onboarding hook
+        // first; returning Builders logging in skip straight to the dashboard.
+        navigate(mode === 'signup' ? '/onboarding' : '/dashboard')
+      }
     }, 500)
   }
 
@@ -38,7 +44,7 @@ export function Auth() {
     setLoadingProvider('email')
     window.setTimeout(() => {
       signInWithProvider('github')
-      navigate('/dashboard')
+      navigate(mode === 'signup' ? '/onboarding' : '/dashboard')
     }, 500)
   }
 

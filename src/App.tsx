@@ -3,12 +3,20 @@ import { ThemeProvider } from 'next-themes'
 import { AuthProvider } from '@/lib/auth-context'
 import { Welcome } from '@/pages/Welcome'
 import { Auth } from '@/pages/Auth'
+import { Onboarding } from '@/pages/Onboarding'
 import { Help } from '@/pages/Help'
 import { Dashboard } from '@/pages/Dashboard'
 import { DashboardHome } from '@/pages/dashboard/DashboardHome'
 import { Community } from '@/pages/dashboard/Community'
 import { Opportunities } from '@/pages/dashboard/Opportunities'
 import { PlaceholderSection } from '@/pages/dashboard/PlaceholderSection'
+import { ProfilesLayout } from '@/pages/dashboard/profiles/ProfilesLayout'
+import { ProfilesList } from '@/pages/dashboard/profiles/ProfilesList'
+import { ProfileDetail } from '@/pages/dashboard/profiles/ProfileDetail'
+import { Calendar } from '@/pages/dashboard/Calendar'
+import { Messages } from '@/pages/dashboard/Messages'
+import { Terms } from '@/pages/legal/Terms'
+import { Privacy } from '@/pages/legal/Privacy'
 import { RequireAction } from '@/components/dashboard/RequireAction'
 import './index.css'
 
@@ -20,6 +28,7 @@ export default function App() {
           <Routes>
             <Route path="/"     element={<Welcome />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/help" element={<Help />} />
             <Route path="/dashboard" element={<Dashboard />}>
               <Route
@@ -33,17 +42,26 @@ export default function App() {
               />
               <Route
                 path="profiles"
-                element={<RequireAction action="profiles:view"><PlaceholderSection label="Profiles" /></RequireAction>}
-              />
+                element={<RequireAction action="profiles:view"><ProfilesLayout /></RequireAction>}
+              >
+                <Route index element={<ProfilesList />} />
+                <Route path=":id" element={<ProfileDetail />} />
+              </Route>
               <Route
                 path="calendar"
-                element={<RequireAction action="calendar:view"><PlaceholderSection label="Competition Calendar" /></RequireAction>}
+                element={<RequireAction action="calendar:view"><Calendar /></RequireAction>}
               />
               <Route
                 path="messages"
-                element={<RequireAction action="messages:view"><PlaceholderSection label="Messages" /></RequireAction>}
+                element={<RequireAction action="messages:view"><Messages /></RequireAction>}
+              />
+              <Route
+                path="projects/new"
+                element={<PlaceholderSection label="Post a Project" />}
               />
             </Route>
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
