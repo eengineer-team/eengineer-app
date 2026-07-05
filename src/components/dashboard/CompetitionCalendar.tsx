@@ -91,7 +91,7 @@ export function CompetitionCalendar() {
 
         <div className="grid grid-cols-7 gap-y-1.5 mb-1">
           {WEEKDAYS.map((wd) => (
-            <span key={wd} className="font-sans text-[10px] text-white/30 text-center">
+            <span key={wd} className="font-sans text-[10px] text-white/70 text-center">
               {wd}
             </span>
           ))}
