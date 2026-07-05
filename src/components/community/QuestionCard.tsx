@@ -1,11 +1,8 @@
 import * as React from 'react'
 import { ThumbsUp, ThumbsDown, Flag, MessageCircle } from 'lucide-react'
 import type { Question } from '@/lib/community-data'
-
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/)
-  return parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : name.slice(0, 2).toUpperCase()
-}
+import { Avatar } from '@/components/ui/avatar'
+import { Chip } from '@/components/ui/chip'
 
 export function QuestionCard({
   question,
@@ -34,19 +31,15 @@ export function QuestionCard({
     <div className="bg-white/[0.03] border border-white/8 rounded-lg p-5">
       {/* Header */}
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-8 h-8 rounded-full bg-corn-700/80 flex items-center justify-center flex-shrink-0">
-          <span className="font-display text-[0.6875rem] font-bold text-white leading-none">
-            {initials(question.author)}
-          </span>
-        </div>
+        <Avatar name={question.author} size="sm" theme="dashboard" />
         <div className="min-w-0">
           <div className="font-sans text-[0.8125rem] font-medium text-white/90 leading-tight">
             {question.author}
           </div>
         </div>
-        <span className="ml-auto font-sans text-[10px] tracking-wide text-white/50 bg-white/6 border border-white/10 rounded-sm px-2 py-0.5 flex-shrink-0">
+        <Chip theme="dashboard" className="ml-auto flex-shrink-0">
           {question.category}
-        </span>
+        </Chip>
       </div>
 
       {/* Question text */}
@@ -102,11 +95,7 @@ export function QuestionCard({
         <div className="mt-4 pt-4 border-t border-white/8 flex flex-col gap-3">
           {question.comments.map((c) => (
             <div key={c.id} className="flex gap-2.5">
-              <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-                <span className="font-display text-[9px] font-bold text-white/80 leading-none">
-                  {initials(c.author)}
-                </span>
-              </div>
+              <Avatar name={c.author} size="sm" theme="dashboard" className="bg-white/10 text-white/80" />
               <div>
                 <span className="font-sans text-[0.75rem] font-medium text-white/80">{c.author}</span>
                 <p className="font-sans text-[0.8125rem] text-white/70 leading-snug">{c.text}</p>

@@ -1,7 +1,8 @@
 import * as React from 'react'
-import { Users } from 'lucide-react'
+import { Users, Check } from 'lucide-react'
 import { SEED_WEBINARS, type Webinar } from '@/lib/community-data'
 import { Button } from '@/components/ui/button'
+import { LabelCaps } from '@/components/ui/label-caps'
 
 function WebinarCard({ webinar, onToggle }: { webinar: Webinar; onToggle: (id: string) => void }) {
   return (
@@ -19,10 +20,11 @@ function WebinarCard({ webinar, onToggle }: { webinar: Webinar; onToggle: (id: s
           <span className="font-sans text-[11px]">{webinar.attending} attending</span>
         </div>
         <Button
-          variant={webinar.registered ? 'shell' : 'accent'}
+          variant={webinar.registered ? 'done' : 'accent'}
           size="sm"
           onClick={() => onToggle(webinar.id)}
         >
+          {webinar.registered && <Check size={14} strokeWidth={2.2} />}
           {webinar.registered ? 'Registered' : 'Register'}
         </Button>
       </div>
@@ -53,9 +55,7 @@ export function Webinars() {
     <div className="flex flex-col gap-8">
       {Array.from(byDiscipline.entries()).map(([discipline, items]) => (
         <div key={discipline}>
-          <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-white/45 block mb-3">
-            {discipline} webinars
-          </span>
+          <LabelCaps className="block mb-3">{discipline} webinars</LabelCaps>
           <div className="flex flex-col gap-3">
             {items.map((w) => (
               <WebinarCard key={w.id} webinar={w} onToggle={toggleRegistration} />

@@ -49,22 +49,72 @@
 
 ## Шаг 1 — Дизайн-токены и две визуальные темы
 
+> **ВАЖНО (04.07.2026):** токены живут в `tailwind.config.js` (палитры `corn-*`,
+> `dark-*`, `gold-dark`). Это ЕДИНСТВЕННЫЙ источник цвета. Нигде в шагах 2–14 не
+> хардкодь hex (`text-[#2A2118]` и т.п.) — всегда ссылайся на токен-класс
+> (`text-corn-900`, `bg-dark-surface`). Нужного значения нет → сначала добавь в
+> конфиг, потом используй. Любой цвет в коде обязан быть трассируем до токена.
+>
+> **Текущий факт (из ревизии кода 04.07):** до этой правки часть значений жила
+> хардкодом — `card.tsx` содержал `text-[#2A2118]` (≈ но ≠ corn-900), фон карточки
+> `bg-white/65`; кнопки Register/Connect использовали `corn-700 #8B6914`, тогда как
+> на тёмных экранах золото выглядело светлее. Это и есть источник разъезжания.
+> Ниже — приведение к токенам.
+
 ```
-Определи в Tailwind config (или CSS-переменных) два независимых визуальных языка:
+Тема определяется РОУТОМ, не статусом входа (зафиксировано):
+  /, /help, /auth   → тема "welcome" — палитра corn-* (cornsilk фон corn-100)
+  /dashboard/*      → тема "dashboard" — палитра dark-* (фон bg-dark-radial),
+                      включая Google-preview гостей
 
-1. Pre-auth ("welcome") тема:
-   - background: cornsilk
-   - остальные элементы (кнопки, текст, карточки) должны цветово гармонировать с cornsilk,
-     не вводи произвольные яркие цвета вне этой палитры
+Не объединяй темы, не ищи компромисс — два разных identity для двух состояний.
+```
 
-2. Post-auth ("dashboard") тема:
-   - background: глубокий тёмный цвет со smooth radial gradient
-   - НЕ добавляй grid lines, borders или path lines на этом фоне
-   - все interactive-элементы (кнопки, nav items) должны иметь white-tinted hover state —
-     сделай это переиспользуемым Tailwind-классом/variant, не дублируй inline
+### 1.1 — Токены темы "welcome" (уже в конфиге, corn-*)
 
-Это два разных визуальных identity для двух разных состояний (pre-auth / post-auth).
-Не объединяй их в одну тему и не пытайся находить компромиссный стиль между ними.
+```
+Фон страницы:      bg-corn-100  (#FFF8DC) или bg-corn-subtle (radial)
+Поверхность карт.: используй светлый corn (см. Card в Шаге 1.6) — НЕ bg-white/65 хардкодом
+Основной текст:    text-corn-900  (#1A1208)
+Заголовки:         text-corn-900  + font-display
+Вторичный текст:   text-corn-800  (#5C4A1E) — не светлее, иначе тонет на cornsilk
+Акцент (gold):     corn-700  (#8B6914) — лейблы-капсы, ссылки, primary-кнопка welcome
+Hairline:          border-corn-900/10  или /14
+```
+
+### 1.2 — Токены темы "dashboard" (ДОСТРОЕНЫ в конфиге, dark-*)
+
+```
+Фон:               bg-dark-900 + bg-dark-radial (чистый radial, БЕЗ grid/borders/path lines)
+Поверхность карт.: bg-dark-surface   (#16150F)
+Вложенная поверх.: bg-dark-surface2  (#1E1C14) — комментарий/ответ внутри карточки
+Основной текст:    text-dark-text    (#F5F0DF) — и заголовки тоже
+Вторичный текст:   text-dark-muted   (#B8AE93) — спикеры, локации, "N mutual", requirements.
+                   ВАЖНО: осознанно светлый. Прошлая проблема — muted тонул на тёмном.
+                   Не опускай ниже этого значения.
+Акцент (gold):     text-gold-dark / bg-gold-dark  (#C79A3A) — кнопки, активная вкладка,
+                   дедлайн-бейджи. НЕ corn-700 (он тускнеет на тёмном).
+Hairline:          border-white/10
+Hover interactive: hover:bg-white/6  (white-tinted, единый паттерн — вынеси в variant)
+```
+
+### 1.3 — Типографика (общая для обеих тем)
+
+```
+font-display: Syne (weight 800)      — hero, имена, заголовки-акценты
+font-sans:    Space Grotesk (400–500) — body, UI
+Роли размеров (уже в конфиге fontSize): display / display-sm / heading / label.
+label (капс-лейблы TRUST/SKILLS/OVERVIEW): text-label, uppercase, tracking, weight 500,
+  цвет corn-700 (welcome) / dark-muted (dashboard).
+```
+
+### 1.4 — Radii (договорённость, дефолтный Tailwind-скейл)
+
+```
+chips/бейджи:  rounded      (0.25rem)
+кнопки/инпуты: rounded      (0.25rem) — как сейчас в button.tsx
+карточки:      rounded-lg   (0.5rem)  — как сейчас в card.tsx
+Держи эти три единообразно, не вводи произвольные rounded-* по месту.
 ```
 
 ---
@@ -92,6 +142,101 @@
 "аккордеон", "диалог без оверлея", "календарь с точками дедлайнов"), а не
 как код/пакет для установки.
 ```
+
+---
+
+## Шаг 1.6 — Компонентный слой (component specs)
+
+> **Причина (04.07.2026, по ревизии кода):** `button.tsx` уже cva-компонент, но
+> варианты неполные (нет `done`-состояния); `card.tsx` содержит хардкод
+> (`text-[#2A2118]`, `bg-white/65`); Avatar/Chip/Tag НЕ существуют. Из-за этого
+> экраны собирают элементы по-разному → разнобой (Register vs Registered).
+> Ниже — привести существующие компоненты к полному виду и создать недостающие.
+> Всё на токенах Шага 1, оба-темных через `dark:`-варианты или отдельные variant.
+>
+> **Правило:** one-off кнопки/карточки/чипы запрещены. Нужен вариант, которого
+> нет → добавь в компонент, потом используй. Не изобретай вид на месте.
+
+### Button — расширить существующий `src/components/ui/button.tsx`
+
+```
+Существующие варианты (оставить): primary, ghost, shell, accent.
+ПРИВЕСТИ К ТОКЕНАМ:
+  accent (dashboard CTA) — сейчас 'bg-corn-700 text-white ...'.
+    Заменить на золото тёмной темы: 'bg-gold-dark text-dark-900 hover:brightness-110'.
+    (corn-700 тускнеет на тёмном; gold-dark #C79A3A — правильное золото дашборда.)
+
+ДОБАВИТЬ недостающее состояние `done` (через новый variant или prop state):
+  done — ЗАВЕРШЁННОЕ действие. НЕ серый, НЕ похоже на disabled.
+    welcome:   'bg-transparent border border-corn-700 text-corn-700'
+    dashboard: 'bg-transparent border border-gold-dark text-gold-dark'
+    + ведущая иконка-галочка (lucide Check) слева.
+    Применение: "Registered" (вебинар, куда записан), "Connected" (уже в сети).
+    Читается как ДОСТИЖЕНИЕ.
+
+КРИТИЧНО: Register↔Registered и Connect↔Connected — ОДНА кнопка в двух состояниях
+(accent → done), НЕ две разные кнопки. Не рисуй "выполнено" серым текстом.
+
+Размеры (size) — оставить существующие sm/md/lg/icon как есть.
+```
+
+### Card — переписать `src/components/ui/card.tsx` (убрать хардкод)
+
+```
+Card контейнер — заменить хардкод на токены, сделать тема-зависимым:
+  welcome:   'bg-corn-50 border border-corn-900/10 rounded-lg'
+  dashboard: 'bg-dark-surface border border-white/10 rounded-lg'
+  (убрать 'bg-white/65' и backdrop-blur как дефолт — или оставить blur опцией
+   только для welcome-стекла, но НЕ хардкодить в базовом Card.)
+CardTitle — заменить 'text-[#2A2118] text-[1.5rem]' на:
+  'font-display font-bold text-corn-900 dark:text-dark-text text-heading'
+CardDescription — заменить 'text-corn-700' на:
+  'text-corn-800 dark:text-dark-muted' (вторичный текст обеих тем)
+Вложенная поверхность (ответ/коммент внутри карточки): bg-dark-surface2 на дашборде,
+  с отступом сверху и hairline над ней.
+gap между карточками в списке: 20px (space-y-5).
+```
+
+### Chip / Tag — СОЗДАТЬ `src/components/ui/chip.tsx` (не существует)
+
+```
+Дисциплины (Aerospace/Software) и скиллы (CFD Analysis, MATLAB):
+  welcome:   'bg-corn-900/6 text-corn-800 rounded px-2.5 py-0.5 text-xs'
+  dashboard: 'bg-white/6 text-dark-muted rounded px-2.5 py-0.5 text-xs'
+Вариант deadline-бейдж (Opportunities/Calendar): текст/рамка gold-dark.
+```
+
+### Avatar — СОЗДАТЬ `src/components/ui/avatar.tsx` (не существует)
+
+```
+Кружок с инициалами (пока нет фото) или фото (object-cover):
+  заглушка: 'rounded-full bg-corn-900 dark:bg-[#2E2416] text-corn-100 font-medium
+             flex items-center justify-center'
+  размеры: sm 30px (комментарии), md 44px (карточки/строки сети), lg (профиль).
+  фото: тот же круг, единый кроп; при тонировке — один filter на все.
+```
+
+### Label (caps) — СОЗДАТЬ `src/components/ui/label-caps.tsx` (или использовать text-label)
+
+```
+OVERVIEW / TRUST / SKILLS / CONNECTION REQUESTS / UPCOMING DEADLINES — самый частый паттерн:
+  'text-label uppercase tracking-[0.16em] font-medium text-corn-700 dark:text-dark-muted'
+Один компонент — не набирать капс-лейблы вручную с разным трекингом.
+(Примечание: это НЕ shadcn Label для форм — тот остаётся для инпутов отдельно.)
+```
+
+### Input — привести форм-инпуты к токенам
+
+```
+"Type your question below", "Write a comment…", auth-поля:
+  welcome:   'bg-corn-50 border border-corn-900/14 focus:border-corn-700 rounded'
+  dashboard: 'bg-dark-surface2 border border-white/10 focus:border-gold-dark rounded'
+  текст: text-corn-900 dark:text-dark-text; placeholder: text-corn-800/60 dark:text-dark-muted/70
+```
+
+> **Definition of done Шага 1.6:** button.tsx имеет state=done; card.tsx без хардкода,
+> тема-зависимый; созданы chip.tsx, avatar.tsx, label-caps.tsx; все на токенах, обе
+> темы. Никакой экран в шагах 2–14 не собирает эти элементы заново вручную.
 
 ---
 
@@ -426,4 +571,11 @@ Google-preview пользователи не имеют роли — это ст
 4. Прогони responsive-проверку на мобильной ширине.
 5. Составь итоговый список известных ограничений (моки вместо реального
    OAuth/AI-matching/edugrants API, если они ещё не подключены боевыми ключами).
+6. Аудит компонентного слоя (Шаг 1.6): пройди по всем экранам и убедись, что
+   кнопки/карточки/чипы/аватары/лейблы/инпуты собраны ИЗ спеков Шага 1.6, а не
+   как one-off. Частая точка провала — «выполненные» состояния (Registered,
+   Connected): они должны быть state=done (акцентная обводка + галочка), НЕ
+   серый текст, похожий на disabled.
+7. Аудит токенов: убедись, что нигде в компонентах нет хардкод-hex/px/font-family
+   в обход именованных токенов Шага 1. Любой цвет обязан быть трассируем до токена.
 ```

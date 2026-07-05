@@ -25,13 +25,24 @@ export default {
           800: '#5C4A1E',  // warm brown secondary text
           900: '#1A1208',  // primary text
         },
-        // Post-auth dark palette (for later phases)
+        // Post-auth dark palette
         dark: {
           50:  '#1C1C24',
           100: '#16161E',
           200: '#111118',
           300: '#0D0D14',
-          900: '#08080F',
+          900: '#08080F',   // base under radial gradient
+          // Semantic tokens (card/text/muted) — everything on dark screens
+          // must trace to one of these, not a one-off hex/opacity.
+          surface:  '#16150F',  // card/panel surface on dark
+          surface2: '#1E1C14',  // nested surface (comment/reply inside a card)
+          text:     '#F5F0DF',  // primary text and headings on dark
+          muted:    '#B8AE93',  // secondary text — deliberately light, don't dim further
+        },
+        // Dashboard gold — corn-700 dims on dark backgrounds, dashboard CTAs
+        // (Register/Connect/deadline badges) use this lighter gold instead.
+        gold: {
+          dark: '#C79A3A',
         },
       },
       fontSize: {

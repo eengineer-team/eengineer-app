@@ -1,12 +1,10 @@
 import * as React from 'react'
 import { Users, Check, X } from 'lucide-react'
 import { SEED_NETWORK, type NetworkProfile } from '@/lib/community-data'
-import { Button } from '@/components/ui/button'
-
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/)
-  return parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : name.slice(0, 2).toUpperCase()
-}
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Avatar } from '@/components/ui/avatar'
+import { LabelCaps } from '@/components/ui/label-caps'
+import { cn } from '@/lib/utils'
 
 function ProfileCard({
   profile,
@@ -21,11 +19,7 @@ function ProfileCard({
 }) {
   return (
     <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4 flex items-center gap-4">
-      <div className="w-10 h-10 rounded-full bg-corn-700/80 flex items-center justify-center flex-shrink-0">
-        <span className="font-display text-[0.75rem] font-bold text-white leading-none">
-          {initials(profile.name)}
-        </span>
-      </div>
+      <Avatar name={profile.name} size="md" theme="dashboard" />
 
       <div className="flex-1 min-w-0">
         <div className="font-sans text-[0.875rem] font-semibold text-white/90 leading-tight">
@@ -49,8 +43,13 @@ function ProfileCard({
             Requested
           </Button>
         )}
+        {/* Not a real disabled state — connected is a reached achievement, not a
+            blocked action, so this skips Button's disabled:opacity-40 styling. */}
         {profile.status === 'connected' && (
-          <span className="font-sans text-[12px] text-white/45">Connected</span>
+          <span className={cn(buttonVariants({ variant: 'done', size: 'sm' }), 'pointer-events-none')}>
+            <Check size={14} strokeWidth={2.2} />
+            Connected
+          </span>
         )}
         {profile.status === 'incoming' && (
           <div className="flex items-center gap-1.5">
@@ -94,9 +93,7 @@ export function Network() {
     <div className="flex flex-col gap-8">
       {incoming.length > 0 && (
         <div>
-          <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-white/45 block mb-3">
-            Connection requests
-          </span>
+          <LabelCaps className="block mb-3">Connection requests</LabelCaps>
           <div className="flex flex-col gap-3">
             {incoming.map((p) => (
               <ProfileCard
@@ -112,9 +109,7 @@ export function Network() {
       )}
 
       <div>
-        <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-white/45 block mb-3">
-          My Network
-        </span>
+        <LabelCaps className="block mb-3">My Network</LabelCaps>
         <div className="flex flex-col gap-3">
           {rest.map((p) => (
             <ProfileCard

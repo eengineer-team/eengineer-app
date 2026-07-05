@@ -4,6 +4,7 @@ import { SEED_QUESTIONS, type Discipline, type Question } from '@/lib/community-
 import { QuestionCard } from '@/components/community/QuestionCard'
 import { NewQuestionDialog } from '@/components/community/NewQuestionDialog'
 import { Button } from '@/components/ui/button'
+import { LabelCaps } from '@/components/ui/label-caps'
 
 let nextId = SEED_QUESTIONS.length + 1
 
@@ -64,9 +65,7 @@ export function QAFeed({ readOnly = false }: { readOnly?: boolean }) {
   return (
     <div>
       <div className="relative flex items-center justify-between mb-6">
-        <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-white/45">
-          Single feed · no subcategories
-        </span>
+        <LabelCaps>Single feed · no subcategories</LabelCaps>
         {!readOnly && (
           <Button variant="accent" size="sm" onClick={() => setDialogOpen((v) => !v)}>
             <Plus size={14} strokeWidth={2} />
