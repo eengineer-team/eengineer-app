@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Send } from 'lucide-react'
+import { ArrowLeft, Send } from 'lucide-react'
 import { SEED_CONVERSATIONS, type Conversation } from '@/lib/messages-data'
 import { Avatar } from '@/components/ui/avatar'
 import { LabelCaps } from '@/components/ui/label-caps'
@@ -14,11 +14,17 @@ export function Messages() {
   const [conversations, setConversations] = React.useState<Conversation[]>(SEED_CONVERSATIONS)
   const [activeId, setActiveId] = React.useState<string>(SEED_CONVERSATIONS[0]?.id ?? '')
   const [draft, setDraft] = React.useState('')
+  // Below md there's no room for a fixed 280px list beside the thread — this
+  // switches which single pane is visible on narrow screens (master-detail
+  // pattern), same idea as the main Sidebar's off-canvas toggle. From md up,
+  // both panes always show side by side regardless of this state.
+  const [mobileView, setMobileView] = React.useState<'list' | 'thread'>('list')
 
   const active = conversations.find((c) => c.id === activeId)
 
   function openConversation(id: string) {
     setActiveId(id)
+    setMobileView('thread')
     setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)))
   }
 
@@ -43,8 +49,11 @@ export function Messages() {
 
   return (
     <div className="flex-1 flex min-h-0">
-      {/* Conversation list */}
-      <div className="w-[280px] flex-shrink-0 border-r border-white/8 flex flex-col">
+      {/* Conversation list — full width on mobile when active, fixed 280px
+          column alongside the thread from md up. */}
+      <div
+        className={`${mobileView === 'thread' ? 'hidden' : 'flex'} md:flex w-full md:w-[280px] md:flex-shrink-0 border-r border-white/8 flex-col`}
+      >
         <div className="px-5 py-5">
           <LabelCaps>Messages</LabelCaps>
         </div>
@@ -76,10 +85,18 @@ export function Messages() {
         </div>
       </div>
 
-      {/* Thread */}
+      {/* Thread — hidden on mobile until a conversation is opened; the back
+          button (mobile-only) returns to the list instead of stacking panes. */}
       {active ? (
-        <div className="flex-1 flex flex-col min-w-0">
-          <div className="flex items-center gap-3 px-6 py-4 border-b border-white/8">
+        <div className={`${mobileView === 'list' ? 'hidden' : 'flex'} md:flex flex-1 flex-col min-w-0`}>
+          <div className="flex items-center gap-3 px-4 md:px-6 py-4 border-b border-white/8">
+            <button
+              onClick={() => setMobileView('list')}
+              aria-label="Back to conversations"
+              className="md:hidden w-8 h-8 flex-shrink-0 flex items-center justify-center text-white/60 hover:text-white/90 hover-white-tint rounded transition-colors"
+            >
+              <ArrowLeft size={16} strokeWidth={1.8} />
+            </button>
             <Avatar name={active.withName} theme="dashboard" size="sm" />
             <div>
               <div className="font-sans text-[0.875rem] font-semibold text-white/90 leading-tight">{active.withName}</div>
@@ -87,11 +104,11 @@ export function Messages() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-3">
+          <div className="flex-1 overflow-y-auto px-4 md:px-6 py-5 flex flex-col gap-3">
             {active.messages.map((m) => (
               <div key={m.id} className={`flex flex-col ${m.from === 'me' ? 'items-end' : 'items-start'}`}>
                 <div
-                  className={`max-w-[70%] rounded-lg px-3.5 py-2.5 font-sans text-[0.8125rem] leading-snug ${
+                  className={`max-w-[85%] sm:max-w-[70%] rounded-lg px-3.5 py-2.5 font-sans text-[0.8125rem] leading-snug ${
                     m.from === 'me' ? 'bg-gold-dark/15 border border-gold-dark/25 text-white/90' : 'bg-white/6 text-white/85'
                   }`}
                 >
@@ -102,13 +119,13 @@ export function Messages() {
             ))}
           </div>
 
-          <div className="flex items-center gap-2 px-6 py-4 border-t border-white/8">
+          <div className="flex items-center gap-2 px-4 md:px-6 py-4 border-t border-white/8">
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
               placeholder="Write a message…"
-              className="flex-1 bg-white/5 border border-white/10 rounded px-3.5 py-2.5 font-sans text-[0.8125rem] text-white/90 placeholder:text-white/35 focus:outline-none focus:border-white/25"
+              className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded px-3.5 py-2.5 font-sans text-[0.8125rem] text-white/90 placeholder:text-white/35 focus:outline-none focus:border-white/25"
             />
             <button
               onClick={sendMessage}
@@ -121,7 +138,7 @@ export function Messages() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex items-center justify-center">
+        <div className={`${mobileView === 'list' ? 'hidden' : 'flex'} md:flex flex-1 items-center justify-center`}>
           <p className="font-sans text-white/40 text-sm">No conversations yet.</p>
         </div>
       )}

@@ -41,7 +41,7 @@ export function Welcome() {
     <div className="min-h-screen bg-corn-100 flex flex-col">
 
       {/* Top bar */}
-      <header className="flex items-center justify-between px-10 pt-8 pb-0">
+      <header className="flex items-center justify-between px-5 sm:px-10 pt-6 sm:pt-8 pb-0">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -67,15 +67,19 @@ export function Welcome() {
         </motion.div>
       </header>
 
-      {/* Main two-column layout */}
-      <main className="flex-1 flex items-center px-10 py-12 gap-16">
+      {/* Main two-column layout — stacked on mobile/tablet (no room for two
+          columns below ~1024px), side-by-side only from lg: up. Below lg,
+          flex-shrink:0 on a 52%-basis column has no fallback and forces
+          overflow, so the row/col switch has to happen together with the
+          column's own width going full-bleed on mobile. */}
+      <main className="flex-1 flex flex-col lg:flex-row lg:items-center px-5 sm:px-10 py-10 lg:py-12 gap-10 lg:gap-16">
 
-        {/* LEFT — text content, ~52% */}
+        {/* LEFT — text content, ~52% from lg: up, full width below that */}
         <motion.div
           variants={stagger}
           initial="hidden"
           animate="show"
-          className="flex-[0_0_52%] max-w-[540px] flex flex-col"
+          className="w-full lg:flex-[0_0_52%] max-w-[540px] flex flex-col"
         >
           {/* Eyebrow */}
           <motion.div variants={fadeUp} transition={{ duration: 0.4 }} className="mb-7">
@@ -172,10 +176,13 @@ export function Welcome() {
           </motion.div>
         </motion.div>
 
-        {/* RIGHT — product artifact, ~48%. Generous top space above the card
-            is intentional breathing room, not a placeholder for future filler —
-            stays empty until Community/Opportunities (Step 7-8) land real content. */}
-        <div className="flex-1 flex flex-col items-center justify-start min-w-0 pt-32">
+        {/* RIGHT — product artifact, ~48% from lg: up. Generous top space
+            above the card is intentional breathing room on desktop, not a
+            placeholder for future filler — stays empty until
+            Community/Opportunities (Step 7-8) land real content. That
+            80px+ top gap is desktop-only breathing room, not needed once
+            the card is already below the hero text on mobile. */}
+        <div className="w-full lg:flex-1 flex flex-col items-center justify-start min-w-0 pt-2 lg:pt-32">
           <CommunityPreview />
         </div>
 
@@ -188,7 +195,7 @@ export function Welcome() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 1.0 }}
-        className="relative z-10 px-10 pb-8 flex items-center justify-between"
+        className="relative z-10 px-5 sm:px-10 pb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
       >
         <div className="flex items-center gap-3">
           <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-corn-700">

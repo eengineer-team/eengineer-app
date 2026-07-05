@@ -50,7 +50,11 @@ export function NewQuestionDialog({
   }
 
   return (
-    <div className="absolute right-0 top-full mt-2 z-40 w-[420px] bg-dark-100 border border-white/12 rounded-lg shadow-[0_12px_40px_rgba(0,0,0,0.5)] p-5">
+    // Below sm: a right-anchored 420px popover would overflow the viewport,
+    // so it becomes viewport-fixed with symmetric side insets on mobile
+    // instead of being anchored to the trigger's container width. From sm:
+    // up it's the original right-anchored popover under the trigger.
+    <div className="fixed inset-x-4 top-20 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 z-40 sm:w-[420px] max-h-[calc(100vh-6rem)] overflow-y-auto bg-dark-100 border border-white/12 rounded-lg shadow-[0_12px_40px_rgba(0,0,0,0.5)] p-5">
       <div className="flex items-center justify-between mb-4">
         <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-white/45">
           New question
