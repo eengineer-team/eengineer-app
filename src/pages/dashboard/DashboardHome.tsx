@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button'
 
 export function DashboardHome() {
   return (
-    <div className="flex-1 flex gap-10 px-8 py-8">
+    <div className="flex-1 flex flex-col md:flex-row gap-8 md:gap-10 px-4 md:px-8 py-6 md:py-8">
       {/* Left column */}
-      <div className="flex-1 max-w-[560px] flex flex-col gap-8">
+      <div className="flex-1 min-w-0 md:max-w-[560px] flex flex-col gap-8">
         <div className="flex items-center justify-between">
           <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-white/45">
             Overview
@@ -23,7 +23,7 @@ export function DashboardHome() {
       </div>
 
       {/* Right column */}
-      <div className="w-[320px] flex-shrink-0 flex flex-col justify-end gap-8">
+      <div className="w-full md:w-[260px] lg:w-[320px] flex-shrink-0 flex flex-col md:justify-end gap-8">
         <CompetitionCalendar />
 
         <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
