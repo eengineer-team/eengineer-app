@@ -2,8 +2,15 @@ import * as React from 'react'
 
 export type OAuthProvider = 'github' | 'linkedin' | 'google'
 
+// Builder is the default role for anyone verified via GitHub/LinkedIn OAuth.
+// Community Lead / Admin / Super Admin are assigned later (Step 11 — no
+// self-assign, no request-via-UI); until that admin flow exists, every mock
+// sign-in lands as a plain Builder. See src/lib/permissions.ts for what each
+// role can do.
+export type Role = 'builder' | 'community-lead' | 'admin' | 'super-admin'
+
 export type AuthUser =
-  | { provider: 'github' | 'linkedin'; status: 'builder'; name: string }
+  | { provider: 'github' | 'linkedin'; status: 'builder'; name: string; role: Role }
   | { provider: 'google'; status: 'preview' }
 
 interface AuthContextValue {
@@ -31,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const parsed = JSON.parse(raw) as AuthUser
       // Google preview is stateless by spec — never restored from storage,
       // even if something stale is somehow present.
-      return parsed.status === 'builder' ? parsed : null
+      return parsed.status === 'builder' ? { ...parsed, role: parsed.role ?? 'builder' } : null
     } catch {
       return null
     }
@@ -43,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser({ provider: 'google', status: 'preview' })
       return
     }
-    const builder: AuthUser = { provider, status: 'builder', name: mockBuilderName(provider) }
+    const builder: AuthUser = { provider, status: 'builder', name: mockBuilderName(provider), role: 'builder' }
     localStorage.setItem(SESSION_KEY, JSON.stringify(builder))
     setUser(builder)
   }, [])

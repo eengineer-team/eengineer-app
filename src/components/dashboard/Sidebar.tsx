@@ -1,30 +1,29 @@
 import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '@/lib/auth-context'
+import { can, type Action } from '@/lib/permissions'
 
 interface NavItem {
   to: string
   end?: boolean
   label: string
   icon: typeof Home
-  // TEMPORARY (step A) — inline status check, replaced by can(user, action) in step B.
-  builderOnly?: boolean
+  action: Action
 }
 
 // Community listed first among sections (after Home) — spec: highest-priority product surface.
 const NAV_ITEMS: NavItem[] = [
-  { to: '/dashboard', end: true, label: 'Home', icon: Home, builderOnly: true },
-  { to: '/dashboard/community', label: 'Community', icon: Users },
-  { to: '/dashboard/opportunities', label: 'Opportunities', icon: Briefcase },
-  { to: '/dashboard/profiles', label: 'Profiles', icon: UserCircle, builderOnly: true },
-  { to: '/dashboard/calendar', label: 'Calendar', icon: CalendarDays, builderOnly: true },
-  { to: '/dashboard/messages', label: 'Messages', icon: MessageSquare, builderOnly: true },
+  { to: '/dashboard', end: true, label: 'Home', icon: Home, action: 'dashboard:home:view' },
+  { to: '/dashboard/community', label: 'Community', icon: Users, action: 'community:read-overview' },
+  { to: '/dashboard/opportunities', label: 'Opportunities', icon: Briefcase, action: 'opportunities:view' },
+  { to: '/dashboard/profiles', label: 'Profiles', icon: UserCircle, action: 'profiles:view' },
+  { to: '/dashboard/calendar', label: 'Calendar', icon: CalendarDays, action: 'calendar:view' },
+  { to: '/dashboard/messages', label: 'Messages', icon: MessageSquare, action: 'messages:view' },
 ]
 
 export function Sidebar() {
   const { user } = useAuth()
-  const isPreview = user?.status === 'preview'
-  const items = NAV_ITEMS.filter((item) => !(item.builderOnly && isPreview))
+  const items = NAV_ITEMS.filter((item) => can(user, item.action))
 
   return (
     <aside className="w-[220px] flex-shrink-0 h-screen sticky top-0 flex flex-col border-r border-white/8 px-4 py-6">

@@ -3,6 +3,7 @@ import { QAFeed } from '@/pages/dashboard/community/QAFeed'
 import { Webinars } from '@/pages/dashboard/community/Webinars'
 import { Network } from '@/pages/dashboard/community/Network'
 import { useAuth } from '@/lib/auth-context'
+import { can } from '@/lib/permissions'
 
 type Tab = 'qa' | 'webinars' | 'network'
 
@@ -14,12 +15,15 @@ const TABS: { id: Tab; label: string }[] = [
 
 export function Community() {
   const { user } = useAuth()
-  // TEMPORARY (step A) — inline status check, replaced by can(user, action) in step B.
   // Spec: Community is Builder-only except the public Q&A overview, which
   // Google-preview sessions may browse read-only — Webinars/My Network stay hidden.
-  const isPreview = user?.status === 'preview'
+  const canVote = can(user, 'community:vote')
+  const canSeeWebinars = can(user, 'community:webinars:view')
+  const canSeeNetwork = can(user, 'community:network:view')
   const [tab, setTab] = React.useState<Tab>('qa')
-  const tabs = isPreview ? TABS.filter((t) => t.id === 'qa') : TABS
+  const tabs = TABS.filter(
+    (t) => t.id === 'qa' || (t.id === 'webinars' && canSeeWebinars) || (t.id === 'network' && canSeeNetwork)
+  )
 
   return (
     <div className="flex-1 px-8 py-8 max-w-[720px]">
@@ -39,9 +43,9 @@ export function Community() {
         ))}
       </div>
 
-      {tab === 'qa' && <QAFeed readOnly={isPreview} />}
-      {!isPreview && tab === 'webinars' && <Webinars />}
-      {!isPreview && tab === 'network' && <Network />}
+      {tab === 'qa' && <QAFeed readOnly={!canVote} />}
+      {tab === 'webinars' && canSeeWebinars && <Webinars />}
+      {tab === 'network' && canSeeNetwork && <Network />}
     </div>
   )
 }
