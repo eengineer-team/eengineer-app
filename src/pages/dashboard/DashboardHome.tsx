@@ -1,5 +1,6 @@
 import { CalendarDays, Users, Plus } from 'lucide-react'
 import { JoinedClubs } from '@/components/dashboard/JoinedClubs'
+import { CompetitionCalendar } from '@/components/dashboard/CompetitionCalendar'
 import { Button } from '@/components/ui/button'
 
 export function DashboardHome() {
@@ -21,9 +22,10 @@ export function DashboardHome() {
         <JoinedClubs />
       </div>
 
-      {/* Right column — space above the webinar card stays intentionally empty
-          until Community/Opportunities content lands here (Phases 6-7). */}
-      <div className="w-[320px] flex-shrink-0 flex flex-col justify-end">
+      {/* Right column */}
+      <div className="w-[320px] flex-shrink-0 flex flex-col justify-end gap-8">
+        <CompetitionCalendar />
+
         <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-white/45">
