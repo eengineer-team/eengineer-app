@@ -7,6 +7,7 @@ import { Help } from '@/pages/Help'
 import { Dashboard } from '@/pages/Dashboard'
 import { DashboardHome } from '@/pages/dashboard/DashboardHome'
 import { Community } from '@/pages/dashboard/Community'
+import { Opportunities } from '@/pages/dashboard/Opportunities'
 import { PlaceholderSection } from '@/pages/dashboard/PlaceholderSection'
 import { RequireAction } from '@/components/dashboard/RequireAction'
 import './index.css'
@@ -28,7 +29,7 @@ export default function App() {
               <Route path="community" element={<Community />} />
               <Route
                 path="opportunities"
-                element={<RequireAction action="opportunities:view"><PlaceholderSection label="Opportunities" /></RequireAction>}
+                element={<RequireAction action="opportunities:view"><Opportunities /></RequireAction>}
               />
               <Route
                 path="profiles"

@@ -25,7 +25,10 @@ export function Auth() {
     setLoadingProvider(provider)
     window.setTimeout(() => {
       signInWithProvider(provider)
-      navigate('/dashboard')
+      // Preview lacks dashboard:home:view, so landing on the index route would
+      // immediately bounce back here via RequireAction — send it to a route
+      // preview can actually reach instead.
+      navigate(provider === 'google' ? '/dashboard/community' : '/dashboard')
     }, 500)
   }
 
