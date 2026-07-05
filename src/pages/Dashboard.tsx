@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '@/lib/auth-context'
 import { Sidebar } from '@/components/dashboard/Sidebar'
@@ -9,15 +10,16 @@ function displayName(user: NonNullable<ReturnType<typeof useAuth>['user']>) {
 
 export function Dashboard() {
   const { user } = useAuth()
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   if (!user) return <Navigate to="/auth" replace />
 
   return (
     <div className="min-h-screen bg-dark-radial flex">
-      <Sidebar />
+      <Sidebar open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <DashboardHeader name={displayName(user)} />
+        <DashboardHeader name={displayName(user)} onMenuClick={() => setMobileNavOpen(true)} />
         <Outlet />
       </div>
     </div>
