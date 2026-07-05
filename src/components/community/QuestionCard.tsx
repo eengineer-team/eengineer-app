@@ -9,11 +9,13 @@ function initials(name: string) {
 
 export function QuestionCard({
   question,
+  readOnly = false,
   onVote,
   onReport,
   onComment,
 }: {
   question: Question
+  readOnly?: boolean
   onVote: (id: string, vote: 'approve' | 'disapprove') => void
   onReport: (id: string) => void
   onComment: (id: string, text: string) => void
@@ -50,7 +52,9 @@ export function QuestionCard({
       {/* Question text */}
       <p className="font-sans text-[0.9375rem] leading-[1.6] text-white/85 mb-4">{question.text}</p>
 
-      {/* Actions — exactly 4: Approve, Disapprove, Report, Comment */}
+      {/* Actions — exactly 4: Approve, Disapprove, Report, Comment. Hidden for
+          read-only (Google-preview) viewers per spec: public overview only. */}
+      {!readOnly && (
       <div className="flex items-center gap-1 -ml-2">
         <button
           onClick={() => onVote(question.id, 'approve')}
@@ -91,6 +95,7 @@ export function QuestionCard({
           {question.comments.length}
         </button>
       </div>
+      )}
 
       {/* Comments */}
       {showComments && (

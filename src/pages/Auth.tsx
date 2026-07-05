@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { motion } from 'framer-motion'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { ArrowLeft, TriangleAlert } from 'lucide-react'
 import { SettingsMenu } from '@/components/SettingsMenu'
 import { AuthForm } from '@/components/ui/sign-in'
 import { useAuth, type OAuthProvider } from '@/lib/auth-context'
@@ -10,8 +10,13 @@ export function Auth() {
   const [params] = useSearchParams()
   const mode = params.get('mode') === 'signup' ? 'signup' : 'login'
   const navigate = useNavigate()
+  const location = useLocation()
   const { signInWithProvider } = useAuth()
   const [loadingProvider, setLoadingProvider] = React.useState<OAuthProvider | 'email' | null>(null)
+
+  // Set when a Google-preview session got redirected here off a Builder-only
+  // route (see the `upgrade` nav state in App.tsx / Sidebar.tsx).
+  const upgradePrompt = Boolean((location.state as { upgrade?: boolean } | null)?.upgrade)
 
   // Mock OAuth round-trip — a real backend token exchange isn't wired up yet
   // (see PROGRESS.md open question #4). GitHub/LinkedIn become full Builder
@@ -77,6 +82,15 @@ export function Auth() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.15 }}
         >
+          {upgradePrompt && (
+            <div className="flex items-start gap-2.5 rounded border border-amber-600/25 bg-amber-600/8 px-4 py-3 mb-4 max-w-[420px]">
+              <TriangleAlert size={15} strokeWidth={1.8} className="text-amber-800 flex-shrink-0 mt-0.5" />
+              <p className="font-sans text-[0.75rem] leading-[1.5] text-amber-900">
+                That section is only open to verified Builders. Sign in with GitHub or LinkedIn to
+                upgrade from Google preview and unlock full access.
+              </p>
+            </div>
+          )}
           <AuthForm
             mode={mode}
             loadingProvider={loadingProvider}

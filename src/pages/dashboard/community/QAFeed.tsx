@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 
 let nextId = SEED_QUESTIONS.length + 1
 
-export function QAFeed() {
+export function QAFeed({ readOnly = false }: { readOnly?: boolean }) {
   const [questions, setQuestions] = React.useState<Question[]>(SEED_QUESTIONS)
   const [dialogOpen, setDialogOpen] = React.useState(false)
 
@@ -67,12 +67,14 @@ export function QAFeed() {
         <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-white/45">
           Single feed · no subcategories
         </span>
-        <Button variant="accent" size="sm" onClick={() => setDialogOpen((v) => !v)}>
-          <Plus size={14} strokeWidth={2} />
-          Ask a question
-        </Button>
+        {!readOnly && (
+          <Button variant="accent" size="sm" onClick={() => setDialogOpen((v) => !v)}>
+            <Plus size={14} strokeWidth={2} />
+            Ask a question
+          </Button>
+        )}
 
-        {dialogOpen && (
+        {!readOnly && dialogOpen && (
           <NewQuestionDialog
             existingQuestions={questions}
             onSubmit={handleNewQuestion}
@@ -86,6 +88,7 @@ export function QAFeed() {
           <QuestionCard
             key={q.id}
             question={q}
+            readOnly={readOnly}
             onVote={handleVote}
             onReport={handleReport}
             onComment={handleComment}

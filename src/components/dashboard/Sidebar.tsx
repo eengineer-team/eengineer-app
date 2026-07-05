@@ -1,24 +1,31 @@
 import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
+import { useAuth } from '@/lib/auth-context'
 
 interface NavItem {
   to: string
   end?: boolean
   label: string
   icon: typeof Home
+  // TEMPORARY (step A) — inline status check, replaced by can(user, action) in step B.
+  builderOnly?: boolean
 }
 
 // Community listed first among sections (after Home) — spec: highest-priority product surface.
 const NAV_ITEMS: NavItem[] = [
-  { to: '/dashboard', end: true, label: 'Home', icon: Home },
+  { to: '/dashboard', end: true, label: 'Home', icon: Home, builderOnly: true },
   { to: '/dashboard/community', label: 'Community', icon: Users },
   { to: '/dashboard/opportunities', label: 'Opportunities', icon: Briefcase },
-  { to: '/dashboard/profiles', label: 'Profiles', icon: UserCircle },
-  { to: '/dashboard/calendar', label: 'Calendar', icon: CalendarDays },
-  { to: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
+  { to: '/dashboard/profiles', label: 'Profiles', icon: UserCircle, builderOnly: true },
+  { to: '/dashboard/calendar', label: 'Calendar', icon: CalendarDays, builderOnly: true },
+  { to: '/dashboard/messages', label: 'Messages', icon: MessageSquare, builderOnly: true },
 ]
 
 export function Sidebar() {
+  const { user } = useAuth()
+  const isPreview = user?.status === 'preview'
+  const items = NAV_ITEMS.filter((item) => !(item.builderOnly && isPreview))
+
   return (
     <aside className="w-[220px] flex-shrink-0 h-screen sticky top-0 flex flex-col border-r border-white/8 px-4 py-6">
       {/* Brand */}
@@ -33,7 +40,7 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 flex flex-col gap-1">
-        {NAV_ITEMS.map((item) => {
+        {items.map((item) => {
           const Icon = item.icon
           return (
             <NavLink
