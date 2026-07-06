@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { MapPin, Clock, ChevronDown, ChevronUp } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { MapPin, Clock, ChevronDown } from 'lucide-react'
 import type { Opportunity } from '@/lib/opportunities-data'
 import { Chip } from '@/components/ui/chip'
 import { LabelCaps } from '@/components/ui/label-caps'
@@ -7,8 +8,8 @@ import { LabelCaps } from '@/components/ui/label-caps'
 // Collapsed by default — six full-length cards (title, org, badges,
 // requirements, responsibilities, credit) back to back made the page read
 // as one huge wall of text. Requirements/Responsibilities now hide behind a
-// toggle; everything else (identity, match badge, location/deadline, the
-// mandatory edugrants credit) stays visible either way.
+// toggle, animated open/closed with framer-motion (same library the rest of
+// the app's motion already runs on) instead of popping in/out instantly.
 export function OpportunityCard({ opportunity, matched }: { opportunity: Opportunity; matched: boolean }) {
   const [expanded, setExpanded] = React.useState(false)
 
@@ -47,34 +48,51 @@ export function OpportunityCard({ opportunity, matched }: { opportunity: Opportu
         aria-expanded={expanded}
         className="flex items-center gap-1.5 font-sans text-[12px] font-medium text-gold-dark hover:brightness-110 transition-all"
       >
-        {expanded ? <ChevronUp size={14} strokeWidth={2} /> : <ChevronDown size={14} strokeWidth={2} />}
+        <motion.span
+          animate={{ rotate: expanded ? 180 : 0 }}
+          transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+          className="inline-flex"
+        >
+          <ChevronDown size={14} strokeWidth={2} />
+        </motion.span>
         {expanded ? 'Hide requirements & responsibilities' : 'View requirements & responsibilities'}
       </button>
 
-      {expanded && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-          <div>
-            <LabelCaps className="block mb-1.5">Requirements</LabelCaps>
-            <ul className="flex flex-col gap-1">
-              {opportunity.requirements.map((r, i) => (
-                <li key={i} className="font-sans text-[0.8125rem] text-dark-muted leading-snug pl-3 relative before:content-['—'] before:absolute before:left-0 before:text-white/30">
-                  {r}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <LabelCaps className="block mb-1.5">Responsibilities</LabelCaps>
-            <ul className="flex flex-col gap-1">
-              {opportunity.responsibilities.map((r, i) => (
-                <li key={i} className="font-sans text-[0.8125rem] text-dark-muted leading-snug pl-3 relative before:content-['—'] before:absolute before:left-0 before:text-white/30">
-                  {r}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="details"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-px">
+              <div>
+                <LabelCaps className="block mb-1.5">Requirements</LabelCaps>
+                <ul className="flex flex-col gap-1">
+                  {opportunity.requirements.map((r, i) => (
+                    <li key={i} className="font-sans text-[0.8125rem] text-dark-muted leading-snug pl-3 relative before:content-['—'] before:absolute before:left-0 before:text-white/30">
+                      {r}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <LabelCaps className="block mb-1.5">Responsibilities</LabelCaps>
+                <ul className="flex flex-col gap-1">
+                  {opportunity.responsibilities.map((r, i) => (
+                    <li key={i} className="font-sans text-[0.8125rem] text-dark-muted leading-snug pl-3 relative before:content-['—'] before:absolute before:left-0 before:text-white/30">
+                      {r}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Mandatory partner attribution — condition of using edugrants data,
           not optional copyright text. Stays visible whether the card is
