@@ -51,7 +51,7 @@ export function ProfilesList() {
               <p className="font-sans text-[0.8125rem] text-white/60 leading-snug mb-3 line-clamp-2">{p.bio}</p>
 
               <div className="flex items-center gap-1.5 flex-wrap">
-                <Chip theme="dashboard">{p.discipline}</Chip>
+                <Chip theme="dashboard" discipline={p.discipline}>{p.discipline}</Chip>
                 {p.skills.slice(0, 2).map((s) => (
                   <Chip key={s.name} theme="dashboard">
                     {s.name}

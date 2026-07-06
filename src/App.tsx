@@ -8,6 +8,8 @@ import { Help } from '@/pages/Help'
 import { Dashboard } from '@/pages/Dashboard'
 import { DashboardHome } from '@/pages/dashboard/DashboardHome'
 import { Community } from '@/pages/dashboard/Community'
+import { CommunityHub } from '@/pages/dashboard/community/CommunityHub'
+import { CommunityGroup } from '@/pages/dashboard/community/CommunityGroup'
 import { Opportunities } from '@/pages/dashboard/Opportunities'
 import { PlaceholderSection } from '@/pages/dashboard/PlaceholderSection'
 import { ProfilesLayout } from '@/pages/dashboard/profiles/ProfilesLayout'
@@ -35,7 +37,10 @@ export default function App() {
                 index
                 element={<RequireAction action="dashboard:home:view"><DashboardHome /></RequireAction>}
               />
-              <Route path="community" element={<Community />} />
+              <Route path="community" element={<Community />}>
+                <Route index element={<CommunityHub />} />
+                <Route path=":discipline" element={<CommunityGroup />} />
+              </Route>
               <Route
                 path="opportunities"
                 element={<RequireAction action="opportunities:view"><Opportunities /></RequireAction>}

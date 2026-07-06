@@ -4,13 +4,16 @@ import { SEED_QUESTIONS, type Discipline, type Question } from '@/lib/community-
 import { QuestionCard } from '@/components/community/QuestionCard'
 import { NewQuestionDialog } from '@/components/community/NewQuestionDialog'
 import { Button } from '@/components/ui/button'
-import { LabelCaps } from '@/components/ui/label-caps'
 
 let nextId = SEED_QUESTIONS.length + 1
 
-export function QAFeed({ readOnly = false }: { readOnly?: boolean }) {
+// `discipline` scopes the feed to one group's questions (Community hub → group
+// space). Omit it to see everything — not currently used unscoped, but the
+// feed itself doesn't need to know it's always scoped now.
+export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; discipline?: Discipline }) {
   const [questions, setQuestions] = React.useState<Question[]>(SEED_QUESTIONS)
   const [dialogOpen, setDialogOpen] = React.useState(false)
+  const visible = discipline ? questions.filter((q) => q.category === discipline) : questions
 
   function handleVote(id: string, vote: 'approve' | 'disapprove') {
     setQuestions((prev) =>
@@ -64,8 +67,7 @@ export function QAFeed({ readOnly = false }: { readOnly?: boolean }) {
 
   return (
     <div>
-      <div className="relative flex items-center justify-between mb-6">
-        <LabelCaps>Single feed · no subcategories</LabelCaps>
+      <div className="relative flex items-center justify-end mb-6">
         {!readOnly && (
           <Button variant="accent" size="sm" onClick={() => setDialogOpen((v) => !v)}>
             <Plus size={14} strokeWidth={2} />
@@ -75,25 +77,32 @@ export function QAFeed({ readOnly = false }: { readOnly?: boolean }) {
 
         {!readOnly && dialogOpen && (
           <NewQuestionDialog
-            existingQuestions={questions}
+            existingQuestions={visible}
+            fixedDiscipline={discipline}
             onSubmit={handleNewQuestion}
             onClose={() => setDialogOpen(false)}
           />
         )}
       </div>
 
-      <div className="flex flex-col gap-4">
-        {questions.map((q) => (
-          <QuestionCard
-            key={q.id}
-            question={q}
-            readOnly={readOnly}
-            onVote={handleVote}
-            onReport={handleReport}
-            onComment={handleComment}
-          />
-        ))}
-      </div>
+      {visible.length === 0 ? (
+        <p className="font-sans text-[0.8125rem] text-white/40">
+          {discipline ? `No questions yet in ${discipline} — be the first to ask.` : 'No questions yet.'}
+        </p>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {visible.map((q) => (
+            <QuestionCard
+              key={q.id}
+              question={q}
+              readOnly={readOnly}
+              onVote={handleVote}
+              onReport={handleReport}
+              onComment={handleComment}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -5,6 +5,14 @@ export default {
     './index.html',
     './src/**/*.{ts,tsx}',
   ],
+  // getDisciplineColor() builds these class names dynamically (bg-discipline-x /
+  // border-discipline-x / text-discipline-x), so the JIT scanner can't find them
+  // as literal strings in source — safelist keeps them from being purged.
+  safelist: [
+    {
+      pattern: /^(bg|border|text)-discipline-(aerospace|mechanical|electrical|software|civil|chemical|biomedical|materials|environmental|other)$/,
+    },
+  ],
   theme: {
     extend: {
       fontFamily: {
@@ -43,6 +51,22 @@ export default {
         // (Register/Connect/deadline badges) use this lighter gold instead.
         gold: {
           dark: '#C79A3A',
+        },
+        // Functional discipline color-coding (chips, calendar deadline dots,
+        // sidebar clubs) — muted/desaturated so they sit calmly on dark-900
+        // and read as information (which discipline), not decoration.
+        // See src/lib/discipline-colors.ts for the lookup helper.
+        discipline: {
+          aerospace: '#6E8FB0',
+          mechanical: '#B08A6E',
+          electrical: '#B0A06E',
+          software: '#7EA88C',
+          civil: '#9A8FB0',
+          chemical: '#B07E8C',
+          biomedical: '#6EB0A4',
+          materials: '#8C8C9A',
+          environmental: '#7FB06E',
+          other: '#9A9488',
         },
       },
       fontSize: {

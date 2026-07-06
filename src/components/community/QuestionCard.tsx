@@ -37,7 +37,7 @@ export function QuestionCard({
             {question.author}
           </div>
         </div>
-        <Chip theme="dashboard" className="ml-auto flex-shrink-0">
+        <Chip theme="dashboard" discipline={question.category} className="ml-auto flex-shrink-0">
           {question.category}
         </Chip>
       </div>

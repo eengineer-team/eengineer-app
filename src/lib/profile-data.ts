@@ -13,6 +13,7 @@ export interface Skill {
 export interface ProjectEntry {
   id: string
   title: string
+  year: number
   description: string
   image?: string
   video?: string
@@ -52,6 +53,12 @@ export interface BuilderProfile {
   skills: Skill[]
   projects: ProjectEntry[]
   endorsements: Endorsement[]
+  /** OAuth verification links — trust signal per spec, not a data source. */
+  githubUrl?: string
+  linkedinUrl?: string
+  /** Mutual connections with the viewer — not shown on your own profile. */
+  mutuals: number
+  connectStatus: 'none' | 'requested' | 'connected'
 }
 
 // Fixed id for whoever is currently signed in — the only profile the
@@ -72,6 +79,8 @@ export const SEED_PROFILES: BuilderProfile[] = [
     ],
     projects: [],
     endorsements: [],
+    mutuals: 0,
+    connectStatus: 'none',
   },
   {
     id: 'n-alex',
@@ -80,6 +89,8 @@ export const SEED_PROFILES: BuilderProfile[] = [
     online: true,
     bio: 'Building propulsion and control systems for model rockets. JPL internship, summer 2025.',
     backgroundId: 'gold',
+    githubUrl: 'https://github.com/alexkim',
+    linkedinUrl: 'https://linkedin.com/in/alexkim',
     skills: [
       { name: 'CFD Analysis', proficiency: 4 },
       { name: 'MATLAB', proficiency: 5 },
@@ -89,6 +100,7 @@ export const SEED_PROFILES: BuilderProfile[] = [
       {
         id: 'p-alex-1',
         title: 'Rocket Propulsion Simulator',
+        year: 2025,
         description:
           'A 6-DOF simulator for solid-fuel model rocket flight, used to tune an active fin stabilizer PID loop before bench testing.',
         skillNames: ['MATLAB', 'CFD Analysis'],
@@ -96,6 +108,7 @@ export const SEED_PROFILES: BuilderProfile[] = [
       {
         id: 'p-alex-2',
         title: 'Airfoil Optimization Tool',
+        year: 2024,
         description: 'Gradient-free optimizer sweeping airfoil geometry against a panel-method lift/drag solver.',
         skillNames: ['MATLAB'],
       },
@@ -103,6 +116,8 @@ export const SEED_PROFILES: BuilderProfile[] = [
     endorsements: [
       { id: 'e1', fromName: 'Priya T.', targetType: 'skill', targetName: 'MATLAB', reason: 'Walked me through vectorizing a solver that used to take 40 minutes — down to 8 seconds.' },
     ],
+    mutuals: 8,
+    connectStatus: 'connected',
   },
   {
     id: 'n1',
@@ -111,6 +126,7 @@ export const SEED_PROFILES: BuilderProfile[] = [
     online: false,
     bio: 'Robotics team lead. Firmware and dashboards for competition robots.',
     backgroundId: 'corn',
+    githubUrl: 'https://github.com/marcusr',
     skills: [
       { name: 'C++', proficiency: 4 },
       { name: 'React', proficiency: 3 },
@@ -119,11 +135,14 @@ export const SEED_PROFILES: BuilderProfile[] = [
       {
         id: 'p-marcus-1',
         title: 'Robotics Monorepo Template',
+        year: 2025,
         description: 'A monorepo layout for school robotics teams pairing embedded firmware with a live telemetry dashboard.',
         skillNames: ['C++', 'React'],
       },
     ],
     endorsements: [],
+    mutuals: 6,
+    connectStatus: 'none',
   },
   {
     id: 'n2',
@@ -132,12 +151,15 @@ export const SEED_PROFILES: BuilderProfile[] = [
     online: true,
     bio: 'Power electronics and sensor fusion. Currently obsessed with current sensing on small drones.',
     backgroundId: 'deep',
+    linkedinUrl: 'https://linkedin.com/in/priyat',
     skills: [
       { name: 'Circuit Design', proficiency: 4 },
       { name: 'MATLAB', proficiency: 3 },
     ],
     projects: [],
     endorsements: [],
+    mutuals: 11,
+    connectStatus: 'requested',
   },
   {
     id: 'n3',
@@ -152,6 +174,8 @@ export const SEED_PROFILES: BuilderProfile[] = [
     ],
     projects: [],
     endorsements: [],
+    mutuals: 4,
+    connectStatus: 'connected',
   },
   {
     id: 'n4',
@@ -160,12 +184,16 @@ export const SEED_PROFILES: BuilderProfile[] = [
     online: true,
     bio: 'Structures and mechanisms. Bracket design for competition robot arms.',
     backgroundId: 'gold',
+    githubUrl: 'https://github.com/sophiek',
+    linkedinUrl: 'https://linkedin.com/in/sophiek',
     skills: [
       { name: 'SolidWorks', proficiency: 4 },
       { name: 'GD&T', proficiency: 3 },
     ],
     projects: [],
     endorsements: [],
+    mutuals: 3,
+    connectStatus: 'none',
   },
   {
     id: 'n5',
@@ -179,5 +207,7 @@ export const SEED_PROFILES: BuilderProfile[] = [
     ],
     projects: [],
     endorsements: [],
+    mutuals: 2,
+    connectStatus: 'none',
   },
 ]

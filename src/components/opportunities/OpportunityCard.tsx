@@ -28,7 +28,7 @@ export function OpportunityCard({ opportunity, matched }: { opportunity: Opportu
               Matched for you
             </Chip>
           )}
-          <Chip theme="dashboard">{opportunity.discipline}</Chip>
+          <Chip theme="dashboard" discipline={opportunity.discipline}>{opportunity.discipline}</Chip>
         </div>
       </div>
 

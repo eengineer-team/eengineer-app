@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Users, Check, X } from 'lucide-react'
-import { SEED_NETWORK, type NetworkProfile } from '@/lib/community-data'
+import { SEED_NETWORK, type Discipline, type NetworkProfile } from '@/lib/community-data'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
 import { LabelCaps } from '@/components/ui/label-caps'
@@ -74,7 +74,9 @@ function ProfileCard({
   )
 }
 
-export function Network() {
+// `discipline` scopes the list to one group's members (Community hub → group
+// space, label "Members"); omit for the global "My Network" view.
+export function Network({ discipline }: { discipline?: Discipline } = {}) {
   const [profiles, setProfiles] = React.useState<NetworkProfile[]>(SEED_NETWORK)
 
   function setStatus(id: string, status: NetworkProfile['status']) {
@@ -86,8 +88,9 @@ export function Network() {
     setStatus(id, p?.status === 'requested' ? 'none' : 'requested')
   }
 
-  const incoming = profiles.filter((p) => p.status === 'incoming')
-  const rest = profiles.filter((p) => p.status !== 'incoming')
+  const scoped = discipline ? profiles.filter((p) => p.discipline === discipline) : profiles
+  const incoming = scoped.filter((p) => p.status === 'incoming')
+  const rest = scoped.filter((p) => p.status !== 'incoming')
 
   return (
     <div className="flex flex-col gap-8">
@@ -109,18 +112,24 @@ export function Network() {
       )}
 
       <div>
-        <LabelCaps className="block mb-3">My Network</LabelCaps>
-        <div className="flex flex-col gap-3">
-          {rest.map((p) => (
-            <ProfileCard
-              key={p.id}
-              profile={p}
-              onConnect={handleConnect}
-              onAccept={(id) => setStatus(id, 'connected')}
-              onDecline={(id) => setStatus(id, 'none')}
-            />
-          ))}
-        </div>
+        <LabelCaps className="block mb-3">{discipline ? 'Members' : 'My Network'}</LabelCaps>
+        {rest.length === 0 ? (
+          <p className="font-sans text-[0.8125rem] text-white/40">
+            {discipline ? `No members in ${discipline} yet.` : 'No connections yet.'}
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {rest.map((p) => (
+              <ProfileCard
+                key={p.id}
+                profile={p}
+                onConnect={handleConnect}
+                onAccept={(id) => setStatus(id, 'connected')}
+                onDecline={(id) => setStatus(id, 'none')}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

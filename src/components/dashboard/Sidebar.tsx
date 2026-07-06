@@ -2,6 +2,9 @@ import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCi
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '@/lib/auth-context'
 import { can, type Action } from '@/lib/permissions'
+import { JOINED_CLUBS } from '@/lib/clubs-data'
+import { getDisciplineColor } from '@/lib/discipline-colors'
+import { cn } from '@/lib/utils'
 
 interface NavItem {
   to: string
@@ -61,28 +64,56 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           </button>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 flex flex-col gap-1">
-          {items.map((item) => {
-            const Icon = item.icon
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                onClick={onClose}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded font-sans text-[0.8125rem] font-medium transition-colors duration-150 ${
-                    isActive ? 'bg-white/8 text-white' : 'text-white/55 hover-white-tint hover:text-white/90'
-                  }`
-                }
-              >
-                <Icon size={16} strokeWidth={1.8} />
-                {item.label}
-              </NavLink>
-            )
-          })}
-        </nav>
+        {/* Nav + My Clubs share the scrollable flex-1 area so the footer stays sticky */}
+        <div className="flex-1 flex flex-col gap-1 overflow-y-auto">
+          <nav className="flex flex-col gap-1">
+            {items.map((item) => {
+              const Icon = item.icon
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-2.5 rounded font-sans text-[0.8125rem] font-medium transition-colors duration-150 ${
+                      isActive ? 'bg-white/8 text-white' : 'text-white/55 hover-white-tint hover:text-white/90'
+                    }`
+                  }
+                >
+                  <Icon size={16} strokeWidth={1.8} />
+                  {item.label}
+                </NavLink>
+              )
+            })}
+          </nav>
+
+          {/* My Clubs — persistent, not just on the Home landing widget. Google-preview
+              guests have no membership state, so this is Builder-only. */}
+          {user?.status === 'builder' && (
+            <div className="pt-4 mt-2 border-t border-white/8">
+              <span className="font-sans text-[10px] font-medium tracking-[0.16em] uppercase text-white/45 px-3 block mb-2">
+                My Clubs
+              </span>
+              <div className="flex flex-col gap-0.5">
+                {JOINED_CLUBS.map((club) => (
+                  <div
+                    key={club.name}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded font-sans text-[0.8125rem] text-white/55 hover-white-tint hover:text-white/90 transition-colors duration-150"
+                  >
+                    <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', getDisciplineColor(club.name).dot)} />
+                    <span className="flex-1 truncate">{club.name}</span>
+                    {!!club.unreadCount && (
+                      <span className="flex-shrink-0 min-w-[16px] h-4 px-1 rounded-full bg-gold-dark text-dark-900 font-sans text-[10px] font-semibold flex items-center justify-center">
+                        {club.unreadCount}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Footer — Help only; Settings lives top-right per the resolved spec convention */}
         <div className="pt-4 border-t border-white/8">

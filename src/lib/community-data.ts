@@ -1,5 +1,24 @@
-export const DISCIPLINES = ['Aerospace', 'Mechanical', 'Electrical', 'Software', 'Civil'] as const
+export const DISCIPLINES = [
+  'Aerospace',
+  'Mechanical',
+  'Electrical',
+  'Software',
+  'Civil',
+  'Chemical',
+  'Biomedical',
+  'Materials',
+  'Environmental',
+  'Other',
+] as const
 export type Discipline = (typeof DISCIPLINES)[number]
+
+export function disciplineSlug(d: Discipline): string {
+  return d.toLowerCase()
+}
+
+export function disciplineFromSlug(slug: string): Discipline | undefined {
+  return DISCIPLINES.find((d) => disciplineSlug(d) === slug.toLowerCase())
+}
 
 export interface Comment {
   id: string

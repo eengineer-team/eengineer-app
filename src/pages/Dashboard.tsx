@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth, firstNameOf } from '@/lib/auth-context'
 import { Sidebar } from '@/components/dashboard/Sidebar'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 
 function displayName(user: NonNullable<ReturnType<typeof useAuth>['user']>) {
-  return user.status === 'builder' ? user.name : 'Preview'
+  return user.status === 'builder' ? firstNameOf(user.name) : 'Preview'
 }
 
 export function Dashboard() {

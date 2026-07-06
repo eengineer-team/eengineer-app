@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight, Bell } from 'lucide-react'
 import { SEED_COMPETITIONS } from '@/lib/calendar-data'
+import { getDisciplineColor } from '@/lib/discipline-colors'
+import { cn } from '@/lib/utils'
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 const MONTH_NAMES = [
@@ -31,10 +33,13 @@ export function CompetitionCalendar() {
   const daysInMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 0).getDate()
   const firstWeekday = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1).getDay()
 
-  const deadlinesByDay = new Map<number, boolean>()
+  // day -> discipline of the first deadline that lands on it (colors the dot).
+  const deadlinesByDay = new Map<number, string>()
   for (const comp of SEED_COMPETITIONS) {
     if (comp.deadline.getFullYear() === viewMonth.getFullYear() && comp.deadline.getMonth() === viewMonth.getMonth()) {
-      deadlinesByDay.set(comp.deadline.getDate(), true)
+      if (!deadlinesByDay.has(comp.deadline.getDate())) {
+        deadlinesByDay.set(comp.deadline.getDate(), comp.discipline)
+      }
     }
   }
 
@@ -101,7 +106,7 @@ export function CompetitionCalendar() {
           {cells.map((day, i) => {
             if (day === null) return <div key={i} />
             const isToday = isViewingCurrentMonth && day === today.getDate()
-            const hasDeadline = deadlinesByDay.has(day)
+            const deadlineDiscipline = deadlinesByDay.get(day)
             return (
               <div key={i} className="flex flex-col items-center gap-0.5">
                 <span
@@ -113,7 +118,12 @@ export function CompetitionCalendar() {
                 >
                   {day}
                 </span>
-                <span className={hasDeadline ? 'w-1 h-1 rounded-full bg-corn-500' : 'w-1 h-1'} />
+                <span
+                  className={cn(
+                    'w-1 h-1 rounded-full',
+                    deadlineDiscipline && getDisciplineColor(deadlineDiscipline).dot
+                  )}
+                />
               </div>
             )
           })}
@@ -127,7 +137,7 @@ export function CompetitionCalendar() {
         <div className="flex flex-col gap-3">
           {upcoming.map((comp) => (
             <div key={comp.id} className="flex items-start gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-corn-500 mt-1.5 flex-shrink-0" />
+              <span className={cn('w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0', getDisciplineColor(comp.discipline).dot)} />
               <div className="flex-1 min-w-0">
                 <div className="font-sans text-[0.8125rem] font-medium text-white/90 leading-snug">
                   {comp.name}

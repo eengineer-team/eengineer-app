@@ -8,14 +8,18 @@ import { Button } from '@/components/ui/button'
 // dimming, so this is a plain fixed-position panel anchored below the trigger.
 export function NewQuestionDialog({
   existingQuestions,
+  fixedDiscipline,
   onSubmit,
   onClose,
 }: {
   existingQuestions: Question[]
+  /** When set (posting from inside a discipline group), the category is this
+   *  group's discipline and isn't user-selectable — the post is scoped there. */
+  fixedDiscipline?: Discipline
   onSubmit: (category: Discipline, text: string) => void
   onClose: () => void
 }) {
-  const [category, setCategory] = React.useState<Discipline>(DISCIPLINES[0])
+  const [category, setCategory] = React.useState<Discipline>(fixedDiscipline ?? DISCIPLINES[0])
   const [text, setText] = React.useState('')
   const [duplicate, setDuplicate] = React.useState<Question | null>(null)
 
@@ -64,24 +68,30 @@ export function NewQuestionDialog({
         </button>
       </div>
 
-      {/* Likely category */}
+      {/* Likely category — locked to the current group when posting from inside one */}
       <div className="mb-4">
         <label className="font-sans text-[11px] text-white/50 block mb-2">Likely category</label>
-        <div className="flex flex-wrap gap-1.5">
-          {DISCIPLINES.map((d) => (
-            <button
-              key={d}
-              onClick={() => setCategory(d)}
-              className={`font-sans text-[11px] rounded-sm px-2.5 py-1 border transition-colors duration-150 ${
-                category === d
-                  ? 'bg-white/12 border-white/25 text-white'
-                  : 'border-white/10 text-white/55 hover:text-white/85 hover:border-white/20'
-              }`}
-            >
-              {d}
-            </button>
-          ))}
-        </div>
+        {fixedDiscipline ? (
+          <span className="inline-flex font-sans text-[11px] rounded-sm px-2.5 py-1 border border-white/25 bg-white/12 text-white">
+            {fixedDiscipline}
+          </span>
+        ) : (
+          <div className="flex flex-wrap gap-1.5">
+            {DISCIPLINES.map((d) => (
+              <button
+                key={d}
+                onClick={() => setCategory(d)}
+                className={`font-sans text-[11px] rounded-sm px-2.5 py-1 border transition-colors duration-150 ${
+                  category === d
+                    ? 'bg-white/12 border-white/25 text-white'
+                    : 'border-white/10 text-white/55 hover:text-white/85 hover:border-white/20'
+                }`}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Question text */}

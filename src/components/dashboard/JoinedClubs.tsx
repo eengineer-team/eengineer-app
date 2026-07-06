@@ -1,11 +1,7 @@
 import { Users } from 'lucide-react'
-
-// Mock data — real-time membership/updates land once the Community backend exists (Phase 6).
-const JOINED_CLUBS = [
-  { name: 'Aerospace', members: 412 },
-  { name: 'Software', members: 968 },
-  { name: 'Mechanical', members: 355 },
-]
+import { JOINED_CLUBS } from '@/lib/clubs-data'
+import { getDisciplineColor } from '@/lib/discipline-colors'
+import { cn } from '@/lib/utils'
 
 export function JoinedClubs() {
   return (
@@ -20,9 +16,12 @@ export function JoinedClubs() {
             key={club.name}
             className="flex items-center justify-between px-4 py-3 rounded-lg bg-white/[0.03] border border-white/8"
           >
-            <span className="font-sans text-[0.875rem] font-medium text-white/90">
-              {club.name}
-            </span>
+            <div className="flex items-center gap-2.5">
+              <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', getDisciplineColor(club.name).dot)} />
+              <span className="font-sans text-[0.875rem] font-medium text-white/90">
+                {club.name}
+              </span>
+            </div>
             <div className="flex items-center gap-1.5 text-white/45">
               <Users size={12} strokeWidth={1.8} />
               <span className="font-sans text-[11px]">{club.members}</span>

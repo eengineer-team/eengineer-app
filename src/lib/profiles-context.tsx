@@ -15,6 +15,7 @@ interface ProfilesContextValue {
   setBackground: (backgroundId: string) => void
   setBio: (bio: string) => void
   addEndorsement: (targetProfileId: string, targetType: 'skill' | 'project', targetName: string, reason: string, fromName: string) => void
+  toggleConnect: (targetProfileId: string) => void
 }
 
 const ProfilesContext = React.createContext<ProfilesContextValue | null>(null)
@@ -83,9 +84,22 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
+  // Connect request toggle — mirrors My Network's request/withdraw pattern,
+  // but scoped to a single profile (no accept/decline here: the target isn't
+  // "yours" to manage, only your own outgoing request is).
+  const toggleConnect = React.useCallback((targetProfileId: string) => {
+    setProfiles((prev) =>
+      prev.map((p) => {
+        if (p.id !== targetProfileId) return p
+        if (p.connectStatus === 'connected') return p
+        return { ...p, connectStatus: p.connectStatus === 'requested' ? 'none' : 'requested' }
+      })
+    )
+  }, [])
+
   const value = React.useMemo(
-    () => ({ profiles, getProfile, rateSkill, addSkill, addProject, setBackground, setBio, addEndorsement }),
-    [profiles, getProfile, rateSkill, addSkill, addProject, setBackground, setBio, addEndorsement]
+    () => ({ profiles, getProfile, rateSkill, addSkill, addProject, setBackground, setBio, addEndorsement, toggleConnect }),
+    [profiles, getProfile, rateSkill, addSkill, addProject, setBackground, setBio, addEndorsement, toggleConnect]
   )
 
   return <ProfilesContext.Provider value={value}>{children}</ProfilesContext.Provider>

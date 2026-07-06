@@ -1,13 +1,14 @@
 import * as React from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
-import { ArrowLeft, Plus, Award } from 'lucide-react'
+import { ArrowLeft, Plus, Award, Code2, Link as LinkIcon, Users, Check } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { useProfiles } from '@/lib/profiles-context'
 import { ME_ID, BACKGROUND_PRESETS } from '@/lib/profile-data'
 import { Avatar } from '@/components/ui/avatar'
 import { Chip } from '@/components/ui/chip'
 import { LabelCaps } from '@/components/ui/label-caps'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { SkillBar } from '@/components/profile/SkillBar'
 import { EndorseDialog } from '@/components/profile/EndorseDialog'
 
@@ -20,7 +21,7 @@ type EndorseTarget = { type: 'skill' | 'project'; name: string } | null
 export function ProfileDetail() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
-  const { getProfile, rateSkill, addSkill, addProject, setBackground, setBio, addEndorsement } = useProfiles()
+  const { getProfile, rateSkill, addSkill, addProject, setBackground, setBio, addEndorsement, toggleConnect } = useProfiles()
 
   const profile = id ? getProfile(id) : undefined
 
@@ -29,6 +30,7 @@ export function ProfileDetail() {
   const [editingBio, setEditingBio] = React.useState(false)
   const [showProjectForm, setShowProjectForm] = React.useState(false)
   const [projectTitle, setProjectTitle] = React.useState('')
+  const [projectYear, setProjectYear] = React.useState(() => String(new Date().getFullYear()))
   const [projectDesc, setProjectDesc] = React.useState('')
   const [projectSkills, setProjectSkills] = React.useState<string[]>([])
   const [endorseTarget, setEndorseTarget] = React.useState<EndorseTarget>(null)
@@ -47,9 +49,11 @@ export function ProfileDetail() {
   function submitProject() {
     const title = projectTitle.trim()
     const description = projectDesc.trim()
-    if (!title || !description) return
-    addProject({ title, description, skillNames: projectSkills })
+    const year = parseInt(projectYear, 10)
+    if (!title || !description || !year) return
+    addProject({ title, year, description, skillNames: projectSkills })
     setProjectTitle('')
+    setProjectYear(String(new Date().getFullYear()))
     setProjectDesc('')
     setProjectSkills([])
     setShowProjectForm(false)
@@ -88,8 +92,63 @@ export function ProfileDetail() {
                 Builder
               </span>
             </div>
-            <Chip theme="dashboard">{profile.discipline}</Chip>
+            <div className="flex items-center gap-2 flex-wrap mb-2">
+              <Chip theme="dashboard" discipline={profile.discipline}>{profile.discipline}</Chip>
+              {!isOwn && (
+                <div className="flex items-center gap-1.5 text-dark-muted">
+                  <Users size={11} strokeWidth={1.8} />
+                  <span className="font-sans text-[11px]">{profile.mutuals} mutual connections</span>
+                </div>
+              )}
+            </div>
+            {(profile.githubUrl || profile.linkedinUrl) && (
+              <div className="flex items-center gap-3">
+                {profile.githubUrl && (
+                  <a
+                    href={profile.githubUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 font-sans text-[12px] text-dark-muted hover:text-dark-text transition-colors"
+                  >
+                    <Code2 size={13} strokeWidth={1.8} />
+                    GitHub
+                  </a>
+                )}
+                {profile.linkedinUrl && (
+                  <a
+                    href={profile.linkedinUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 font-sans text-[12px] text-dark-muted hover:text-dark-text transition-colors"
+                  >
+                    <LinkIcon size={13} strokeWidth={1.8} />
+                    LinkedIn
+                  </a>
+                )}
+              </div>
+            )}
           </div>
+
+          {!isOwn && (
+            <div className="flex-shrink-0">
+              {profile.connectStatus === 'connected' ? (
+                // Reached achievement, not a blocked action — skip Button's
+                // disabled:opacity-40 styling (same pattern as Network.tsx).
+                <span className={cn(buttonVariants({ variant: 'done', size: 'sm' }), 'pointer-events-none')}>
+                  <Check size={14} strokeWidth={2.2} />
+                  Connected
+                </span>
+              ) : (
+                <Button
+                  variant={profile.connectStatus === 'requested' ? 'shell' : 'accent'}
+                  size="sm"
+                  onClick={() => toggleConnect(profile.id)}
+                >
+                  {profile.connectStatus === 'requested' ? 'Requested' : 'Connect'}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         {isOwn && (
@@ -241,12 +300,21 @@ export function ProfileDetail() {
 
         {isOwn && showProjectForm && (
           <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4 mb-4">
-            <input
-              value={projectTitle}
-              onChange={(e) => setProjectTitle(e.target.value)}
-              placeholder="Project title"
-              className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 font-sans text-[0.8125rem] text-white/90 placeholder:text-white/35 focus:outline-none focus:border-white/25 mb-2"
-            />
+            <div className="flex gap-2 mb-2">
+              <input
+                value={projectTitle}
+                onChange={(e) => setProjectTitle(e.target.value)}
+                placeholder="Project title"
+                className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 font-sans text-[0.8125rem] text-white/90 placeholder:text-white/35 focus:outline-none focus:border-white/25"
+              />
+              <input
+                value={projectYear}
+                onChange={(e) => setProjectYear(e.target.value)}
+                placeholder="Year"
+                inputMode="numeric"
+                className="w-20 bg-white/5 border border-white/10 rounded px-3 py-2 font-sans text-[0.8125rem] text-white/90 placeholder:text-white/35 focus:outline-none focus:border-white/25"
+              />
+            </div>
             <textarea
               value={projectDesc}
               onChange={(e) => setProjectDesc(e.target.value)}
@@ -275,7 +343,12 @@ export function ProfileDetail() {
               </div>
             )}
             <div className="flex gap-2">
-              <Button variant="accent" size="sm" onClick={submitProject} disabled={!projectTitle.trim() || !projectDesc.trim()}>
+              <Button
+                variant="accent"
+                size="sm"
+                onClick={submitProject}
+                disabled={!projectTitle.trim() || !projectDesc.trim() || !projectYear.trim()}
+              >
                 Save project
               </Button>
               <Button variant="shell" size="sm" onClick={() => setShowProjectForm(false)}>
@@ -292,7 +365,10 @@ export function ProfileDetail() {
             {profile.projects.map((project) => (
               <div key={project.id} className="relative bg-white/[0.03] border border-white/8 rounded-lg p-4">
                 <div className="flex items-start justify-between gap-3 mb-1.5">
-                  <h3 className="font-sans text-[0.9375rem] font-semibold text-white/90">{project.title}</h3>
+                  <h3 className="font-sans text-[0.9375rem] font-semibold text-white/90">
+                    {project.title}
+                    <span className="font-normal text-white/40"> · {project.year}</span>
+                  </h3>
                   {!isOwn && (
                     <button
                       onClick={() => setEndorseTarget({ type: 'project', name: project.title })}

@@ -25,9 +25,18 @@ const SESSION_KEY = 'ee_session'
 
 // GitHub/LinkedIn OAuth is mocked until a real backend token exchange exists —
 // see PROGRESS.md open question #4. Only the resulting Builder session shape
-// is real; the provider handshake itself is not.
+// is real; the provider handshake itself is not. The name below stands in for
+// the profile name a real OAuth handshake would return — never the literal
+// "GitHub Builder"/"LinkedIn Builder" placeholder.
 function mockBuilderName(provider: 'github' | 'linkedin') {
-  return provider === 'github' ? 'GitHub Builder' : 'LinkedIn Builder'
+  return provider === 'github' ? 'Alex Rivera' : 'Jordan Lee'
+}
+
+// Greeting uses first name only. Falls back to "Builder" if the profile name
+// is ever empty — never renders the raw provider label.
+export function firstNameOf(fullName: string | undefined): string {
+  const first = fullName?.trim().split(/\s+/)[0]
+  return first || 'Builder'
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
