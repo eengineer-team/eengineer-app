@@ -34,7 +34,7 @@ export function ProfilesList() {
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className="relative flex-shrink-0">
-                  <Avatar name={name} theme="dashboard" size="md" />
+                  <Avatar name={name} src={p.avatarUrl} theme="dashboard" size="md" />
                   {p.online && (
                     <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-dark-100" />
                   )}

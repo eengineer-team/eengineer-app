@@ -1,10 +1,13 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
-import { CommunityPreview } from '@/components/CommunityPreview'
 import { TeamAbout } from '@/components/TeamAbout'
+import { LandingFeatures } from '@/components/LandingFeatures'
+import { FeaturedProject } from '@/components/FeaturedProject'
+import { LandingCalendar } from '@/components/LandingCalendar'
 import { SettingsMenu } from '@/components/SettingsMenu'
 import { Button } from '@/components/ui/button'
+import { Wordmark } from '@/components/ui/wordmark'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -21,21 +24,6 @@ const stagger = {
 // #5C4A1E on #FFF8DC → ~6.5:1                   (WCAG AA large, AA normal)
 // #8B6914 on #FFF8DC → ~4.6:1                   (WCAG AA large text / labels only)
 
-const FEATURES = [
-  {
-    tag: 'Trust',
-    title: 'Verifiability',
-    description:
-      'Every profile is anchored to a real GitHub or LinkedIn account. The network is trusted because it cannot be anonymous.',
-  },
-  {
-    tag: 'Learning',
-    title: 'Monthly Webinars',
-    description:
-      'Discipline-specific sessions — Aerospace, Mechanical, Electrical, Software — hosted by practitioners, not algorithms.',
-  },
-]
-
 export function Welcome() {
   return (
     <div className="min-h-screen bg-corn-100 flex flex-col">
@@ -46,15 +34,9 @@ export function Welcome() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.05 }}
-          className="flex items-center gap-2.5"
+          className="flex items-center"
         >
-          {/* Wordmark */}
-          <span className="font-display text-[#2A2118] text-[1.25rem] font-bold tracking-[-0.03em] leading-none">
-            ee
-          </span>
-          <span className="font-sans text-[10px] font-medium tracking-[0.22em] uppercase text-corn-700 mt-px">
-            engineer
-          </span>
+          <Wordmark variant="light" />
         </motion.div>
 
         {/* Settings — icon-only, top-right */}
@@ -67,26 +49,16 @@ export function Welcome() {
         </motion.div>
       </header>
 
-      {/* Main two-column layout — stacked on mobile/tablet (no room for two
-          columns below ~1024px), side-by-side only from lg: up. Below lg,
-          flex-shrink:0 on a 52%-basis column has no fallback and forces
-          overflow, so the row/col switch has to happen together with the
-          column's own width going full-bleed on mobile. */}
-      <main className="flex-1 flex flex-col lg:flex-row lg:items-center px-5 sm:px-10 py-10 lg:py-12 gap-10 lg:gap-16">
-
-        {/* LEFT — text content, ~52% from lg: up, full width below that */}
+      {/* Hero — single column now (the right-side sample-profile artifact was
+          removed per founder feedback: it was mock content standing in for
+          real product screens, and read as clutter once real pages existed). */}
+      <main className="flex-1 flex flex-col px-5 sm:px-10 py-10 lg:py-12">
         <motion.div
           variants={stagger}
           initial="hidden"
           animate="show"
-          className="w-full lg:flex-[0_0_52%] max-w-[540px] flex flex-col"
+          className="w-full max-w-[640px] flex flex-col"
         >
-          {/* Eyebrow */}
-          <motion.div variants={fadeUp} transition={{ duration: 0.4 }} className="mb-7">
-            <span className="font-sans text-[10px] font-medium tracking-[0.22em] uppercase text-corn-700">
-              Engineering Network · Verified Builders
-            </span>
-          </motion.div>
 
           {/* Headline — Syne Bold, tracking loosened to breathe */}
           <motion.h1
@@ -110,15 +82,14 @@ export function Welcome() {
             transition={{ duration: 0.4 }}
             className="font-sans text-[1rem] leading-[1.65] text-[#2A2118] max-w-[400px] mb-9"
           >
-            A verified community for high school engineers.
-            Build real projects, connect with peers, find opportunities.
+            A verified community for engineers of all ages. Build anything you want with anyone you want.
           </motion.p>
 
           {/* CTA buttons */}
           <motion.div
             variants={fadeUp}
             transition={{ duration: 0.4 }}
-            className="flex items-center gap-3.5 mb-12"
+            className="flex items-center gap-3.5"
           >
             <Button
               asChild
@@ -140,53 +111,26 @@ export function Welcome() {
               <Link to="/auth?mode=login">Log in</Link>
             </Button>
           </motion.div>
-
-          {/* Features — left accent bar, no numbers */}
-          <motion.div variants={stagger} className="space-y-0">
-            {FEATURES.map((f, i) => (
-              <motion.div
-                key={f.title}
-                variants={fadeUp}
-                transition={{ duration: 0.38 }}
-              >
-                {/* Top rule only on first item */}
-                {i === 0 && <div className="h-px bg-[#2A2118]/10 mb-5" />}
-
-                <div className="flex gap-5 pb-5">
-                  {/* Left accent bar — amber, 2px, not a number */}
-                  <div className="w-0.5 flex-shrink-0 bg-corn-700 self-stretch rounded-full" />
-
-                  <div>
-                    {/* Category tag */}
-                    <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-corn-700 block mb-1.5">
-                      {f.tag}
-                    </span>
-                    <h2 className="font-sans text-[0.9375rem] font-semibold text-[#2A2118] tracking-tight mb-1.5">
-                      {f.title}
-                    </h2>
-                    <p className="font-sans text-[0.875rem] leading-[1.6] text-[#2A2118] max-w-[360px]">
-                      {f.description}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="h-px bg-[#2A2118]/10 mb-5" />
-              </motion.div>
-            ))}
-          </motion.div>
         </motion.div>
-
-        {/* RIGHT — product artifact, ~48% from lg: up. Generous top space
-            above the card is intentional breathing room on desktop, not a
-            placeholder for future filler — stays empty until
-            Community/Opportunities (Step 7-8) land real content. That
-            80px+ top gap is desktop-only breathing room, not needed once
-            the card is already below the hero text on mobile. */}
-        <div className="w-full lg:flex-1 flex flex-col items-center justify-start min-w-0 pt-2 lg:pt-32">
-          <CommunityPreview />
-        </div>
-
       </main>
+
+      <LandingFeatures />
+
+      <FeaturedProject />
+
+      {/* Competition Calendar — left-aligned block, not centered/full-width,
+          per founder spec ("must be in the middle left of the landing page"). */}
+      <section className="px-5 sm:px-10 py-16 border-t border-[#2A2118]/8">
+        <div className="max-w-[640px] mb-8">
+          <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-corn-700 block mb-3">
+            Stay ahead
+          </span>
+          <h2 className="font-display font-extrabold text-[#2A2118] text-[clamp(1.75rem,3.2vw,2.25rem)] leading-[1.1] tracking-[-0.02em]">
+            Every deadline that matters, in one place.
+          </h2>
+        </div>
+        <LandingCalendar />
+      </section>
 
       <TeamAbout />
 

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { Plus, Minus } from 'lucide-react'
 
 interface TeamMember {
   name: string
@@ -85,9 +86,28 @@ function MemberPhoto({ name, photo }: { name: string; photo: string }) {
   )
 }
 
+// Squeezed per founder feedback: the full bios used to always render at the
+// bottom of the hero; now it's collapsed behind a "+ Team members" pill and
+// only expands on request. Kept as a real toggle (not a link to a separate
+// page) so it stays anchored at the very bottom of the landing page either way.
 export function TeamAbout() {
+  const [open, setOpen] = React.useState(false)
+
   return (
-    <section className="px-10 py-16">
+    <section className="px-5 sm:px-10 py-10 border-t border-[#2A2118]/8">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="inline-flex items-center gap-2 rounded-full border border-corn-900/20 pl-3 pr-4 py-1.5 font-sans text-[0.8125rem] font-medium text-corn-900 hover:bg-corn-900/6 transition-colors duration-150"
+      >
+        <span className="w-5 h-5 rounded-full bg-corn-900 text-corn-100 flex items-center justify-center flex-shrink-0">
+          {open ? <Minus size={12} strokeWidth={2.5} /> : <Plus size={12} strokeWidth={2.5} />}
+        </span>
+        Team members
+      </button>
+
+      {!open ? null : (
+      <div className="mt-10">
       {/* Section label + heading */}
       <div className="mb-12 max-w-[640px]">
         <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-corn-700 block mb-3">
@@ -165,6 +185,8 @@ export function TeamAbout() {
           </div>
         ))}
       </div>
+      </div>
+      )}
     </section>
   )
 }

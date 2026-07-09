@@ -7,11 +7,14 @@ import { Webinars } from '@/pages/dashboard/community/Webinars'
 import { Network } from '@/pages/dashboard/community/Network'
 import { useAuth } from '@/lib/auth-context'
 import { can } from '@/lib/permissions'
+import { getDisciplineIcon } from '@/lib/discipline-icons'
+import { getDisciplineColor } from '@/lib/discipline-colors'
+import { cn } from '@/lib/utils'
 
 type Tab = 'qa' | 'webinars' | 'members'
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'qa', label: 'Q&A' },
+  { id: 'qa', label: 'Community' },
   { id: 'webinars', label: 'Webinars' },
   { id: 'members', label: 'Members' },
 ]
@@ -30,8 +33,23 @@ export function CommunityGroup() {
 
   if (!discipline) return <Navigate to="/dashboard/community" replace />
 
+  const Icon = getDisciplineIcon(discipline)
+  const color = getDisciplineColor(discipline)
+
   return (
-    <div className="flex-1 px-8 py-8 max-w-[720px]">
+    <div className="relative flex-1 px-8 py-8 max-w-[720px] overflow-hidden">
+      {/* Faded discipline watermark — same idea as the hub card banners, so a
+          group's background reads as "which discipline" even before you read
+          any text (per founder spec: different per discipline, e.g. a faded
+          rocket for Aerospace). */}
+      <Icon
+        size={340}
+        strokeWidth={1}
+        className={cn('pointer-events-none absolute -top-10 -right-16 opacity-[0.04]', color.text)}
+        aria-hidden="true"
+      />
+
+      <div className="relative">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 mb-6 font-sans text-[0.8125rem]">
         <Link to="/dashboard/community" className="text-white/50 hover:text-white/85 transition-colors">
@@ -60,6 +78,7 @@ export function CommunityGroup() {
       {tab === 'qa' && <QAFeed readOnly={!canVote} discipline={discipline} />}
       {tab === 'webinars' && canSeeWebinars && <Webinars discipline={discipline} />}
       {tab === 'members' && canSeeMembers && <Network discipline={discipline} />}
+      </div>
     </div>
   )
 }

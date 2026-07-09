@@ -259,7 +259,8 @@ OVERVIEW / TRUST / SKILLS / CONNECTION REQUESTS / UPCOMING DEADLINES — сам�
    фичами (не три, даже если в процессе дизайна многоколоночная сетка
    визуально просит третью карточку):
    - Verifiability: "the network is trusted"
-   - Monthly Webinars
+   - Field-Specific Chats: дедикейтед чат под каждую инженерную дисциплину
+     (Aerospace, Mechanical, Electrical, Software и т.д.)
 
 5. Внизу страницы: секция "Contact Us" с email bshoxrux48@gmail.com.
 
@@ -322,9 +323,16 @@ originui-пакет, реализуй с нуля на базе Radix Accordion 
    - Замени соц-кнопки Google/Microsoft/Apple/SSO на: GitHub, LinkedIn, Google.
    - GitHub и LinkedIn кнопки получают бейдж "Full access" (зелёный).
    - Google кнопка получает бейдж "Limited preview" (жёлтый/оранжевый).
-   - Добавь warning-баннер под соц-кнопками с текстом о том, что Google-аккаунты
-     получают только browse-доступ к Community overview и полному Opportunities —
-     остальное закрыто до апгрейда на GitHub/LinkedIn.
+   - Подзаголовок формы (под "Create your account"/"Welcome back"):
+     **Решение (07.07.2026):** "Join eengineer" — чуть крупнее обычного текста,
+     но не перегруженный размер (заменяет прежний "Join the Engineering Network —
+     connect, build, and find your team.").
+   - Добавь warning-баннер под соц-кнопками.
+     **Решение (07.07.2026), финальный копирайт:** "Google only gets read-only
+     preview access. Everything else is locked until you register through
+     Github or Linkedin. However, neither reuses or stores your data. It is
+     just for the sake of confirming you are a real person." (заменяет более
+     длинную прежнюю формулировку).
 
 5. Логика состояний (можно на моках, если backend OAuth ещё не готов):
    - GitHub OAuth ИЛИ LinkedIn OAuth → присвоить статус "Builder", full access.

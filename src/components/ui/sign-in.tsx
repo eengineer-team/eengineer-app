@@ -85,9 +85,6 @@ export function AuthForm({ mode, loadingProvider, onOAuth, onEmailSubmit }: Auth
         <h1 className="font-display font-bold text-[#2A2118] text-[1.75rem] leading-[1.1] tracking-[-0.01em] mb-2.5">
           {mode === 'signup' ? 'Create your account' : 'Welcome back'}
         </h1>
-        <p className="font-sans text-[0.875rem] leading-[1.55] text-corn-700">
-          Join the Engineering Network — connect, build, and find your team.
-        </p>
       </div>
 
       {/* OAuth providers */}
@@ -123,10 +120,9 @@ export function AuthForm({ mode, loadingProvider, onOAuth, onEmailSubmit }: Auth
       <div className="flex items-start gap-2.5 rounded border border-amber-600/25 bg-amber-600/8 px-4 py-3 mb-6">
         <TriangleAlert size={15} strokeWidth={1.8} className="text-amber-800 flex-shrink-0 mt-0.5" />
         <p className="font-sans text-[0.75rem] leading-[1.5] text-amber-900">
-          Google accounts get read-only, stateless preview access — Community overview and the
-          full Opportunities page only. Everything else is locked until you upgrade to GitHub or
-          LinkedIn. Neither provider stores or reuses your profile data beyond confirming
-          you&apos;re a real person — it&apos;s a trust signal, not a data-play.
+          Google only gets read-only preview access. Everything else is locked until 
+          you register through Github or Linkedin. However, neither reuses or stores your data. It is just for the sake of confirming you are a real person.
+
         </p>
       </div>
 

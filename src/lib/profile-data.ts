@@ -28,6 +28,14 @@ export interface Endorsement {
   reason: string // mandatory per spec — never optional
 }
 
+export interface ExperienceEntry {
+  id: string
+  role: string
+  organization: string
+  duration: string // free text — "Summer 2025", "2024–Present", etc.
+  description: string
+}
+
 export interface BackgroundPreset {
   id: string
   label: string
@@ -50,8 +58,11 @@ export interface BuilderProfile {
   online: boolean
   bio: string
   backgroundId: string
+  /** Data URL or hosted image — falls back to initials in <Avatar> until set. */
+  avatarUrl?: string
   skills: Skill[]
   projects: ProjectEntry[]
+  experience: ExperienceEntry[]
   endorsements: Endorsement[]
   /** OAuth verification links — trust signal per spec, not a data source. */
   githubUrl?: string
@@ -59,6 +70,9 @@ export interface BuilderProfile {
   /** Mutual connections with the viewer — not shown on your own profile. */
   mutuals: number
   connectStatus: 'none' | 'requested' | 'connected'
+  /** Set during onboarding (Step 13) — surfaced as a badge on the profile. */
+  openToWork: boolean
+  interests: string[]
 }
 
 // Fixed id for whoever is currently signed in — the only profile the
@@ -78,9 +92,12 @@ export const SEED_PROFILES: BuilderProfile[] = [
       { name: 'Python', proficiency: 4 },
     ],
     projects: [],
+    experience: [],
     endorsements: [],
     mutuals: 0,
     connectStatus: 'none',
+    openToWork: false,
+    interests: [],
   },
   {
     id: 'n-alex',
@@ -113,11 +130,22 @@ export const SEED_PROFILES: BuilderProfile[] = [
         skillNames: ['MATLAB'],
       },
     ],
+    experience: [
+      {
+        id: 'x-alex-1',
+        role: 'Propulsion Intern',
+        organization: 'JPL',
+        duration: 'Summer 2025',
+        description: 'Supported active fin stabilizer testing for a small solid-fuel rocket program.',
+      },
+    ],
     endorsements: [
       { id: 'e1', fromName: 'Priya T.', targetType: 'skill', targetName: 'MATLAB', reason: 'Walked me through vectorizing a solver that used to take 40 minutes — down to 8 seconds.' },
     ],
     mutuals: 8,
     connectStatus: 'connected',
+    openToWork: true,
+    interests: ['Rocketry', 'Flight controls', 'CFD'],
   },
   {
     id: 'n1',
@@ -140,9 +168,12 @@ export const SEED_PROFILES: BuilderProfile[] = [
         skillNames: ['C++', 'React'],
       },
     ],
+    experience: [],
     endorsements: [],
     mutuals: 6,
     connectStatus: 'none',
+    openToWork: false,
+    interests: ['Robotics', 'Embedded systems'],
   },
   {
     id: 'n2',
@@ -157,9 +188,12 @@ export const SEED_PROFILES: BuilderProfile[] = [
       { name: 'MATLAB', proficiency: 3 },
     ],
     projects: [],
+    experience: [],
     endorsements: [],
     mutuals: 11,
     connectStatus: 'requested',
+    openToWork: true,
+    interests: ['Power electronics', 'Drones'],
   },
   {
     id: 'n3',
@@ -173,9 +207,12 @@ export const SEED_PROFILES: BuilderProfile[] = [
       { name: '3D Printing', proficiency: 5 },
     ],
     projects: [],
+    experience: [],
     endorsements: [],
     mutuals: 4,
     connectStatus: 'connected',
+    openToWork: false,
+    interests: ['Robot arms', '3D printing'],
   },
   {
     id: 'n4',
@@ -191,9 +228,12 @@ export const SEED_PROFILES: BuilderProfile[] = [
       { name: 'GD&T', proficiency: 3 },
     ],
     projects: [],
+    experience: [],
     endorsements: [],
     mutuals: 3,
     connectStatus: 'none',
+    openToWork: false,
+    interests: ['Structures'],
   },
   {
     id: 'n5',
@@ -206,8 +246,11 @@ export const SEED_PROFILES: BuilderProfile[] = [
       { name: 'AutoCAD Civil 3D', proficiency: 3 },
     ],
     projects: [],
+    experience: [],
     endorsements: [],
     mutuals: 2,
     connectStatus: 'none',
+    openToWork: false,
+    interests: ['Transportation infrastructure'],
   },
 ]

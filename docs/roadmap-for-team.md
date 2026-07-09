@@ -5,6 +5,15 @@
 > (обоснование см. в сопроводительном сообщении — единообразие с notification/message
 > badges в дашборде и конвенция top-right для account/settings меню).
 >
+> **Разрешённый конфликт (07.07.2026):** Сайдбар (dashboard, desktop) сворачивается
+> кнопкой в icon-only rail, по умолчанию развёрнут, выбор персистится (localStorage).
+> Причина: фаундер просил "сайдбар не должен мешать на страницах". Дословное
+> "исчезает на всех pages" отклонено — ломает навигацию (нельзя перейти между
+> разделами, если меню пропало). Компромисс: collapse-в-иконки даёт больше места
+> контенту, сохраняя навигацию. Активный пункт подсвечен в обоих состояниях,
+> tooltips обязательны в свёрнутом. Mobile — без изменений (гамбургер/off-canvas
+> drawer). Согласовано: агент → подтвердить с фаундером.
+>
 > **Обновление от фаундера (03.07.2026):** прямое использование 21st.dev-компонентов
 > отменено — "make it as good as possible, down to the details, humanly possible".
 > Все ссылки на 21st.dev ниже по тексту читаются как функциональные референсы
@@ -120,7 +129,7 @@ Avatar, Label, Input — на токенах, в обеих темах. При �
 1. Кастомный анимированный full-page фон (framer-motion) по макету из Фазы 1.5 — не устанавливать готовый 21st.dev-пакет, реализовать с нуля.
 2. Headline "Just Engineer It!" — крупный градиентный текст, по центру.
 3. Sign up / Log in кнопки прямо под headline.
-4. Кастомная feature-секция по макету из Фазы 1.5, **ровно 2 фичи**: Verifiability, Monthly Webinars.
+4. Кастомная feature-секция по макету из Фазы 1.5, **ровно 2 фичи**: Verifiability, Field-Specific Chats (дедикейтед чат под каждую инженерную дисциплину — Aerospace, Mechanical, Electrical, Software и т.д.).
 5. Contact Us секция внизу страницы: `bshoxrux48@gmail.com`.
 6. Settings-кнопка **top-right** → dropdown (shadcn DropdownMenu): Help.
    **Решение (04.07.2026, подтверждено фаундером):** Dark/Light toggle убран
@@ -151,7 +160,13 @@ Avatar, Label, Input — на токенах, в обеих темах. При �
 3. Рескин под референс-скриншот:
    - GitHub / LinkedIn кнопки с бейджем "Full access".
    - Google кнопка с бейджем "Limited preview".
+   - Подзаголовок формы. **Решение (07.07.2026):** "Join eengineer" — чуть
+     крупнее обычного текста, но не перегруженный размер.
    - Warning-баннер, объясняющий ограниченный доступ Google.
+     **Решение (07.07.2026), финальный копирайт:** "Google only gets read-only
+     preview access. Everything else is locked until you register through
+     Github or Linkedin. However, neither reuses or stores your data. It is
+     just for the sake of confirming you are a real person."
 4. Настроить OAuth-флоу:
    - GitHub/LinkedIn → полный Builder-статус (реализуется здесь как заглушка/мок до подключения бэкенда, если бэкенд ещё не готов — но UI-состояния должны существовать).
    - Google → stateless-превью, без создания аккаунта, без персистентности.

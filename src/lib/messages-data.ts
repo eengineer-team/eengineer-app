@@ -2,16 +2,26 @@
 // rest of the app's un-backed features: swap for a real backend later, the
 // shape (conversation -> messages[]) stays the same.
 
+export interface Attachment {
+  kind: 'image' | 'video' | 'link'
+  /** Data URL for image/video uploads, or the raw URL for a shared link. */
+  url: string
+  name?: string
+}
+
 export interface DirectMessage {
   id: string
   from: 'me' | 'them'
   text: string
   time: string
+  attachment?: Attachment
 }
 
 export interface Conversation {
   id: string
   withName: string
+  /** Links to a BuilderProfile id (src/lib/profile-data.ts) for the profile preview popover. */
+  userId: string
   discipline: string
   unread: number
   messages: DirectMessage[]
@@ -21,6 +31,7 @@ export const SEED_CONVERSATIONS: Conversation[] = [
   {
     id: 'dm1',
     withName: 'James O.',
+    userId: 'n3',
     discipline: 'Mechanical',
     unread: 2,
     messages: [
@@ -33,6 +44,7 @@ export const SEED_CONVERSATIONS: Conversation[] = [
   {
     id: 'dm2',
     withName: 'Priya T.',
+    userId: 'n2',
     discipline: 'Electrical',
     unread: 0,
     messages: [
@@ -43,6 +55,7 @@ export const SEED_CONVERSATIONS: Conversation[] = [
   {
     id: 'dm3',
     withName: 'Marcus R.',
+    userId: 'n1',
     discipline: 'Software',
     unread: 0,
     messages: [

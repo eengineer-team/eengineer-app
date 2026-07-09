@@ -24,6 +24,7 @@ export interface Comment {
   id: string
   author: string
   text: string
+  time?: string
 }
 
 export interface Question {
@@ -31,6 +32,7 @@ export interface Question {
   category: Discipline
   text: string
   author: string
+  time: string
   approvals: number
   disapprovals: number
   myVote: 'approve' | 'disapprove' | null
@@ -44,12 +46,13 @@ export const SEED_QUESTIONS: Question[] = [
     category: 'Aerospace',
     text: 'Has anyone tuned a PID controller for a model rocket active fin stabilizer? My response is oscillating way more than the sim predicted.',
     author: 'Alex Kim',
+    time: '10:02 AM',
     approvals: 14,
     disapprovals: 0,
     myVote: null,
     reported: false,
     comments: [
-      { id: 'c1', author: 'Priya T.', text: 'Check your sensor sample rate first — that was my issue.' },
+      { id: 'c1', author: 'Priya T.', text: 'Check your sensor sample rate first — that was my issue.', time: '10:07 AM' },
     ],
   },
   {
@@ -57,6 +60,7 @@ export const SEED_QUESTIONS: Question[] = [
     category: 'Software',
     text: 'Best way to structure a monorepo for a school robotics team with both firmware and a dashboard web app?',
     author: 'Marcus R.',
+    time: 'Yesterday',
     approvals: 9,
     disapprovals: 1,
     myVote: null,
@@ -68,13 +72,14 @@ export const SEED_QUESTIONS: Question[] = [
     category: 'Mechanical',
     text: "What's a reasonable FOS (factor of safety) to target for a 3D-printed PLA bracket in a competition robot arm?",
     author: 'Sophie K.',
+    time: 'Yesterday',
     approvals: 21,
     disapprovals: 2,
     myVote: null,
     reported: false,
     comments: [
-      { id: 'c2', author: 'Dev P.', text: 'PLA is brittle under repeated load — I\'d go 2.5-3x minimum.' },
-      { id: 'c3', author: 'James O.', text: 'Agreed, and watch layer orientation relative to load direction.' },
+      { id: 'c2', author: 'Dev P.', text: 'PLA is brittle under repeated load — I\'d go 2.5-3x minimum.', time: 'Yesterday' },
+      { id: 'c3', author: 'James O.', text: 'Agreed, and watch layer orientation relative to load direction.', time: 'Yesterday' },
     ],
   },
   {
@@ -82,6 +87,7 @@ export const SEED_QUESTIONS: Question[] = [
     category: 'Electrical',
     text: 'Any recommendations for a beginner-friendly current sensor for measuring brushless motor draw on a small drone?',
     author: 'James O.',
+    time: 'Mon',
     approvals: 6,
     disapprovals: 0,
     myVote: null,

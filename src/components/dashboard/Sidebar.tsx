@@ -1,9 +1,10 @@
-import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle, Settings, X, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '@/lib/auth-context'
 import { can, type Action } from '@/lib/permissions'
-import { JOINED_CLUBS } from '@/lib/clubs-data'
-import { getDisciplineColor } from '@/lib/discipline-colors'
+import { Tooltip } from '@/components/ui/tooltip'
+import { Wordmark } from '@/components/ui/wordmark'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -24,6 +25,13 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard/messages', label: 'Messages', icon: MessageSquare, action: 'messages:view' },
 ]
 
+const COLLAPSE_STORAGE_KEY = 'eengineer:sidebar-collapsed'
+
+function readStoredCollapsed() {
+  if (typeof window === 'undefined') return false
+  return window.localStorage.getItem(COLLAPSE_STORAGE_KEY) === 'true'
+}
+
 interface SidebarProps {
   open: boolean
   onClose: () => void
@@ -32,6 +40,18 @@ interface SidebarProps {
 export function Sidebar({ open, onClose }: SidebarProps) {
   const { user } = useAuth()
   const items = NAV_ITEMS.filter((item) => can(user, item.action))
+  const [collapsed, setCollapsed] = useState(readStoredCollapsed)
+
+  useEffect(() => {
+    window.localStorage.setItem(COLLAPSE_STORAGE_KEY, String(collapsed))
+  }, [collapsed])
+
+  const navItemClass = ({ isActive }: { isActive: boolean }) =>
+    cn(
+      'flex items-center gap-3 px-3 py-2.5 rounded font-sans text-[0.875rem] font-medium transition-colors duration-150',
+      collapsed && 'md:justify-center md:px-0',
+      isActive ? 'bg-white/8 text-white' : 'text-white/55 hover-white-tint hover:text-white/90',
+    )
 
   return (
     <>
@@ -41,20 +61,36 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       )}
 
       <aside
-        className={`fixed md:sticky top-0 left-0 z-50 w-[220px] flex-shrink-0 h-screen flex flex-col border-r border-white/8 bg-dark-100 md:bg-transparent px-4 py-6 transition-transform duration-200 md:translate-x-0 ${
-          open ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={cn(
+          'fixed md:sticky top-0 left-0 z-50 w-[220px] flex-shrink-0 h-screen flex flex-col border-r border-white/8 bg-dark-100 md:bg-transparent px-4 py-6 transition-[transform,width] duration-200 ease-in-out md:translate-x-0',
+          collapsed ? 'md:w-16' : 'md:w-[220px]',
+          open ? 'translate-x-0' : '-translate-x-full',
+        )}
       >
-        {/* Brand */}
-        <div className="flex items-center justify-between mb-8">
-          <Link to="/" className="flex items-center gap-2.5 px-2 group">
-            <span className="font-display text-white text-[1.125rem] font-bold tracking-[-0.03em] leading-none group-hover:text-white/70 transition-colors">
-              ee
-            </span>
-            <span className="font-sans text-[9px] font-medium tracking-[0.22em] uppercase text-white/50 mt-px">
-              engineer
-            </span>
+        {/* Brand + desktop collapse toggle share one row — no dead space above Home */}
+        <div className={cn('flex items-center justify-between mb-6', collapsed && 'md:flex-col md:justify-center md:gap-2')}>
+          <Link
+            to="/"
+            className={cn('flex items-center group', collapsed ? 'md:px-0' : 'px-2')}
+          >
+            <Wordmark
+              variant="dark"
+              size="sm"
+              className="transition-opacity group-hover:opacity-70"
+              tailClassName={collapsed ? 'md:hidden' : undefined}
+            />
           </Link>
+
+          {/* Desktop collapse toggle — persisted, does not affect mobile drawer */}
+          <button
+            onClick={() => setCollapsed((c) => !c)}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="hidden md:flex w-8 h-8 items-center justify-center text-white/55 hover:text-white/90 hover-white-tint rounded transition-colors duration-150"
+          >
+            {collapsed ? <PanelLeftOpen size={16} strokeWidth={1.8} /> : <PanelLeftClose size={16} strokeWidth={1.8} />}
+          </button>
+
+          {/* Mobile-only close, independent of the desktop collapse toggle */}
           <button
             onClick={onClose}
             aria-label="Close menu"
@@ -64,66 +100,51 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           </button>
         </div>
 
-        {/* Nav + My Clubs share the scrollable flex-1 area so the footer stays sticky */}
+        {/* Nav fills the scrollable flex-1 area so the footer stays sticky. My Clubs
+            was removed from here (duplicated the Home widget) — Joined Clubs lives
+            only on DashboardHome now. */}
         <div className="flex-1 flex flex-col gap-1 overflow-y-auto">
           <nav className="flex flex-col gap-1">
             {items.map((item) => {
               const Icon = item.icon
               return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.end}
-                  onClick={onClose}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2.5 rounded font-sans text-[0.8125rem] font-medium transition-colors duration-150 ${
-                      isActive ? 'bg-white/8 text-white' : 'text-white/55 hover-white-tint hover:text-white/90'
-                    }`
-                  }
-                >
-                  <Icon size={16} strokeWidth={1.8} />
-                  {item.label}
-                </NavLink>
+                <Tooltip key={item.to} label={item.label} disabled={!collapsed} className="md:block">
+                  <NavLink to={item.to} end={item.end} onClick={onClose} className={navItemClass}>
+                    <Icon size={19} strokeWidth={1.8} className="flex-shrink-0" />
+                    <span className={collapsed ? 'md:hidden' : ''}>{item.label}</span>
+                  </NavLink>
+                </Tooltip>
               )
             })}
           </nav>
-
-          {/* My Clubs — persistent, not just on the Home landing widget. Google-preview
-              guests have no membership state, so this is Builder-only. */}
-          {user?.status === 'builder' && (
-            <div className="pt-4 mt-2 border-t border-white/8">
-              <span className="font-sans text-[10px] font-medium tracking-[0.16em] uppercase text-white/45 px-3 block mb-2">
-                My Clubs
-              </span>
-              <div className="flex flex-col gap-0.5">
-                {JOINED_CLUBS.map((club) => (
-                  <div
-                    key={club.name}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded font-sans text-[0.8125rem] text-white/55 hover-white-tint hover:text-white/90 transition-colors duration-150"
-                  >
-                    <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', getDisciplineColor(club.name).dot)} />
-                    <span className="flex-1 truncate">{club.name}</span>
-                    {!!club.unreadCount && (
-                      <span className="flex-shrink-0 min-w-[16px] h-4 px-1 rounded-full bg-gold-dark text-dark-900 font-sans text-[10px] font-semibold flex items-center justify-center">
-                        {club.unreadCount}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Footer — Help only; Settings lives top-right per the resolved spec convention */}
-        <div className="pt-4 border-t border-white/8">
-          <Link
-            to="/help"
-            className="flex items-center gap-3 px-3 py-2.5 rounded font-sans text-[0.8125rem] font-medium text-white/55 hover-white-tint hover:text-white/90 transition-colors duration-150"
-          >
-            <HelpCircle size={16} strokeWidth={1.8} />
-            Help
-          </Link>
+        {/* Footer — Settings + Help. Settings used to live only in the top-right
+            menu; it's mirrored here too now since the sidebar footer is the more
+            discoverable spot for preferences like dark/light mode. */}
+        <div className="pt-4 border-t border-white/8 flex flex-col gap-1">
+          <Tooltip label="Settings" disabled={!collapsed} className="md:block">
+            <NavLink
+              to="/dashboard/settings"
+              onClick={onClose}
+              className={navItemClass}
+            >
+              <Settings size={19} strokeWidth={1.8} className="flex-shrink-0" />
+              <span className={collapsed ? 'md:hidden' : ''}>Settings</span>
+            </NavLink>
+          </Tooltip>
+          <Tooltip label="Help" disabled={!collapsed} className="md:block">
+            <Link
+              to="/help"
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded font-sans text-[0.875rem] font-medium text-white/55 hover-white-tint hover:text-white/90 transition-colors duration-150',
+                collapsed && 'md:justify-center md:px-0',
+              )}
+            >
+              <HelpCircle size={19} strokeWidth={1.8} className="flex-shrink-0" />
+              <span className={collapsed ? 'md:hidden' : ''}>Help</span>
+            </Link>
+          </Tooltip>
         </div>
       </aside>
     </>

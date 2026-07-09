@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { SEED_PROFILES, ME_ID, type BuilderProfile, type ProjectEntry } from '@/lib/profile-data'
+import { SEED_PROFILES, ME_ID, type BuilderProfile, type ProjectEntry, type ExperienceEntry } from '@/lib/profile-data'
+import type { Discipline } from '@/lib/community-data'
 
 // In-memory profile store shared across the list/detail routes. Same caveat
 // as auth-context.tsx: this is mock state, not a backend — see PROGRESS.md.
@@ -12,8 +13,13 @@ interface ProfilesContextValue {
   rateSkill: (skillName: string, proficiency: number) => void
   addSkill: (skillName: string) => void
   addProject: (project: Omit<ProjectEntry, 'id'>) => void
+  addExperience: (entry: Omit<ExperienceEntry, 'id'>) => void
   setBackground: (backgroundId: string) => void
   setBio: (bio: string) => void
+  setAvatar: (avatarUrl: string) => void
+  setDiscipline: (discipline: Discipline) => void
+  setOpenToWork: (openToWork: boolean) => void
+  setInterests: (interests: string[]) => void
   addEndorsement: (targetProfileId: string, targetType: 'skill' | 'project', targetName: string, reason: string, fromName: string) => void
   toggleConnect: (targetProfileId: string) => void
 }
@@ -60,6 +66,29 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
     updateMe((p) => ({ ...p, bio }))
   }, [updateMe])
 
+  const addExperience = React.useCallback((entry: Omit<ExperienceEntry, 'id'>) => {
+    updateMe((p) => ({
+      ...p,
+      experience: [{ ...entry, id: `x-me-${Date.now()}` }, ...p.experience],
+    }))
+  }, [updateMe])
+
+  const setAvatar = React.useCallback((avatarUrl: string) => {
+    updateMe((p) => ({ ...p, avatarUrl }))
+  }, [updateMe])
+
+  const setDiscipline = React.useCallback((discipline: Discipline) => {
+    updateMe((p) => ({ ...p, discipline }))
+  }, [updateMe])
+
+  const setOpenToWork = React.useCallback((openToWork: boolean) => {
+    updateMe((p) => ({ ...p, openToWork }))
+  }, [updateMe])
+
+  const setInterests = React.useCallback((interests: string[]) => {
+    updateMe((p) => ({ ...p, interests }))
+  }, [updateMe])
+
   // Endorsing is the one write any Builder can make on someone else's
   // profile — reason is required by the caller-side dialog, enforced again
   // here as a last line of defense.
@@ -98,8 +127,38 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const value = React.useMemo(
-    () => ({ profiles, getProfile, rateSkill, addSkill, addProject, setBackground, setBio, addEndorsement, toggleConnect }),
-    [profiles, getProfile, rateSkill, addSkill, addProject, setBackground, setBio, addEndorsement, toggleConnect]
+    () => ({
+      profiles,
+      getProfile,
+      rateSkill,
+      addSkill,
+      addProject,
+      addExperience,
+      setBackground,
+      setBio,
+      setAvatar,
+      setDiscipline,
+      setOpenToWork,
+      setInterests,
+      addEndorsement,
+      toggleConnect,
+    }),
+    [
+      profiles,
+      getProfile,
+      rateSkill,
+      addSkill,
+      addProject,
+      addExperience,
+      setBackground,
+      setBio,
+      setAvatar,
+      setDiscipline,
+      setOpenToWork,
+      setInterests,
+      addEndorsement,
+      toggleConnect,
+    ]
   )
 
   return <ProfilesContext.Provider value={value}>{children}</ProfilesContext.Provider>

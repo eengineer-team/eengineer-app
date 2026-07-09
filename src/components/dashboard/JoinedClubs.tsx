@@ -1,9 +1,17 @@
-import { Users } from 'lucide-react'
+import * as React from 'react'
+import { MessageCircle, Bell } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { JOINED_CLUBS } from '@/lib/clubs-data'
-import { getDisciplineColor } from '@/lib/discipline-colors'
-import { cn } from '@/lib/utils'
+import { getGroupMeta } from '@/lib/community-groups'
+import { disciplineSlug } from '@/lib/community-data'
 
+// Redesigned per founder feedback: no discipline color-coding, no member
+// count — just a circled chat icon, the club name, and a notification
+// indicator. Pressing a row previews the latest message inline instead of
+// jumping straight into the group; "Open chat" still does the full navigate.
 export function JoinedClubs() {
+  const [expanded, setExpanded] = React.useState<string | null>(null)
+
   return (
     <div>
       <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-white/45 block mb-3">
@@ -11,23 +19,61 @@ export function JoinedClubs() {
       </span>
 
       <div className="flex flex-col gap-2">
-        {JOINED_CLUBS.map((club) => (
-          <div
-            key={club.name}
-            className="flex items-center justify-between px-4 py-3 rounded-lg bg-white/[0.03] border border-white/8"
-          >
-            <div className="flex items-center gap-2.5">
-              <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', getDisciplineColor(club.name).dot)} />
-              <span className="font-sans text-[0.875rem] font-medium text-white/90">
-                {club.name}
-              </span>
+        {JOINED_CLUBS.map((club) => {
+          const meta = getGroupMeta(club.name)
+          const isOpen = expanded === club.name
+          const hasNotification = !!club.unreadCount || meta.recentActivityCount > 0
+
+          return (
+            <div
+              key={club.name}
+              className="rounded-lg bg-white/[0.03] border border-white/8 hover:border-white/15 transition-colors duration-150 overflow-hidden"
+            >
+              <button
+                onClick={() => setExpanded(isOpen ? null : club.name)}
+                aria-expanded={isOpen}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left"
+              >
+                <span className="relative w-8 h-8 rounded-full bg-white/8 flex items-center justify-center flex-shrink-0">
+                  <MessageCircle size={15} strokeWidth={1.8} className="text-white/70" />
+                  {hasNotification && (
+                    <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-gold-dark border-2 border-dark-100" />
+                  )}
+                </span>
+                <span className="flex-1 min-w-0 font-sans text-[0.875rem] font-medium text-white/90 truncate">
+                  {club.name}
+                </span>
+                {hasNotification && (
+                  <Bell size={14} strokeWidth={1.8} className="text-gold-dark flex-shrink-0" />
+                )}
+              </button>
+
+              {isOpen && (
+                <div className="px-4 pb-3 pt-0.5 -mt-1">
+                  <div className="rounded-md bg-white/[0.03] border border-white/8 px-3 py-2.5">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="font-sans text-[0.75rem] font-medium text-white/80">
+                        {meta.latestMessage.author}
+                      </span>
+                      <span className="font-sans text-[10px] text-white/35 flex-shrink-0">
+                        {meta.latestMessage.time}
+                      </span>
+                    </div>
+                    <p className="font-sans text-[0.75rem] text-white/55 leading-snug line-clamp-2 mb-2">
+                      {meta.latestMessage.text}
+                    </p>
+                    <Link
+                      to={`/dashboard/community/${disciplineSlug(club.name)}`}
+                      className="font-sans text-[11px] font-medium text-gold-dark hover:brightness-110 transition-all"
+                    >
+                      Open chat →
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="flex items-center gap-1.5 text-white/45">
-              <Users size={12} strokeWidth={1.8} />
-              <span className="font-sans text-[11px]">{club.members}</span>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

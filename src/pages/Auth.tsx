@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { ArrowLeft, TriangleAlert } from 'lucide-react'
 import { SettingsMenu } from '@/components/SettingsMenu'
 import { AuthForm } from '@/components/ui/sign-in'
+import { Wordmark } from '@/components/ui/wordmark'
 import { useAuth, type OAuthProvider } from '@/lib/auth-context'
 
 export function Auth() {
@@ -53,13 +54,8 @@ export function Auth() {
       {/* Header — same pattern as Welcome/Help */}
       <header className="flex items-center justify-between px-10 pt-8">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <span className="font-display text-[#2A2118] text-[1.25rem] font-bold tracking-[-0.03em] leading-none group-hover:text-corn-700 transition-colors">
-              ee
-            </span>
-            <span className="font-sans text-[10px] font-medium tracking-[0.22em] uppercase text-corn-700 mt-px">
-              engineer
-            </span>
+          <Link to="/" className="flex items-center group">
+            <Wordmark variant="light" className="transition-opacity group-hover:opacity-70" />
           </Link>
         </motion.div>
 
