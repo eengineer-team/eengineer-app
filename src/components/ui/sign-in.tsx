@@ -120,9 +120,9 @@ export function AuthForm({ mode, loadingProvider, onOAuth, onEmailSubmit }: Auth
       <div className="flex items-start gap-2.5 rounded border border-amber-600/25 bg-amber-600/8 px-4 py-3 mb-6">
         <TriangleAlert size={15} strokeWidth={1.8} className="text-amber-800 flex-shrink-0 mt-0.5" />
         <p className="font-sans text-[0.75rem] leading-[1.5] text-amber-900">
-          Google only gets read-only preview access. Everything else is locked until 
-          you register through Github or Linkedin. However, neither reuses or stores your data. It is just for the sake of confirming you are a real person.
-
+          Google gets you a quick, read-only look around — nothing saved, nothing created.
+          Want full access? Sign up with GitHub or LinkedIn instead. We don't touch your
+          data either way — it's just there to prove you're a real person, not a bot.
         </p>
       </div>
 
