@@ -21,14 +21,19 @@ function LinkedinMark({ className }: { className?: string }) {
   )
 }
 
+// Enlarged + given a glossy highlight overlay per founder's literal request
+// ("logos should be made bigger and more realistic") — scoped-override only,
+// see LandingFeatures header comment.
 function TrustMark() {
   return (
-    <div className="relative w-16 h-16 flex items-center justify-center mb-5">
-      <div className="absolute w-11 h-11 rounded-xl bg-[#24292e] text-white flex items-center justify-center rotate-[-12deg] shadow-[0_6px_16px_rgba(0,0,0,0.18)] -translate-x-2.5">
-        <GithubMark className="w-6 h-6" />
+    <div className="relative w-24 h-24 flex items-center justify-center mb-5">
+      <div className="absolute w-16 h-16 rounded-2xl bg-[#24292e] text-white flex items-center justify-center rotate-[-12deg] shadow-[0_10px_24px_rgba(0,0,0,0.28)] -translate-x-4 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-transparent" />
+        <GithubMark className="w-9 h-9 relative" />
       </div>
-      <div className="absolute w-11 h-11 rounded-xl bg-[#0A66C2] text-white flex items-center justify-center rotate-[12deg] shadow-[0_6px_16px_rgba(0,0,0,0.18)] translate-x-2.5">
-        <LinkedinMark className="w-6 h-6" />
+      <div className="absolute w-16 h-16 rounded-2xl bg-[#0A66C2] text-white flex items-center justify-center rotate-[12deg] shadow-[0_10px_24px_rgba(0,0,0,0.28)] translate-x-4 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-transparent" />
+        <LinkedinMark className="w-9 h-9 relative" />
       </div>
     </div>
   )
@@ -80,6 +85,16 @@ const fadeUp = {
   show: { opacity: 1, y: 0 },
 }
 
+// SCOPED OVERRIDE — founder-risky-edits branch only (09.07.2026). Normal
+// project rules reject 21st.dev components/templates as a visual reference
+// (docs/ai-agent-build-instructions.md, Шаг 1.5 preamble). Founder explicitly
+// asked to see the literal ask built anyway, for side-by-side comparison
+// against main: "rebuild it to match the layout of
+// 21st.dev/@tailark/components/features-2: horizontal feature list, GitHub/
+// LinkedIn logos bigger and more realistic." This is that literal build —
+// full-width single row with vertical hairline dividers instead of the
+// previous 5-up card grid. Not a recommendation; see commit message for the
+// usability critique. Do not use this component as precedent elsewhere.
 export function LandingFeatures() {
   return (
     <section className="px-5 sm:px-10 py-16 border-t border-[#2A2118]/8">
@@ -97,16 +112,21 @@ export function LandingFeatures() {
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: '-80px' }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-10"
+        className="flex flex-col lg:flex-row border-t border-b border-corn-900/10 lg:divide-x lg:divide-corn-900/10"
       >
         {FEATURES.map((f) => (
-          <motion.div key={f.tag} variants={fadeUp} transition={{ duration: 0.4 }} className="flex flex-col">
+          <motion.div
+            key={f.tag}
+            variants={fadeUp}
+            transition={{ duration: 0.4 }}
+            className="flex-1 flex flex-col items-start px-0 lg:px-6 py-8 border-b lg:border-b-0 border-corn-900/10 last:border-b-0"
+          >
             {f.visual === 'trust' ? (
               <TrustMark />
             ) : (
               f.Icon && (
-                <div className="w-16 h-16 rounded-xl bg-corn-900/6 border border-corn-900/10 flex items-center justify-center mb-5">
-                  <f.Icon size={26} strokeWidth={1.6} className="text-corn-700" />
+                <div className="mb-5">
+                  <f.Icon size={40} strokeWidth={1.4} className="text-corn-700" />
                 </div>
               )
             )}
