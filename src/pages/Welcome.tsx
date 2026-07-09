@@ -57,19 +57,17 @@ export function Welcome() {
           variants={stagger}
           initial="hidden"
           animate="show"
-          className="w-full max-w-[640px] flex flex-col"
+          className="w-full max-w-[820px] flex flex-col"
         >
 
-          {/* Headline — Syne Bold, tracking loosened to breathe */}
+          {/* Headline — now on the "display" token (tailwind.config.js) instead
+              of a one-off arbitrary clamp: moderately larger cap + positive
+              tracking per founder request, still capped so it doesn't go
+              "giant" on very wide viewports. */}
           <motion.h1
             variants={fadeUp}
             transition={{ duration: 0.5 }}
-            className="
-              font-display font-bold text-[#2A2118]
-              text-[clamp(3.25rem,6.5vw,5.5rem)]
-              leading-[0.94] tracking-[-0.01em]
-              mb-6
-            "
+            className="font-display text-display text-[#2A2118] mb-6"
           >
             Just<br />
             Engineer<br />
@@ -80,7 +78,7 @@ export function Welcome() {
           <motion.p
             variants={fadeUp}
             transition={{ duration: 0.4 }}
-            className="font-sans text-[1rem] leading-[1.65] text-[#2A2118] max-w-[400px] mb-9"
+            className="font-sans text-[1rem] leading-[1.65] text-[#2A2118] max-w-[460px] mb-9"
           >
             A verified community for engineers of all ages. Build anything you want with anyone you want.
           </motion.p>

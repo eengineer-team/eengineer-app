@@ -70,7 +70,19 @@ export default {
         },
       },
       fontSize: {
-        'display': ['5.5rem', { lineHeight: '1.0', letterSpacing: '-0.03em', fontWeight: '800' }],
+        // Widened + given slight positive tracking per founder request
+        // (07.09.2026): "larger, not giantly huge" — the heavy Syne 800
+        // weight was crowding itself at the old -0.03em, so this moved to
+        // +0.01em instead of just scaling the cap up. Previously defined but
+        // never actually applied anywhere (Welcome.tsx's hero used a
+        // one-off arbitrary clamp() instead) — now the hero uses this token
+        // directly, so any future hero-scale headline gets it for free.
+        // Floor stays at the original 3.25rem — "Engineer" only clears the
+        // 375px mobile viewport by ~9px at that size (measured), so raising
+        // the floor to match the new desktop cap overflowed the word off
+        // the edge of the screen. Only the cap (and the vw ramp feeding it)
+        // moved; mobile is unchanged.
+        'display': ['clamp(3.25rem, 7.2vw, 6.25rem)', { lineHeight: '0.94', letterSpacing: '0.01em', fontWeight: '800' }],
         'display-sm': ['3.5rem', { lineHeight: '1.05', letterSpacing: '-0.02em', fontWeight: '700' }],
         'heading': ['2rem', { lineHeight: '1.2', letterSpacing: '-0.01em', fontWeight: '600' }],
         'label': ['0.75rem', { lineHeight: '1.4', letterSpacing: '0.08em', fontWeight: '500' }],
