@@ -328,11 +328,19 @@ originui-пакет, реализуй с нуля на базе Radix Accordion 
      но не перегруженный размер (заменяет прежний "Join the Engineering Network —
      connect, build, and find your team.").
    - Добавь warning-баннер под соц-кнопками.
-     **Решение (07.07.2026), финальный копирайт:** "Google only gets read-only
-     preview access. Everything else is locked until you register through
-     Github or Linkedin. However, neither reuses or stores your data. It is
-     just for the sake of confirming you are a real person." (заменяет более
-     длинную прежнюю формулировку).
+     **Решение (07.07.2026), "финальный копирайт" — ЗАМЕНЕНО 09.07.2026:**
+     ~~"Google only gets read-only preview access. Everything else is locked
+     until you register through Github or Linkedin. However, neither reuses
+     or stores your data. It is just for the sake of confirming you are a
+     real person."~~ Founder feedback (Slidelike PDF, page 2): этот текст
+     звучит шаблонно/AI-написанно — заменить на более человеческую
+     формулировку. Действующий текст (09.07.2026): "Google gets you a quick,
+     read-only look around — nothing saved, nothing created. Want full
+     access? Sign up with GitHub or LinkedIn instead. We don't touch your
+     data either way — it's just there to prove you're a real person, not a
+     bot." Факты не изменились (Google = read-only preview; GitHub/LinkedIn =
+     full access; ни один провайдер не хранит/не переиспользует данные сверх
+     подтверждения личности) — поменялся только тон.
 
 5. Логика состояний (можно на моках, если backend OAuth ещё не готов):
    - GitHub OAuth ИЛИ LinkedIn OAuth → присвоить статус "Builder", full access.
