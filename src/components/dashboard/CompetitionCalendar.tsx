@@ -68,26 +68,26 @@ export function CompetitionCalendar() {
   return (
     <div className="flex flex-col gap-4">
       <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
-        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-white/45 block mb-3">
+        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-dark-muted block mb-3">
           Competition Calendar
         </span>
 
         <div className="flex items-center justify-between mb-3">
-          <span className="font-sans text-[0.875rem] font-semibold text-white/90">
+          <span className="font-sans text-[0.875rem] font-semibold text-dark-text">
             {MONTH_NAMES[viewMonth.getMonth()]} {viewMonth.getFullYear()}
           </span>
           <div className="flex items-center gap-1">
             <button
               onClick={goToPrevMonth}
               disabled={isViewingCurrentMonth}
-              className="p-1 rounded text-white/45 hover:bg-white/7 hover:text-white/80 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+              className="p-1 rounded text-dark-muted hover:bg-white/7 hover:text-white/80 transition-colors disabled:opacity-30 disabled:pointer-events-none"
               aria-label="Previous month"
             >
               <ChevronLeft size={14} strokeWidth={2} />
             </button>
             <button
               onClick={goToNextMonth}
-              className="p-1 rounded text-white/45 hover:bg-white/7 hover:text-white/80 transition-colors"
+              className="p-1 rounded text-dark-muted hover:bg-white/7 hover:text-white/80 transition-colors"
               aria-label="Next month"
             >
               <ChevronRight size={14} strokeWidth={2} />
@@ -138,7 +138,7 @@ export function CompetitionCalendar() {
       </div>
 
       <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
-        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-white/45 block mb-3">
+        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-dark-muted block mb-3">
           Upcoming Deadlines
         </span>
         <div className="flex flex-col gap-3">
@@ -150,10 +150,10 @@ export function CompetitionCalendar() {
             >
               <span className={cn('w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0', getDisciplineColor(comp.discipline).dot)} />
               <div className="flex-1 min-w-0">
-                <div className="font-sans text-[0.8125rem] font-medium text-white/90 leading-snug">
+                <div className="font-sans text-[0.8125rem] font-medium text-dark-text leading-snug">
                   {comp.name}
                 </div>
-                <div className="font-sans text-[11px] text-white/45">
+                <div className="font-sans text-[11px] text-dark-muted">
                   {comp.location} · {comp.discipline}
                 </div>
               </div>
@@ -166,7 +166,7 @@ export function CompetitionCalendar() {
       </div>
 
       <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
-        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-white/45 block mb-3">
+        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-dark-muted block mb-3">
           Daily Reminders
         </span>
         <div className="flex flex-col gap-2.5">
@@ -175,9 +175,9 @@ export function CompetitionCalendar() {
             const label = daysUntil === 0 ? 'today' : daysUntil === 1 ? 'tomorrow' : `in ${daysUntil} days`
             return (
               <div key={comp.id} className="flex items-start gap-2">
-                <Bell size={12} strokeWidth={1.8} className="text-white/45 mt-0.5 flex-shrink-0" />
+                <Bell size={12} strokeWidth={1.8} className="text-dark-muted mt-0.5 flex-shrink-0" />
                 <span className="font-sans text-[11px] text-white/60 leading-snug">
-                  <span className="text-white/90 font-medium">{comp.name}</span> deadline {label}.
+                  <span className="text-dark-text font-medium">{comp.name}</span> deadline {label}.
                 </span>
               </div>
             )

@@ -37,7 +37,7 @@ export function CompetitionDetail({ competition: competitionProp }: { competitio
     <div className="flex-1 px-8 py-8 max-w-[640px]">
       <Link
         to="/dashboard/calendar"
-        className="inline-flex items-center gap-1.5 font-sans text-[0.8125rem] text-dark-muted hover:text-white/85 transition-colors mb-6"
+        className="inline-flex items-center gap-1.5 font-sans text-[0.8125rem] text-white/50 hover:text-white/85 transition-colors mb-6"
       >
         <ArrowLeft size={13} strokeWidth={2} />
         Calendar

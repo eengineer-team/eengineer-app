@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { FolderGit2, Users2, CalendarDays, MessageCircleQuestion } from 'lucide-react'
+import { MessageCircleQuestion } from 'lucide-react'
 
 // Brand marks — lucide-react has no GitHub/LinkedIn logos, so these are the
 // same inline SVGs TeamAbout.tsx uses, just bigger and given a slight lean
@@ -34,38 +34,24 @@ function TrustMark() {
   )
 }
 
+// Two features, not five (07.2026 edit pass, rule: "does the element say
+// something that exists nowhere else on the page?"). The cut three either
+// duplicated sections below (Projects → FeaturedProject loop, Calendar →
+// LandingCalendar) or said nothing ("Networking"). What's left is the two
+// claims no other section makes.
 const FEATURES = [
   {
-    tag: 'Trust',
-    title: 'Every profile, verified',
-    description: 'Every profile is registered through a GitHub or LinkedIn account. Because of this, the network is trusted.',
+    tag: 'Verification',
+    title: 'Signup requires GitHub or LinkedIn',
+    description:
+      "There is no email-only registration. Whoever comments on your project has a public identity and a work history you can check yourself.",
     visual: 'trust' as const,
   },
   {
-    tag: 'Projects',
-    title: 'Ship, get real feedback',
-    description: 'Post your projects to receive honest peer feedback, find new team members, and more.',
-    visual: 'icon' as const,
-    Icon: FolderGit2,
-  },
-  {
-    tag: 'Networking',
-    title: 'Meet future engineers',
-    description: 'One of the best communities to offer networking opportunities with future engineers.',
-    visual: 'icon' as const,
-    Icon: Users2,
-  },
-  {
-    tag: 'Competition Calendar',
-    title: 'Never miss a deadline',
-    description: "Get notified about upcoming competitions and opportunities for your chosen field.",
-    visual: 'icon' as const,
-    Icon: CalendarDays,
-  },
-  {
-    tag: 'QAs',
-    title: 'Ask real people',
-    description: 'Instead of asking a chatbot with no real experience, ask real people — their answers may resonate better.',
+    tag: 'Q&A',
+    title: 'Questions go to people, not a model',
+    description:
+      'Ask your discipline group, and the answer comes from a member with builds behind them — not from a chatbot predicting what an answer should look like.',
     visual: 'icon' as const,
     Icon: MessageCircleQuestion,
   },
@@ -88,7 +74,7 @@ export function LandingFeatures() {
           Why eengineer
         </span>
         <h2 className="font-display font-extrabold text-[#2A2118] text-[clamp(2rem,3.8vw,2.75rem)] leading-[1.05] tracking-[-0.02em]">
-          Everything you need, none of the noise.
+          No anonymous accounts. No bot answers.
         </h2>
       </div>
 
@@ -97,7 +83,7 @@ export function LandingFeatures() {
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: '-80px' }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-10"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-10 max-w-[880px]"
       >
         {FEATURES.map((f) => (
           <motion.div key={f.tag} variants={fadeUp} transition={{ duration: 0.4 }} className="flex flex-col">

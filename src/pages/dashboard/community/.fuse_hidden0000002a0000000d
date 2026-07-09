@@ -22,11 +22,11 @@ function ProfileCard({
       <Avatar name={profile.name} size="md" theme="dashboard" />
 
       <div className="flex-1 min-w-0">
-        <div className="font-sans text-[0.875rem] font-semibold text-dark-text leading-tight">
+        <div className="font-sans text-[0.875rem] font-semibold text-white/90 leading-tight">
           {profile.name}
         </div>
-        <div className="font-sans text-[0.75rem] text-dark-muted mt-0.5">{profile.discipline}</div>
-        <div className="flex items-center gap-1.5 text-dark-muted mt-1">
+        <div className="font-sans text-[0.75rem] text-white/50 mt-0.5">{profile.discipline}</div>
+        <div className="flex items-center gap-1.5 text-white/45 mt-1">
           <Users size={10} strokeWidth={1.8} />
           <span className="font-sans text-[11px]">{profile.mutuals} mutual connections</span>
         </div>
@@ -63,7 +63,7 @@ function ProfileCard({
             <button
               onClick={() => onDecline(profile.id)}
               aria-label={`Decline ${profile.name}`}
-              className="w-8 h-8 flex items-center justify-center rounded hover-white-tint text-white/60 hover:text-dark-text transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded hover-white-tint text-white/60 hover:text-white/90 transition-colors"
             >
               <X size={14} strokeWidth={2.2} />
             </button>
@@ -114,7 +114,7 @@ export function Network({ discipline }: { discipline?: Discipline } = {}) {
       <div>
         <LabelCaps className="block mb-3">{discipline ? 'Members' : 'My Network'}</LabelCaps>
         {rest.length === 0 ? (
-          <p className="font-sans text-[0.8125rem] text-dark-muted">
+          <p className="font-sans text-[0.8125rem] text-white/40">
             {discipline ? `No members in ${discipline} yet.` : 'No connections yet.'}
           </p>
         ) : (

@@ -67,8 +67,8 @@ export function SettingsPage() {
 
   return (
     <div className="flex-1 px-8 py-8 max-w-[640px]">
-      <h1 className="font-display text-xl font-semibold text-dark-text mb-1">Settings</h1>
-      <p className="font-sans text-[0.8125rem] text-dark-muted mb-8">
+      <h1 className="font-display text-xl font-semibold text-white/95 mb-1">Settings</h1>
+      <p className="font-sans text-[0.8125rem] text-white/45 mb-8">
         Appearance and notification preferences.
       </p>
 
@@ -87,7 +87,7 @@ export function SettingsPage() {
                     'flex-1 flex flex-col items-center gap-1.5 py-3 rounded border font-sans text-[0.75rem] font-medium transition-colors duration-150',
                     active
                       ? 'border-gold-dark/50 bg-gold-dark/10 text-gold-dark'
-                      : 'border-white/10 text-dark-muted hover:text-white/85 hover:border-white/20'
+                      : 'border-white/10 text-white/55 hover:text-white/85 hover:border-white/20'
                   )}
                 >
                   <Icon size={16} strokeWidth={1.8} />
@@ -96,7 +96,7 @@ export function SettingsPage() {
               )
             })}
           </div>
-          <p className="font-sans text-[11px] text-dark-muted leading-snug mt-3">
+          <p className="font-sans text-[11px] text-white/35 leading-snug mt-3">
             Light mode is still rolling out across the dashboard — some screens will keep their
             current look until that pass is done.
           </p>
@@ -108,10 +108,10 @@ export function SettingsPage() {
         <div className="bg-white/[0.03] border border-white/8 rounded-lg divide-y divide-white/8">
           <div className="flex items-center justify-between gap-4 p-4">
             <div className="flex items-center gap-3">
-              <Mail size={16} strokeWidth={1.8} className="text-dark-muted flex-shrink-0" />
+              <Mail size={16} strokeWidth={1.8} className="text-white/45 flex-shrink-0" />
               <div>
-                <div className="font-sans text-[0.8125rem] font-medium text-dark-text">Email digest</div>
-                <div className="font-sans text-[11px] text-dark-muted">
+                <div className="font-sans text-[0.8125rem] font-medium text-white/90">Email digest</div>
+                <div className="font-sans text-[11px] text-white/45">
                   Weekly summary of activity in your joined communities.
                 </div>
               </div>
@@ -123,10 +123,10 @@ export function SettingsPage() {
           </div>
           <div className="flex items-center justify-between gap-4 p-4">
             <div className="flex items-center gap-3">
-              <Bell size={16} strokeWidth={1.8} className="text-dark-muted flex-shrink-0" />
+              <Bell size={16} strokeWidth={1.8} className="text-white/45 flex-shrink-0" />
               <div>
-                <div className="font-sans text-[0.8125rem] font-medium text-dark-text">Mention alerts</div>
-                <div className="font-sans text-[11px] text-dark-muted">
+                <div className="font-sans text-[0.8125rem] font-medium text-white/90">Mention alerts</div>
+                <div className="font-sans text-[11px] text-white/45">
                   Notify me when someone replies to my questions or messages me.
                 </div>
               </div>

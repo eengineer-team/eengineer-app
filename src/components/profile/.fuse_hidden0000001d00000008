@@ -30,22 +30,22 @@ export function EndorseDialog({
     // right-anchored popover from sm: up.
     <div className="fixed inset-x-4 top-20 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 z-40 sm:w-[360px] max-h-[calc(100vh-6rem)] overflow-y-auto bg-dark-100 border border-white/12 rounded-lg shadow-[0_12px_40px_rgba(0,0,0,0.5)] p-5">
       <div className="flex items-center justify-between mb-3">
-        <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-dark-muted">
+        <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-white/45">
           Endorse {targetName}
         </span>
-        <button onClick={onClose} className="text-dark-muted hover:text-white transition-colors" aria-label="Close">
+        <button onClick={onClose} className="text-white/50 hover:text-white transition-colors" aria-label="Close">
           <X size={16} strokeWidth={1.8} />
         </button>
       </div>
 
-      <label className="font-sans text-[11px] text-dark-muted block mb-2">
+      <label className="font-sans text-[11px] text-white/50 block mb-2">
         Why? (visible to {targetName.split(' ')[0]} — required)
       </label>
       <textarea
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         rows={3}
-        className="w-full bg-white/5 border border-white/10 rounded px-3 py-2.5 font-sans text-[0.8125rem] text-dark-text placeholder:text-dark-muted focus:outline-none focus:border-white/25 resize-none mb-4"
+        className="w-full bg-white/5 border border-white/10 rounded px-3 py-2.5 font-sans text-[0.8125rem] text-white/90 placeholder:text-white/35 focus:outline-none focus:border-white/25 resize-none mb-4"
         placeholder="e.g. Paired with them on X — they clearly know Y because..."
       />
 

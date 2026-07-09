@@ -97,7 +97,7 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
     <div className="flex flex-col">
       <div className="flex-1 flex flex-col gap-0.5 pt-2 pb-4 min-h-[200px]">
         {visible.length === 0 ? (
-          <p className="font-sans text-[0.8125rem] text-dark-muted">
+          <p className="font-sans text-[0.8125rem] text-white/40">
             {discipline ? `No messages yet in ${discipline} — be the first to post.` : 'No messages yet.'}
           </p>
         ) : (
@@ -135,7 +135,7 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
                   </button>
                   <button
                     onClick={() => setDuplicate(null)}
-                    className="font-sans text-[11px] text-dark-muted hover:text-white/80 transition-colors"
+                    className="font-sans text-[11px] text-white/50 hover:text-white/80 transition-colors"
                   >
                     Cancel
                   </button>
@@ -152,7 +152,7 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
               }}
               onKeyDown={(e) => e.key === 'Enter' && send()}
               placeholder={discipline ? `Message ${discipline}…` : 'Write a message…'}
-              className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded px-3.5 py-2.5 font-sans text-[0.8125rem] text-dark-text placeholder:text-dark-muted focus:outline-none focus:border-white/25"
+              className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded px-3.5 py-2.5 font-sans text-[0.8125rem] text-white/90 placeholder:text-white/35 focus:outline-none focus:border-white/25"
             />
             <button
               onClick={send}

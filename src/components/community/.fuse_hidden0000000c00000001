@@ -35,7 +35,7 @@ export function DisciplineGroupCard({ group }: { group: CommunityGroupMeta }) {
         </div>
 
         <div className="p-5">
-          <h3 className="font-sans text-[0.9375rem] font-semibold text-dark-text mb-2">{group.discipline}</h3>
+          <h3 className="font-sans text-[0.9375rem] font-semibold text-white/90 mb-2">{group.discipline}</h3>
 
           <p className="font-sans text-[0.8125rem] leading-snug text-dark-muted mb-4">{group.description}</p>
 
@@ -48,7 +48,7 @@ export function DisciplineGroupCard({ group }: { group: CommunityGroupMeta }) {
             {group.recentActivityCount > 0 ? (
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
-                <span className="font-sans text-[11px] text-dark-muted">{group.recentActivityCount} new this week</span>
+                <span className="font-sans text-[11px] text-white/50">{group.recentActivityCount} new this week</span>
               </div>
             ) : (
               <span className="font-sans text-[11px] text-white/30">Quiet this week</span>
@@ -59,4 +59,3 @@ export function DisciplineGroupCard({ group }: { group: CommunityGroupMeta }) {
     </Link>
   )
 }
-         

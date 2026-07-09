@@ -2,33 +2,43 @@ import { motion } from 'framer-motion'
 import { FileText, Share2, MessageSquareText, Rocket as ShipIcon } from 'lucide-react'
 import { Chip } from '@/components/ui/chip'
 
-// Simple line-art model rocket — stands in for a real photo (no licensed
-// stock image available offline). Tilted via the wrapper's rotate transform,
-// same idea as the reference "featured project card" mockup.
+// Engineer's-notebook sketch of a model rocket (notebook pass, 07.2026 —
+// replaced the old flat-color art on a dark panel). Stroke-only "pencil"
+// line work with drawing conventions a builder would recognize: a dash-dot
+// centerline, cross-hatched fins, and a dimension callout. Still a stand-in
+// until a real user project exists — the card's label says so.
 function ModelRocketArt() {
+  const ink = '#2A2118'
+  const dim = '#8B6914'
   return (
-    <svg viewBox="0 0 200 260" className="w-full h-full">
-      <defs>
-        <linearGradient id="rocketBody" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#E8DFC0" />
-          <stop offset="100%" stopColor="#C9BC8E" />
-        </linearGradient>
-      </defs>
-      <rect width="200" height="260" fill="#1A1208" />
-      {/* Fins */}
-      <path d="M85 190 L55 235 L85 225 Z" fill="#8B6914" />
-      <path d="M115 190 L145 235 L115 225 Z" fill="#8B6914" />
-      {/* Body */}
-      <rect x="82" y="60" width="36" height="140" rx="6" fill="url(#rocketBody)" />
+    <svg viewBox="0 0 200 260" className="w-full h-full" role="img" aria-label="Technical sketch of a model rocket">
+      {/* Centerline — dash-dot, the classic axis convention */}
+      <path d="M100 8v244" stroke={ink} strokeWidth="0.75" strokeDasharray="9 4 2 4" opacity="0.3" />
+
       {/* Nose cone */}
-      <path d="M82 60 L100 15 L118 60 Z" fill="#D4C66A" />
+      <path d="M84 62 Q100 14 116 62" stroke={ink} strokeWidth="1.5" fill="none" opacity="0.8" />
+      {/* Body */}
+      <path d="M84 62v134M116 62v134M84 196h32M84 62h32" stroke={ink} strokeWidth="1.5" fill="none" opacity="0.8" />
       {/* Window */}
-      <circle cx="100" cy="105" r="10" fill="#1A1208" opacity="0.5" />
-      <circle cx="100" cy="105" r="10" fill="none" stroke="#8B6914" strokeWidth="2" />
+      <circle cx="100" cy="102" r="9" stroke={ink} strokeWidth="1.25" fill="none" opacity="0.8" />
+      <circle cx="100" cy="102" r="5" stroke={ink} strokeWidth="0.75" fill="none" opacity="0.4" />
       {/* Stripe */}
-      <rect x="82" y="150" width="36" height="8" fill="#8B6914" />
-      {/* Exhaust */}
-      <path d="M88 200 L100 240 L112 200 Z" fill="#D4C66A" opacity="0.55" />
+      <path d="M84 150h32M84 158h32" stroke={ink} strokeWidth="1" opacity="0.55" />
+      {/* Fins — outlined, cross-hatched */}
+      <path d="M84 186 L56 232 L84 222 Z" stroke={ink} strokeWidth="1.5" fill="none" opacity="0.8" />
+      <path d="M116 186 L144 232 L116 222 Z" stroke={ink} strokeWidth="1.5" fill="none" opacity="0.8" />
+      <path d="M78 198l-12 20M74 206l-9 15M70 214l-6 10" stroke={ink} strokeWidth="0.75" opacity="0.35" />
+      <path d="M122 198l12 20M126 206l9 15M130 214l6 10" stroke={ink} strokeWidth="0.75" opacity="0.35" />
+      {/* Exhaust — loose pencil strokes */}
+      <path d="M92 200q4 22 8 34M108 200q-4 22-8 34M100 202v26" stroke={ink} strokeWidth="0.75" strokeDasharray="3 4" opacity="0.35" fill="none" />
+
+      {/* Dimension callout — body length */}
+      <path d="M132 62h18M132 196h18" stroke={dim} strokeWidth="0.75" opacity="0.9" />
+      <path d="M146 62v134" stroke={dim} strokeWidth="0.75" opacity="0.9" />
+      <path d="M143 70l3-8 3 8M143 188l3 8 3-8" stroke={dim} strokeWidth="0.75" fill="none" opacity="0.9" />
+      <text x="153" y="132" fill={dim} fontSize="8.5" fontStyle="italic" fontFamily="'Space Grotesk', sans-serif">
+        240 mm
+      </text>
     </svg>
   )
 }
@@ -44,7 +54,10 @@ export function FeaturedProject() {
   return (
     <section className="px-5 sm:px-10 py-16 border-t border-[#2A2118]/8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-        {/* Left — tilted featured project card */}
+        {/* Left — example project card. Untilted (07.2026 edit pass: the
+            rotate was pure decoration) and labeled "Example project", not
+            "Featured this week" — the content is illustrative until real
+            user projects exist, and the label shouldn't pretend otherwise. */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -52,16 +65,13 @@ export function FeaturedProject() {
           transition={{ duration: 0.5 }}
           className="flex justify-center"
         >
-          <div
-            className="w-full max-w-[300px] rounded-xl border border-corn-900/10 bg-white/70 overflow-hidden shadow-[0_20px_50px_-20px_rgba(26,18,8,0.35)]"
-            style={{ transform: 'rotate(-4deg)' }}
-          >
-            <div className="aspect-[4/3]">
+          <div className="w-full max-w-[300px] rounded-xl border border-corn-900/10 bg-white/70 overflow-hidden shadow-[0_20px_50px_-20px_rgba(26,18,8,0.35)]">
+            <div className="aspect-[4/3] bg-graph-paper border-b border-corn-900/8">
               <ModelRocketArt />
             </div>
             <div className="p-4">
-              <span className="font-sans text-[10px] font-medium tracking-[0.16em] uppercase text-corn-700 block mb-1.5">
-                Featured this week
+              <span className="font-sans italic text-[0.75rem] text-corn-700 block mb-1.5">
+                fig. 1 — an example project
               </span>
               <h3 className="font-sans text-[0.9375rem] font-semibold text-[#2A2118] mb-1.5">
                 Active-Fin Model Rocket Stabilizer

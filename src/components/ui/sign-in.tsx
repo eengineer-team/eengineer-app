@@ -1,9 +1,6 @@
 import * as React from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, EyeOff, Mail, Lock, TriangleAlert } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { TriangleAlert } from 'lucide-react'
 import type { OAuthProvider } from '@/lib/auth-context'
 
 // lucide-react's icon set doesn't include brand marks — inline the
@@ -67,16 +64,11 @@ const PROVIDERS: {
 
 export interface AuthFormProps {
   mode: 'signup' | 'login'
-  loadingProvider: OAuthProvider | 'email' | null
+  loadingProvider: OAuthProvider | null
   onOAuth: (provider: OAuthProvider) => void
-  onEmailSubmit: (email: string, password: string) => void
 }
 
-export function AuthForm({ mode, loadingProvider, onOAuth, onEmailSubmit }: AuthFormProps) {
-  const [email, setEmail] = React.useState('')
-  const [password, setPassword] = React.useState('')
-  const [showPassword, setShowPassword] = React.useState(false)
-
+export function AuthForm({ mode, loadingProvider, onOAuth }: AuthFormProps) {
   const busy = loadingProvider !== null
 
   return (
@@ -126,86 +118,7 @@ export function AuthForm({ mode, loadingProvider, onOAuth, onEmailSubmit }: Auth
         </p>
       </div>
 
-      {/* Divider */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="h-px flex-1 bg-corn-900/10" />
-        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-corn-700">
-          Or
-        </span>
-        <div className="h-px flex-1 bg-corn-900/10" />
-      </div>
-
-      {/* Email / password */}
-      <form
-        className="flex flex-col gap-4"
-        onSubmit={(e) => {
-          e.preventDefault()
-          onEmailSubmit(email, password)
-        }}
-      >
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="email">Email</Label>
-          <div className="relative">
-            <Mail size={15} strokeWidth={1.8} className="absolute left-3 top-1/2 -translate-y-1/2 text-corn-700/60" />
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@university.edu"
-              className="pl-9"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={busy}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
-            <button
-              type="button"
-              className="font-sans text-[0.75rem] font-medium text-corn-700 hover:text-[#2A2118] transition-colors"
-            >
-              Forgot password?
-            </button>
-          </div>
-          <div className="relative">
-            <Lock size={15} strokeWidth={1.8} className="absolute left-3 top-1/2 -translate-y-1/2 text-corn-700/60" />
-            <Input
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="••••••••"
-              className="pl-9 pr-10"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={busy}
-              required
-              minLength={8}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((s) => !s)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-corn-700/60 hover:text-corn-900 transition-colors"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? <EyeOff size={15} strokeWidth={1.8} /> : <Eye size={15} strokeWidth={1.8} />}
-            </button>
-          </div>
-        </div>
-
-        <Button
-          type="submit"
-          variant="primary"
-          size="lg"
-          disabled={busy}
-          className="w-full font-sans text-[0.8125rem] font-semibold tracking-[0.05em] uppercase mt-1"
-        >
-          {loadingProvider === 'email' ? 'Signing in…' : mode === 'signup' ? 'Sign up' : 'Sign in'}
-        </Button>
-      </form>
-
-      <p className="font-sans text-[0.75rem] leading-[1.5] text-corn-700 mt-6 text-center">
+      <p className="font-sans text-[0.75rem] leading-[1.5] text-corn-700 mt-2 text-center">
         By continuing, you agree to our{' '}
         <Link to="/terms" className="underline underline-offset-2 hover:text-[#2A2118] transition-colors">
           Terms of Service

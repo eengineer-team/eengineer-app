@@ -37,15 +37,15 @@ export function QuestionCard({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2 mb-0.5">
-          <span className="font-sans text-[0.8125rem] font-semibold text-dark-text">
+          <span className="font-sans text-[0.8125rem] font-semibold text-white/90">
             {question.author}
           </span>
-          <span className="font-sans text-[11px] text-dark-muted">{question.time}</span>
+          <span className="font-sans text-[11px] text-white/35">{question.time}</span>
         </div>
 
         {/* Message bubble */}
         <div className="inline-block max-w-[85%] sm:max-w-[70%] bg-white/6 rounded-lg rounded-tl-sm px-3.5 py-2.5">
-          <p className="font-sans text-[0.875rem] leading-[1.5] text-dark-text">{question.text}</p>
+          <p className="font-sans text-[0.875rem] leading-[1.5] text-white/90">{question.text}</p>
         </div>
 
         {/* Actions — exactly 4: Approve, Disapprove, Report, Comment. Hidden
@@ -55,7 +55,7 @@ export function QuestionCard({
             <button
               onClick={() => onVote(question.id, 'approve')}
               className={`flex items-center gap-1.5 px-2 py-1 rounded font-sans text-[11px] transition-colors duration-150 ${
-                question.myVote === 'approve' ? 'text-corn-500' : 'text-dark-muted hover-white-tint hover:text-white/80'
+                question.myVote === 'approve' ? 'text-corn-500' : 'text-white/40 hover-white-tint hover:text-white/80'
               }`}
             >
               <ThumbsUp size={12} strokeWidth={1.8} />
@@ -65,7 +65,7 @@ export function QuestionCard({
             <button
               onClick={() => onVote(question.id, 'disapprove')}
               className={`flex items-center gap-1.5 px-2 py-1 rounded font-sans text-[11px] transition-colors duration-150 ${
-                question.myVote === 'disapprove' ? 'text-red-400' : 'text-dark-muted hover-white-tint hover:text-white/80'
+                question.myVote === 'disapprove' ? 'text-red-400' : 'text-white/40 hover-white-tint hover:text-white/80'
               }`}
             >
               <ThumbsDown size={12} strokeWidth={1.8} />
@@ -76,7 +76,7 @@ export function QuestionCard({
               onClick={() => onReport(question.id)}
               disabled={question.reported}
               className={`flex items-center gap-1.5 px-2 py-1 rounded font-sans text-[11px] transition-colors duration-150 disabled:opacity-50 ${
-                question.reported ? 'text-dark-muted' : 'text-dark-muted hover-white-tint hover:text-white/80'
+                question.reported ? 'text-white/35' : 'text-white/40 hover-white-tint hover:text-white/80'
               }`}
             >
               <Flag size={12} strokeWidth={1.8} />
@@ -85,7 +85,7 @@ export function QuestionCard({
 
             <button
               onClick={() => setShowComments((v) => !v)}
-              className="flex items-center gap-1.5 px-2 py-1 rounded font-sans text-[11px] text-dark-muted hover-white-tint hover:text-white/80 transition-colors duration-150"
+              className="flex items-center gap-1.5 px-2 py-1 rounded font-sans text-[11px] text-white/40 hover-white-tint hover:text-white/80 transition-colors duration-150"
             >
               <MessageCircle size={12} strokeWidth={1.8} />
               {question.comments.length}
@@ -102,7 +102,7 @@ export function QuestionCard({
                 <div className="min-w-0">
                   <div className="flex items-baseline gap-2">
                     <span className="font-sans text-[0.75rem] font-medium text-white/80">{c.author}</span>
-                    {c.time && <span className="font-sans text-[10px] text-dark-muted">{c.time}</span>}
+                    {c.time && <span className="font-sans text-[10px] text-white/35">{c.time}</span>}
                   </div>
                   <div className="inline-block bg-white/6 rounded-lg rounded-tl-sm px-3 py-1.5 mt-0.5">
                     <p className="font-sans text-[0.8125rem] text-white/80 leading-snug">{c.text}</p>
@@ -118,7 +118,7 @@ export function QuestionCard({
                   onChange={(e) => setDraft(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && submitComment()}
                   placeholder="Reply…"
-                  className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-1.5 font-sans text-[0.8125rem] text-dark-text placeholder:text-dark-muted focus:outline-none focus:border-white/25"
+                  className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-1.5 font-sans text-[0.8125rem] text-white/90 placeholder:text-white/35 focus:outline-none focus:border-white/25"
                 />
                 <button
                   onClick={submitComment}

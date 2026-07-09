@@ -25,11 +25,7 @@ function formatShortDate(d: Date): string {
   return `${MONTH_NAMES[d.getMonth()].slice(0, 3)} ${d.getDate()}`
 }
 
-// Pre-auth mirror of dashboard/CompetitionCalendar.tsx — same behavior
-// (current month, upcoming-only, deadline dots), cornsilk-themed instead of
-// dark, and every link routes to signup rather than the real competition
-// page since a visitor has no session yet.
-export function LandingCalendar() {
+export function CompetitionCalendar() {
   const today = startOfDay(new Date())
   const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1)
   const [viewMonth, setViewMonth] = useState(currentMonthStart)
@@ -38,6 +34,7 @@ export function LandingCalendar() {
   const daysInMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 0).getDate()
   const firstWeekday = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1).getDay()
 
+  // day -> the first deadline (id + discipline, for the dot color and link) that lands on it.
   const deadlinesByDay = new Map<number, { id: string; discipline: string }>()
   for (const comp of SEED_COMPETITIONS) {
     if (comp.deadline.getFullYear() === viewMonth.getFullYear() && comp.deadline.getMonth() === viewMonth.getMonth()) {
@@ -49,6 +46,7 @@ export function LandingCalendar() {
 
   const cells: (number | null)[] = Array.from({ length: firstWeekday }, () => null)
   for (let day = 1; day <= daysInMonth; day++) {
+    // Past dates are excluded from the active view entirely, not just dimmed.
     if (isViewingCurrentMonth && day < today.getDate()) {
       cells.push(null)
     } else {
@@ -68,34 +66,28 @@ export function LandingCalendar() {
   }
 
   return (
-    // Two columns on lg+ (07.2026): the old single 320px stack left a
-    // viewport-wide cream void to its right. Calendar stays left (founder
-    // spec); the void is filled with data that already exists in
-    // SEED_COMPETITIONS but was shown nowhere pre-auth — description and
-    // organizer — not with decoration.
-    <div className="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-4 lg:gap-6 items-start w-full max-w-[1040px]">
-      <div className="flex flex-col gap-4">
-      <div className="bg-white/60 border border-corn-900/10 rounded-lg p-4">
-        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-corn-700 block mb-3">
+    <div className="flex flex-col gap-4">
+      <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
+        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-white/45 block mb-3">
           Competition Calendar
         </span>
 
         <div className="flex items-center justify-between mb-3">
-          <span className="font-sans text-[0.875rem] font-semibold text-[#2A2118]">
+          <span className="font-sans text-[0.875rem] font-semibold text-white/90">
             {MONTH_NAMES[viewMonth.getMonth()]} {viewMonth.getFullYear()}
           </span>
           <div className="flex items-center gap-1">
             <button
               onClick={goToPrevMonth}
               disabled={isViewingCurrentMonth}
-              className="p-1 rounded text-corn-700 hover:bg-corn-900/6 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+              className="p-1 rounded text-white/45 hover:bg-white/7 hover:text-white/80 transition-colors disabled:opacity-30 disabled:pointer-events-none"
               aria-label="Previous month"
             >
               <ChevronLeft size={14} strokeWidth={2} />
             </button>
             <button
               onClick={goToNextMonth}
-              className="p-1 rounded text-corn-700 hover:bg-corn-900/6 transition-colors"
+              className="p-1 rounded text-white/45 hover:bg-white/7 hover:text-white/80 transition-colors"
               aria-label="Next month"
             >
               <ChevronRight size={14} strokeWidth={2} />
@@ -105,7 +97,7 @@ export function LandingCalendar() {
 
         <div className="grid grid-cols-7 gap-y-1.5 mb-1">
           {WEEKDAYS.map((wd) => (
-            <span key={wd} className="font-sans text-[10px] text-corn-700 text-center">
+            <span key={wd} className="font-sans text-[10px] text-white/70 text-center">
               {wd}
             </span>
           ))}
@@ -116,17 +108,13 @@ export function LandingCalendar() {
             if (day === null) return <div key={i} />
             const isToday = isViewingCurrentMonth && day === today.getDate()
             const deadline = deadlinesByDay.get(day)
-            return (
-              <Link
-                key={i}
-                to="/auth?mode=signup"
-                className="flex flex-col items-center gap-0.5 hover:opacity-80 transition-opacity"
-              >
+            const cellContent = (
+              <>
                 <span
                   className={
                     isToday
-                      ? 'w-5 h-5 flex items-center justify-center rounded bg-corn-900 text-corn-100 font-sans text-[11px] font-semibold'
-                      : 'w-5 h-5 flex items-center justify-center font-sans text-[11px] text-[#2A2118]/80'
+                      ? 'w-5 h-5 flex items-center justify-center rounded bg-white text-dark-200 font-sans text-[11px] font-semibold'
+                      : 'w-5 h-5 flex items-center justify-center font-sans text-[11px] text-white/70'
                   }
                 >
                   {day}
@@ -134,14 +122,51 @@ export function LandingCalendar() {
                 <span
                   className={cn('w-1 h-1 rounded-full', deadline && getDisciplineColor(deadline.discipline).dot)}
                 />
+              </>
+            )
+            return deadline ? (
+              <Link key={i} to={`/dashboard/competitions/${deadline.id}`} className="flex flex-col items-center gap-0.5 hover:opacity-80 transition-opacity">
+                {cellContent}
               </Link>
+            ) : (
+              <div key={i} className="flex flex-col items-center gap-0.5">
+                {cellContent}
+              </div>
             )
           })}
         </div>
       </div>
 
-      <div className="bg-white/60 border border-corn-900/10 rounded-lg p-4">
-        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-corn-700 block mb-3">
+      <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
+        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-white/45 block mb-3">
+          Upcoming Deadlines
+        </span>
+        <div className="flex flex-col gap-3">
+          {upcoming.map((comp) => (
+            <Link
+              key={comp.id}
+              to={`/dashboard/competitions/${comp.id}`}
+              className="flex items-start gap-2 -mx-1 px-1 py-0.5 rounded hover-white-tint transition-colors"
+            >
+              <span className={cn('w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0', getDisciplineColor(comp.discipline).dot)} />
+              <div className="flex-1 min-w-0">
+                <div className="font-sans text-[0.8125rem] font-medium text-white/90 leading-snug">
+                  {comp.name}
+                </div>
+                <div className="font-sans text-[11px] text-white/45">
+                  {comp.location} · {comp.discipline}
+                </div>
+              </div>
+              <span className="font-sans text-[10px] font-medium text-corn-500 bg-corn-500/10 rounded px-1.5 py-0.5 whitespace-nowrap">
+                Deadline {formatShortDate(comp.deadline)}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
+        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-white/45 block mb-3">
           Daily Reminders
         </span>
         <div className="flex flex-col gap-2.5">
@@ -150,47 +175,13 @@ export function LandingCalendar() {
             const label = daysUntil === 0 ? 'today' : daysUntil === 1 ? 'tomorrow' : `in ${daysUntil} days`
             return (
               <div key={comp.id} className="flex items-start gap-2">
-                <Bell size={12} strokeWidth={1.8} className="text-corn-700 mt-0.5 flex-shrink-0" />
-                <span className="font-sans text-[11px] text-corn-800/85 leading-snug">
-                  <span className="text-[#2A2118] font-medium">{comp.name}</span> deadline {label}.
+                <Bell size={12} strokeWidth={1.8} className="text-white/45 mt-0.5 flex-shrink-0" />
+                <span className="font-sans text-[11px] text-white/60 leading-snug">
+                  <span className="text-white/90 font-medium">{comp.name}</span> deadline {label}.
                 </span>
               </div>
             )
           })}
-        </div>
-      </div>
-      </div>
-
-      {/* Right column — full competition cards: name, deadline, description,
-          organizer. All of it comes straight from SEED_COMPETITIONS. */}
-      <div className="bg-white/60 border border-corn-900/10 rounded-lg p-4">
-        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-corn-700 block mb-3">
-          Upcoming Deadlines
-        </span>
-        <div className="flex flex-col gap-3">
-          {upcoming.map((comp) => (
-            <Link
-              key={comp.id}
-              to="/auth?mode=signup"
-              className="flex flex-col gap-1.5 rounded-md border border-corn-900/8 p-3.5 hover:bg-corn-900/5 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', getDisciplineColor(comp.discipline).dot)} />
-                <span className="flex-1 min-w-0 font-sans text-[0.875rem] font-semibold text-[#2A2118] leading-snug">
-                  {comp.name}
-                </span>
-                <span className="font-sans text-[10px] font-medium text-corn-900 bg-corn-500/25 rounded px-1.5 py-0.5 whitespace-nowrap">
-                  Deadline {formatShortDate(comp.deadline)}
-                </span>
-              </div>
-              <p className="font-sans text-[0.8125rem] leading-[1.55] text-[#2A2118]/75">
-                {comp.description}
-              </p>
-              <div className="font-sans text-[11px] text-corn-800">
-                {comp.location} · {comp.discipline} · {comp.organizer}
-              </div>
-            </Link>
-          ))}
         </div>
       </div>
     </div>

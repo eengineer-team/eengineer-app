@@ -13,7 +13,7 @@ export function Auth() {
   const navigate = useNavigate()
   const location = useLocation()
   const { signInWithProvider } = useAuth()
-  const [loadingProvider, setLoadingProvider] = React.useState<OAuthProvider | 'email' | null>(null)
+  const [loadingProvider, setLoadingProvider] = React.useState<OAuthProvider | null>(null)
 
   // Set when a Google-preview session got redirected here off a Builder-only
   // route (see the `upgrade` nav state in App.tsx / Sidebar.tsx).
@@ -36,16 +36,6 @@ export function Auth() {
         // first; returning Builders logging in skip straight to the dashboard.
         navigate(mode === 'signup' ? '/onboarding' : '/dashboard')
       }
-    }, 500)
-  }
-
-  // Email/password has no distinct backend of its own yet — treated as an
-  // equivalent mock Builder sign-in so the form isn't a dead end.
-  function handleEmailSubmit(_email: string, _password: string) {
-    setLoadingProvider('email')
-    window.setTimeout(() => {
-      signInWithProvider('github')
-      navigate(mode === 'signup' ? '/onboarding' : '/dashboard')
     }, 500)
   }
 
@@ -100,7 +90,6 @@ export function Auth() {
             mode={mode}
             loadingProvider={loadingProvider}
             onOAuth={handleOAuth}
-            onEmailSubmit={handleEmailSubmit}
           />
         </motion.div>
       </main>

@@ -49,10 +49,12 @@ export function Welcome() {
         </motion.div>
       </header>
 
-      {/* Hero — single column now (the right-side sample-profile artifact was
-          removed per founder feedback: it was mock content standing in for
-          real product screens, and read as clutter once real pages existed). */}
-      <main className="flex-1 flex flex-col px-5 sm:px-10 py-10 lg:py-12">
+      {/* Hero — deliberately just type on cornsilk: no screenshot, no video,
+          no mock artifact. Team decision (07.2026): while the product runs on
+          seed data, any "product shot" here is a fabrication; empty is more
+          honest and reads stronger. Revisit only when there are real screens
+          with real user content to show. */}
+      <main className="flex-1 flex flex-col px-5 sm:px-10 py-10 lg:py-12 bg-graph-paper">
         <motion.div
           variants={stagger}
           initial="hidden"
@@ -74,13 +76,35 @@ export function Welcome() {
             It.
           </motion.h1>
 
+          {/* Dimension line — the one allowed brand gesture (notebook pass,
+              07.2026). Drawn like a technical-drawing measurement under the
+              headline. If you're tempted to add a second gesture like this
+              somewhere else: don't — one is a signature, two is a theme park. */}
+          <motion.div
+            variants={fadeUp}
+            transition={{ duration: 0.4 }}
+            className="flex items-center gap-2.5 text-corn-700 -mt-1 mb-7"
+            aria-hidden="true"
+          >
+            <svg width="150" height="12" viewBox="0 0 150 12" fill="none" className="flex-shrink-0">
+              <path d="M1 1v10M149 1v10" stroke="currentColor" strokeWidth="1" />
+              <path d="M1 6h148" stroke="currentColor" strokeWidth="1" />
+              <path d="M8 3L2 6l6 3M142 3l6 3-6 3" stroke="currentColor" strokeWidth="1" fill="none" />
+            </svg>
+            <span className="font-sans italic text-[0.75rem] tracking-wide">
+              fig. 0 — the whole idea
+            </span>
+          </motion.div>
+
           {/* Sub-copy — near-black, not tan */}
           <motion.p
             variants={fadeUp}
             transition={{ duration: 0.4 }}
             className="font-sans text-[1rem] leading-[1.65] text-[#2A2118] max-w-[460px] mb-9"
           >
-            A verified community for engineers of all ages. Build anything you want with anyone you want.
+            Every profile here is tied to a real GitHub or LinkedIn account — no anonymous
+            feedback, no bots. Post what you're building across nine disciplines, from model
+            rockets to bridges, and track every competition deadline in your field.
           </motion.p>
 
           {/* CTA buttons */}

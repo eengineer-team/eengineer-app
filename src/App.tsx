@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from 'next-themes'
 import { AuthProvider } from '@/lib/auth-context'
 import { ProfilesProvider } from '@/lib/profiles-context'
+import { MessagesProvider } from '@/lib/messages-context'
 import { Welcome } from '@/pages/Welcome'
 import { Auth } from '@/pages/Auth'
 import { Onboarding } from '@/pages/Onboarding'
@@ -33,6 +34,10 @@ export default function App() {
             writes the ME profile via the same context the dashboard reads from,
             not a separate draft that would need merging in later. */}
         <ProfilesProvider>
+          {/* Messages state lives above /dashboard too — the header's unread
+              badge and the Messages page itself need to read/write the same
+              conversation state, not two independently-reset copies. */}
+          <MessagesProvider>
           <BrowserRouter>
             <Routes>
               <Route path="/"     element={<Welcome />} />
@@ -81,6 +86,7 @@ export default function App() {
               <Route path="/privacy" element={<Privacy />} />
             </Routes>
           </BrowserRouter>
+          </MessagesProvider>
         </ProfilesProvider>
       </AuthProvider>
     </ThemeProvider>

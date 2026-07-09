@@ -29,9 +29,9 @@ export function Opportunities() {
   return (
     <div className="flex-1 px-8 py-8 max-w-[720px]">
       <div className="flex items-center justify-between mb-1">
-        <h1 className="font-display text-xl font-semibold text-dark-text">Opportunities</h1>
+        <h1 className="font-display text-xl font-semibold text-white/95">Opportunities</h1>
       </div>
-      <p className="font-sans text-[0.8125rem] text-dark-muted mb-6">
+      <p className="font-sans text-[0.8125rem] text-white/45 mb-6">
         Internships and fellowships in collaboration with <span className="text-white/70">edugrants</span>
       </p>
 
@@ -42,7 +42,7 @@ export function Opportunities() {
             className={`font-sans text-[12px] px-3 py-1.5 rounded-full border transition-colors duration-150 ${
               discipline === null
                 ? 'text-white bg-white/10 border-white/20'
-                : 'text-dark-muted border-white/10 hover:text-white/80 hover:bg-white/5'
+                : 'text-white/50 border-white/10 hover:text-white/80 hover:bg-white/5'
             }`}
           >
             All disciplines
@@ -54,7 +54,7 @@ export function Opportunities() {
               className={`font-sans text-[12px] px-3 py-1.5 rounded-full border transition-colors duration-150 ${
                 discipline === d
                   ? 'text-corn-500 bg-corn-700/15 border-corn-700/30'
-                  : 'text-dark-muted border-white/10 hover:text-white/80 hover:bg-white/5'
+                  : 'text-white/50 border-white/10 hover:text-white/80 hover:bg-white/5'
               }`}
             >
               {d}

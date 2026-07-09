@@ -18,8 +18,8 @@ export function ProfilesList() {
 
   return (
     <div className="flex-1 px-8 py-8 max-w-[880px]">
-      <h1 className="font-display text-xl font-semibold text-dark-text mb-1">Profiles</h1>
-      <p className="font-sans text-[0.8125rem] text-dark-muted mb-6">
+      <h1 className="font-display text-xl font-semibold text-white/95 mb-1">Profiles</h1>
+      <p className="font-sans text-[0.8125rem] text-white/45 mb-6">
         Every Builder's skills, projects, and endorsements — public to the network.
       </p>
 
@@ -40,9 +40,9 @@ export function ProfilesList() {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <div className="font-sans text-[0.875rem] font-semibold text-dark-text leading-tight truncate">
+                  <div className="font-sans text-[0.875rem] font-semibold text-white/90 leading-tight truncate">
                     {name}
-                    {p.id === ME_ID && <span className="text-dark-muted font-normal"> (you)</span>}
+                    {p.id === ME_ID && <span className="text-white/40 font-normal"> (you)</span>}
                   </div>
                   <LabelCaps className="mt-0.5">Builder</LabelCaps>
                 </div>

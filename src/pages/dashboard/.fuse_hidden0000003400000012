@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { ArrowLeft, Send, Paperclip, Link2, X } from 'lucide-react'
-import type { Attachment } from '@/lib/messages-data'
-import { useMessages } from '@/lib/messages-context'
+import { SEED_CONVERSATIONS, type Conversation, type Attachment } from '@/lib/messages-data'
 import { Avatar } from '@/components/ui/avatar'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { ProfilePreviewPopover } from '@/components/profile/ProfilePreviewPopover'
@@ -30,10 +29,9 @@ function previewText(m: { text: string; attachment?: Attachment } | undefined): 
 // that's a spec conflict — stop and confirm with the founder before
 // implementing it, don't just add it.
 export function Messages() {
-  // Conversations/activeId/draft live in MessagesProvider (see
-  // src/lib/messages-context.tsx) — lifted out of local useState so they
-  // survive navigating away from this page and back.
-  const { conversations, setConversations, activeId, draft, setDraft, openConversation: markRead } = useMessages()
+  const [conversations, setConversations] = React.useState<Conversation[]>(SEED_CONVERSATIONS)
+  const [activeId, setActiveId] = React.useState<string>(SEED_CONVERSATIONS[0]?.id ?? '')
+  const [draft, setDraft] = React.useState('')
   // Below md there's no room for a fixed 280px list beside the thread — this
   // switches which single pane is visible on narrow screens (master-detail
   // pattern), same idea as the main Sidebar's off-canvas toggle. From md up,
@@ -65,8 +63,9 @@ export function Messages() {
   const active = conversations.find((c) => c.id === activeId)
 
   function openConversation(id: string) {
-    markRead(id)
+    setActiveId(id)
     setMobileView('thread')
+    setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c)))
   }
 
   function sendMessage() {
@@ -141,7 +140,7 @@ export function Messages() {
                   <div className="flex items-center justify-between gap-2">
                     <button
                       onClick={(e) => openListPreview(e, c.id)}
-                      className="font-sans text-[0.8125rem] font-medium text-dark-text truncate hover:underline"
+                      className="font-sans text-[0.8125rem] font-medium text-white/90 truncate hover:underline"
                     >
                       {c.withName}
                     </button>
@@ -151,7 +150,7 @@ export function Messages() {
                       </span>
                     )}
                   </div>
-                  <p className="font-sans text-[11px] text-dark-muted truncate mt-0.5">
+                  <p className="font-sans text-[11px] text-white/45 truncate mt-0.5">
                     {previewText(c.messages[c.messages.length - 1])}
                   </p>
                 </div>
@@ -176,7 +175,7 @@ export function Messages() {
             <button
               onClick={() => setMobileView('list')}
               aria-label="Back to conversations"
-              className="md:hidden w-8 h-8 flex-shrink-0 flex items-center justify-center text-white/60 hover:text-dark-text hover-white-tint rounded transition-colors"
+              className="md:hidden w-8 h-8 flex-shrink-0 flex items-center justify-center text-white/60 hover:text-white/90 hover-white-tint rounded transition-colors"
             >
               <ArrowLeft size={16} strokeWidth={1.8} />
             </button>
@@ -186,8 +185,8 @@ export function Messages() {
             >
               <Avatar name={active.withName} theme="dashboard" size="sm" />
               <div>
-                <div className="font-sans text-[0.875rem] font-semibold text-dark-text leading-tight">{active.withName}</div>
-                <div className="font-sans text-[11px] text-dark-muted">{active.discipline}</div>
+                <div className="font-sans text-[0.875rem] font-semibold text-white/90 leading-tight">{active.withName}</div>
+                <div className="font-sans text-[11px] text-white/45">{active.discipline}</div>
               </div>
             </button>
             {previewKey === 'header' && (
@@ -204,7 +203,7 @@ export function Messages() {
               <div key={m.id} className={`flex flex-col ${m.from === 'me' ? 'items-end' : 'items-start'}`}>
                 <div
                   className={`max-w-[85%] sm:max-w-[70%] rounded-lg overflow-hidden font-sans text-[0.8125rem] leading-snug ${
-                    m.from === 'me' ? 'bg-gold-dark/15 border border-gold-dark/25 text-dark-text' : 'bg-white/6 text-white/85'
+                    m.from === 'me' ? 'bg-gold-dark/15 border border-gold-dark/25 text-white/90' : 'bg-white/6 text-white/85'
                   } ${m.attachment && m.attachment.kind !== 'link' ? '' : 'px-3.5 py-2.5'}`}
                 >
                   {m.attachment?.kind === 'image' && (
@@ -228,7 +227,7 @@ export function Messages() {
                     <p className={m.attachment ? 'px-3.5 py-2 pt-2' : ''}>{m.text}</p>
                   )}
                 </div>
-                <span className="font-sans text-[10px] text-dark-muted mt-1">{m.time}</span>
+                <span className="font-sans text-[10px] text-white/35 mt-1">{m.time}</span>
               </div>
             ))}
           </div>
@@ -247,7 +246,7 @@ export function Messages() {
                 <button
                   onClick={() => setPendingAttachment(null)}
                   aria-label="Remove attachment"
-                  className="text-dark-muted hover:text-white/80 transition-colors flex-shrink-0"
+                  className="text-white/40 hover:text-white/80 transition-colors flex-shrink-0"
                 >
                   <X size={14} strokeWidth={1.8} />
                 </button>
@@ -264,7 +263,7 @@ export function Messages() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 aria-label="Attach a picture or video"
-                className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded text-dark-muted hover:text-white/85 hover-white-tint transition-colors"
+                className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded text-white/50 hover:text-white/85 hover-white-tint transition-colors"
               >
                 <Paperclip size={16} strokeWidth={1.8} />
               </button>
@@ -273,7 +272,7 @@ export function Messages() {
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Write a message, or paste a link…"
-                className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded px-3.5 py-2.5 font-sans text-[0.8125rem] text-dark-text placeholder:text-dark-muted focus:outline-none focus:border-white/25"
+                className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded px-3.5 py-2.5 font-sans text-[0.8125rem] text-white/90 placeholder:text-white/35 focus:outline-none focus:border-white/25"
               />
               <button
                 onClick={sendMessage}
@@ -288,7 +287,7 @@ export function Messages() {
         </div>
       ) : (
         <div className={`${mobileView === 'list' ? 'hidden' : 'flex'} md:flex flex-1 items-center justify-center`}>
-          <p className="font-sans text-dark-muted text-sm">No conversations yet.</p>
+          <p className="font-sans text-white/40 text-sm">No conversations yet.</p>
         </div>
       )}
     </div>

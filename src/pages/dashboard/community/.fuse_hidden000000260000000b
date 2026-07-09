@@ -52,11 +52,11 @@ export function CommunityGroup() {
       <div className="relative">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 mb-6 font-sans text-[0.8125rem]">
-        <Link to="/dashboard/community" className="text-dark-muted hover:text-white/85 transition-colors">
+        <Link to="/dashboard/community" className="text-white/50 hover:text-white/85 transition-colors">
           Community
         </Link>
         <ChevronRight size={13} strokeWidth={2} className="text-white/30" />
-        <span className="text-dark-text font-medium">{discipline}</span>
+        <span className="text-white/90 font-medium">{discipline}</span>
       </div>
 
       {/* Tabs */}
@@ -66,7 +66,7 @@ export function CommunityGroup() {
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`relative px-4 py-2.5 font-sans text-[0.8125rem] font-medium transition-colors duration-150 ${
-              tab === t.id ? 'text-white' : 'text-dark-muted hover:text-white/75'
+              tab === t.id ? 'text-white' : 'text-white/45 hover:text-white/75'
             }`}
           >
             {t.label}

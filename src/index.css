@@ -33,6 +33,20 @@
     text-wrap: balance;
   }
 
+  /* ── Engineer's-notebook graph paper ──────────────────────────────────────
+     Millimeter grid over cornsilk: 8px minor lines, 40px major lines. Ink is
+     #2A2118 at 3.5% / 6% — measured against the text pairs in Welcome.tsx's
+     contrast-check comment, the grid shifts effective contrast by <0.05, so
+     every AA/AAA figure there still holds. Use on pre-auth surfaces only. */
+  .bg-graph-paper {
+    background-image:
+      linear-gradient(to right, rgba(42, 33, 24, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(42, 33, 24, 0.06) 1px, transparent 1px),
+      linear-gradient(to right, rgba(42, 33, 24, 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(42, 33, 24, 0.035) 1px, transparent 1px);
+    background-size: 40px 40px, 40px 40px, 8px 8px, 8px 8px;
+  }
+
   .hover-white-tint {
     transition: background-color 150ms ease;
   }
