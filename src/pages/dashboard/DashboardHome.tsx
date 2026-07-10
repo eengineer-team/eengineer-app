@@ -1,9 +1,8 @@
 import { useState } from 'react'
-import { CalendarDays, Users, Plus, Check } from 'lucide-react'
+import { CalendarDays, Users, Check } from 'lucide-react'
 import { JoinedClubs } from '@/components/dashboard/JoinedClubs'
+import { PeerActivity } from '@/components/dashboard/PeerActivity'
 import { CompetitionCalendar } from '@/components/dashboard/CompetitionCalendar'
-import { Button } from '@/components/ui/button'
-import { Link } from 'react-router-dom'
 
 const WEBINAR_BASE_ATTENDING = 23
 
@@ -17,23 +16,9 @@ export function DashboardHome() {
     <div className="flex-1 flex flex-col md:flex-row gap-8 md:gap-10 px-4 md:px-8 py-6 md:py-8">
       {/* Left column */}
       <div className="flex-1 min-w-0 md:max-w-[560px] flex flex-col gap-8">
-        <div className="flex items-center justify-between">
-          <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-dark-muted">
-            Overview
-          </span>
-          {/* [DEFERRED] Post a Project — the button is a real, mounted UI hook
-              per spec (Шаг 6 / Шаг 13): it must lead somewhere ("Coming soon"),
-              not just sit disabled with no destination. The submission flow
-              itself is intentionally not implemented. */}
-          <Button variant="shell" size="sm" asChild>
-            <Link to="/dashboard/projects/new">
-              <Plus size={14} strokeWidth={2} />
-              Post a Project
-            </Link>
-          </Button>
-        </div>
-
         <JoinedClubs />
+
+        <PeerActivity />
       </div>
 
       {/* Right column */}

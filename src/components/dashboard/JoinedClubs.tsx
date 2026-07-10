@@ -22,7 +22,11 @@ export function JoinedClubs() {
         {JOINED_CLUBS.map((club) => {
           const meta = getGroupMeta(club.name)
           const isOpen = expanded === club.name
-          const hasNotification = !!club.unreadCount || meta.recentActivityCount > 0
+          // Only a real unread message count lights this up — general
+          // discipline activity (meta.recentActivityCount, e.g. new Q&A
+          // posts) isn't a message and shouldn't trigger a "new message"
+          // indicator on a club you've already read.
+          const hasNotification = !!club.unreadCount
 
           return (
             <div

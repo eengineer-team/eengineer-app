@@ -41,8 +41,8 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
     >
       <span
         className={cn(
-          'absolute top-[3px] w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform duration-150',
-          checked ? 'translate-x-[19px]' : 'translate-x-[3px]'
+          'absolute top-[3px] left-[3px] w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform duration-150',
+          checked ? 'translate-x-[16px]' : 'translate-x-0'
         )}
       />
     </button>

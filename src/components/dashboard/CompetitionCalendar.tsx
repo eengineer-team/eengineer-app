@@ -21,12 +21,21 @@ function isSameDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
 }
 
-function formatShortDate(d: Date): string {
-  return `${MONTH_NAMES[d.getMonth()].slice(0, 3)} ${d.getDate()}`
+// Hours remaining until a deadline, from the actual current instant (not the
+// day-truncated `today` used for the calendar grid) — so the badge counts
+// down in real time rather than jumping only at midnight.
+function hoursLeft(deadline: Date, now: Date): number {
+  return Math.max(0, Math.round((deadline.getTime() - now.getTime()) / (1000 * 60 * 60)))
+}
+
+function formatHoursLeft(hours: number): string {
+  if (hours <= 0) return 'Due now'
+  return `${hours.toLocaleString()}h left`
 }
 
 export function CompetitionCalendar() {
-  const today = startOfDay(new Date())
+  const now = new Date()
+  const today = startOfDay(now)
   const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1)
   const [viewMonth, setViewMonth] = useState(currentMonthStart)
 
@@ -158,7 +167,7 @@ export function CompetitionCalendar() {
                 </div>
               </div>
               <span className="font-sans text-[10px] font-medium text-corn-500 bg-corn-500/10 rounded px-1.5 py-0.5 whitespace-nowrap">
-                Deadline {formatShortDate(comp.deadline)}
+                {formatHoursLeft(hoursLeft(comp.deadline, now))}
               </span>
             </Link>
           ))}

@@ -10,6 +10,10 @@ export interface Opportunity {
   requirements: string[]
   responsibilities: string[]
   source: 'edugrants'
+  /** The org's real careers/students page — never a fabricated per-posting
+   *  URL (same "no verifiable lies" rule as the calendar's real deadlines).
+   *  Omitted for the one edugrants-run fellowship, which has no outside site. */
+  applyUrl?: string
 }
 
 // Mock edugrants feed — real integration swaps this array for an API call,
@@ -25,6 +29,7 @@ export const SEED_OPPORTUNITIES: Opportunity[] = [
     requirements: ['Junior/Senior standing in Aerospace or Mechanical Engineering', 'Coursework or project experience in thermodynamics or fluid dynamics', 'Proficiency with CAD (any major package)'],
     responsibilities: ['Support test-stand instrumentation for propulsion test campaigns', 'Reduce and plot test data alongside propulsion engineers', 'Document findings in weekly engineering reviews'],
     source: 'edugrants',
+    applyUrl: 'https://boomsupersonic.com/careers',
   },
   {
     id: 'op2',
@@ -36,6 +41,7 @@ export const SEED_OPPORTUNITIES: Opportunity[] = [
     requirements: ['Comfortable in C/C++ and at least one scripting language', 'Familiarity with embedded systems or real-time constraints', 'A shipped personal or team project you can walk through'],
     responsibilities: ['Implement and test flight-controller firmware features', 'Pair with senior firmware engineers on code review', 'Write unit tests for new sensor-fusion modules'],
     source: 'edugrants',
+    applyUrl: 'https://www.skydio.com/careers',
   },
   {
     id: 'op3',
@@ -47,6 +53,7 @@ export const SEED_OPPORTUNITIES: Opportunity[] = [
     requirements: ['Sophomore standing or above in Mechanical/Aerospace Engineering', 'Hands-on fabrication experience (machine shop, 3D printing, or composites)', 'Basic FEA exposure a plus, not required'],
     responsibilities: ['Design and iterate on structural brackets and mechanisms', 'Run tolerance stack-ups for assembly fit checks', 'Support prototype build and bench testing'],
     source: 'edugrants',
+    applyUrl: 'https://www.anduril.com/early-careers',
   },
   {
     id: 'op4',
@@ -58,6 +65,7 @@ export const SEED_OPPORTUNITIES: Opportunity[] = [
     requirements: ['Coursework in circuits, power electronics, or controls', 'Comfortable reading schematics and using a bench multimeter/oscilloscope', 'Prior robotics or EV club experience preferred'],
     responsibilities: ['Bring up and validate power-converter prototypes', 'Characterize thermal and efficiency performance on the bench', 'Support root-cause debug of field returns'],
     source: 'edugrants',
+    applyUrl: 'https://careers.rivian.com/students',
   },
   {
     id: 'op5',
@@ -69,6 +77,7 @@ export const SEED_OPPORTUNITIES: Opportunity[] = [
     requirements: ['Junior standing or above in Civil Engineering', 'Familiarity with AutoCAD Civil 3D or similar', 'Interest in transportation or water-resources infrastructure'],
     responsibilities: ['Support grading and drainage design calculations', 'Prepare drawing sets under PE supervision', 'Attend site visits and client coordination meetings'],
     source: 'edugrants',
+    applyUrl: 'https://aecom.com/students-recent-graduates/',
   },
   {
     id: 'op6',

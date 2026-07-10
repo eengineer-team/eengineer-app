@@ -1,9 +1,10 @@
 import * as React from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { MapPin, Clock, ChevronDown, Sparkles } from 'lucide-react'
+import { MapPin, Clock, ChevronDown, Sparkles, ArrowUpRight } from 'lucide-react'
 import type { Opportunity } from '@/lib/opportunities-data'
 import { Chip } from '@/components/ui/chip'
 import { LabelCaps } from '@/components/ui/label-caps'
+import { Button } from '@/components/ui/button'
 import { getDisciplineColor } from '@/lib/discipline-colors'
 import { getDisciplineIcon } from '@/lib/discipline-icons'
 import { cn } from '@/lib/utils'
@@ -66,20 +67,34 @@ export function OpportunityCard({ opportunity, matched }: { opportunity: Opportu
         </span>
       </div>
 
-      <button
-        onClick={() => setExpanded((v) => !v)}
-        aria-expanded={expanded}
-        className="relative flex items-center gap-1.5 font-sans text-[12px] font-medium text-gold-dark hover:brightness-110 transition-all"
-      >
-        <motion.span
-          animate={{ rotate: expanded ? 180 : 0 }}
-          transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-          className="inline-flex"
+      <div className="relative flex items-center justify-between gap-3 flex-wrap">
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          className="flex items-center gap-1.5 font-sans text-[12px] font-medium text-gold-dark hover:brightness-110 transition-all"
         >
-          <ChevronDown size={14} strokeWidth={2} />
-        </motion.span>
-        {expanded ? 'Hide requirements & responsibilities' : 'View requirements & responsibilities'}
-      </button>
+          <motion.span
+            animate={{ rotate: expanded ? 180 : 0 }}
+            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+            className="inline-flex"
+          >
+            <ChevronDown size={14} strokeWidth={2} />
+          </motion.span>
+          {expanded ? 'Hide requirements & responsibilities' : 'View requirements & responsibilities'}
+        </button>
+
+        {/* Real destination — the org's own careers/students page, never a
+            fabricated per-posting URL. Omitted when there isn't one (the
+            edugrants-run fellowship has no outside site to send you to). */}
+        {opportunity.applyUrl && (
+          <Button variant="accent" size="sm" asChild>
+            <a href={opportunity.applyUrl} target="_blank" rel="noreferrer">
+              Apply on {opportunity.org}'s site
+              <ArrowUpRight size={13} strokeWidth={2} />
+            </a>
+          </Button>
+        )}
+      </div>
 
       <AnimatePresence initial={false}>
         {expanded && (

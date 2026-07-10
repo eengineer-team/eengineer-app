@@ -233,8 +233,8 @@ export function Onboarding() {
             >
               <span
                 className={cn(
-                  'absolute top-[3px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-150',
-                  openToWork ? 'translate-x-[21px]' : 'translate-x-[3px]'
+                  'absolute top-[3px] left-[3px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-150',
+                  openToWork ? 'translate-x-[18px]' : 'translate-x-0'
                 )}
               />
             </button>

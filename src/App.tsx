@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider } from 'next-themes'
 import { AuthProvider } from '@/lib/auth-context'
 import { ProfilesProvider } from '@/lib/profiles-context'
 import { MessagesProvider } from '@/lib/messages-context'
+import { ProjectsProvider } from '@/lib/projects-context'
 import { Welcome } from '@/pages/Welcome'
 import { Auth } from '@/pages/Auth'
 import { Onboarding } from '@/pages/Onboarding'
@@ -13,7 +14,9 @@ import { Community } from '@/pages/dashboard/Community'
 import { CommunityHub } from '@/pages/dashboard/community/CommunityHub'
 import { CommunityGroup } from '@/pages/dashboard/community/CommunityGroup'
 import { Opportunities } from '@/pages/dashboard/Opportunities'
-import { PlaceholderSection } from '@/pages/dashboard/PlaceholderSection'
+import { ProjectsHub } from '@/pages/dashboard/projects/ProjectsHub'
+import { ProjectDetail } from '@/pages/dashboard/projects/ProjectDetail'
+import { ME_PROJECT_ID } from '@/lib/projects-data'
 import { ProfilesLayout } from '@/pages/dashboard/profiles/ProfilesLayout'
 import { ProfilesList } from '@/pages/dashboard/profiles/ProfilesList'
 import { ProfileDetail } from '@/pages/dashboard/profiles/ProfileDetail'
@@ -38,6 +41,7 @@ export default function App() {
               badge and the Messages page itself need to read/write the same
               conversation state, not two independently-reset copies. */}
           <MessagesProvider>
+          <ProjectsProvider>
           <BrowserRouter>
             <Routes>
               <Route path="/"     element={<Welcome />} />
@@ -58,6 +62,21 @@ export default function App() {
                   element={<RequireAction action="opportunities:view"><Opportunities /></RequireAction>}
                 />
                 <Route
+                  path="projects"
+                  element={<RequireAction action="projects:view"><ProjectsHub /></RequireAction>}
+                />
+                {/* Stable "My Project" nav target — mirrors ProfileDetail's
+                    isOwn branching (one component handles both edit + view)
+                    rather than a separate editor component/route. */}
+                <Route
+                  path="projects/mine"
+                  element={<Navigate to={`/dashboard/projects/${ME_PROJECT_ID}`} replace />}
+                />
+                <Route
+                  path="projects/:id"
+                  element={<RequireAction action="projects:view"><ProjectDetail /></RequireAction>}
+                />
+                <Route
                   path="profiles"
                   element={<RequireAction action="profiles:view"><ProfilesLayout /></RequireAction>}
                 >
@@ -76,16 +95,16 @@ export default function App() {
                   path="messages"
                   element={<RequireAction action="messages:view"><Messages /></RequireAction>}
                 />
-                <Route
-                  path="projects/new"
-                  element={<PlaceholderSection label="Post a Project" />}
-                />
+                {/* Old "Post a Project" destination — now the real Projects
+                    feature lives at /projects/mine, keep any stale link working. */}
+                <Route path="projects/new" element={<Navigate to="/dashboard/projects/mine" replace />} />
                 <Route path="settings" element={<SettingsPage />} />
               </Route>
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
             </Routes>
           </BrowserRouter>
+          </ProjectsProvider>
           </MessagesProvider>
         </ProfilesProvider>
       </AuthProvider>
