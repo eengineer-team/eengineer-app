@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { FileText, Share2, MessageSquareText, Rocket as ShipIcon } from 'lucide-react'
 import { Chip } from '@/components/ui/chip'
+import { LabelCaps } from '@/components/ui/label-caps'
 
 // Engineer's-notebook sketch of a model rocket (notebook pass, 07.2026 —
 // replaced the old flat-color art on a dark panel). Stroke-only "pencil"
@@ -91,9 +92,9 @@ export function FeaturedProject() {
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-corn-700 block mb-3">
+          <LabelCaps theme="welcome" className="block mb-3">
             How it works
-          </span>
+          </LabelCaps>
           <h2 className="font-display font-extrabold text-[#2A2118] text-[clamp(1.75rem,3.2vw,2.25rem)] leading-[1.1] tracking-[-0.02em] mb-8">
             One loop. Every project.
           </h2>

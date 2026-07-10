@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { SEED_PROFILES, ME_ID, type BuilderProfile, type ProjectEntry, type ExperienceEntry } from '@/lib/profile-data'
 import type { Discipline } from '@/lib/community-data'
+import { usePersistentState } from '@/lib/use-persistent-state'
 
 // In-memory profile store shared across the list/detail routes. Same caveat
 // as auth-context.tsx: this is mock state, not a backend — see PROGRESS.md.
@@ -27,7 +28,7 @@ interface ProfilesContextValue {
 const ProfilesContext = React.createContext<ProfilesContextValue | null>(null)
 
 export function ProfilesProvider({ children }: { children: React.ReactNode }) {
-  const [profiles, setProfiles] = React.useState<BuilderProfile[]>(SEED_PROFILES)
+  const [profiles, setProfiles] = usePersistentState<BuilderProfile[]>('ee:profiles', SEED_PROFILES)
 
   const getProfile = React.useCallback((id: string) => profiles.find((p) => p.id === id), [profiles])
 

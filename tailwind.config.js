@@ -77,15 +77,20 @@ export default {
         // never actually applied anywhere (Welcome.tsx's hero used a
         // one-off arbitrary clamp() instead) — now the hero uses this token
         // directly, so any future hero-scale headline gets it for free.
-        // Floor stays at the original 3.25rem — "Engineer" only clears the
-        // 375px mobile viewport by ~9px at that size (measured), so raising
-        // the floor to match the new desktop cap overflowed the word off
-        // the edge of the screen. Only the cap (and the vw ramp feeding it)
-        // moved; mobile is unchanged.
-        'display': ['clamp(3.25rem, 7.2vw, 6.25rem)', { lineHeight: '0.94', letterSpacing: '0.01em', fontWeight: '800' }],
-        'display-sm': ['3.5rem', { lineHeight: '1.05', letterSpacing: '-0.02em', fontWeight: '700' }],
+        // Floor lowered to 2.25rem (from 3.25rem) — at the old floor,
+        // "Engineer" rendered at a fixed 52px on every viewport below 722px
+        // (7.2vw only crosses 52px above that width), and 52px only clears
+        // a 375px screen by ~9px, so 360/320px phones pushed the word off
+        // the edge. Measured "Engineer" at 2.25rem leaves clear side margin
+        // at 320px with room to spare at 360/375. Cap and vw ramp unchanged.
+        'display': ['clamp(2.25rem, 7.2vw, 6.25rem)', { lineHeight: '0.94', letterSpacing: '0.01em', fontWeight: '800' }],
         'heading': ['2rem', { lineHeight: '1.2', letterSpacing: '-0.01em', fontWeight: '600' }],
-        'label': ['0.75rem', { lineHeight: '1.4', letterSpacing: '0.08em', fontWeight: '500' }],
+        // Canonical caps-label spec (overline / eyebrow text) — this was the
+        // most common of three inline variants scattered across the app
+        // (10px/0.18em, 10px/0.22em, 11px/0.16em); 11px/0.16em is what the
+        // shared LabelCaps component already used, so it became the standard
+        // instead of the token's old, never-applied 0.75rem/0.08em.
+        'label': ['0.6875rem', { lineHeight: '1.4', letterSpacing: '0.16em', fontWeight: '500' }],
       },
       backgroundImage: {
         'corn-subtle': 'radial-gradient(ellipse 80% 60% at 70% 40%, #FFF8DC 0%, #FAF4CC 60%, #F0E8AA 100%)',
@@ -95,6 +100,18 @@ export default {
         'float-slow': 'float 8s ease-in-out infinite',
         'float-med': 'float 6s ease-in-out infinite 1s',
         'draw': 'draw 3s ease forwards',
+        // Same `draw` keyframe as the hero dimension line, just sped up for
+        // an inline confirmation checkmark instead of a one-time page-load
+        // flourish — the shape and mechanism (pathLength + dashoffset) are
+        // identical, only the pace differs.
+        'draw-fast': 'draw 220ms ease-out forwards',
+        // Confirmation-feedback trio (block: motion pass, 07.2026) — Register/
+        // Connect/Send/skill-fill all reuse one of these three, transform +
+        // opacity only (no width/height — see tailwind constraint note),
+        // capped under 250ms so they read as an ack, not decoration.
+        'pop-in': 'pop-in 180ms ease-out forwards',
+        'bubble-in': 'bubble-in 200ms ease-out forwards',
+        'fill-in': 'fill-in 160ms ease-out forwards',
         'accordion-down': 'accordion-down 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
         'accordion-up':   'accordion-up 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
       },
@@ -107,6 +124,18 @@ export default {
         draw: {
           from: { strokeDashoffset: '1000' },
           to: { strokeDashoffset: '0' },
+        },
+        'pop-in': {
+          '0%':   { opacity: '0', transform: 'scale(0.92)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'bubble-in': {
+          '0%':   { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'fill-in': {
+          '0%':   { opacity: '0', transform: 'scale(0.4)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
         },
         'accordion-down': {
           from: { height: '0', opacity: '0' },

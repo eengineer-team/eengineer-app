@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowUpRight } from 'lucide-react'
 import { SettingsMenu } from '@/components/SettingsMenu'
 import { Wordmark } from '@/components/ui/wordmark'
+import { LabelCaps } from '@/components/ui/label-caps'
 import {
   Accordion,
   AccordionItem,
@@ -101,9 +102,9 @@ export function Help() {
             animate="show"
             transition={{ duration: 0.35, delay: 0.18 }}
           >
-            <span className="font-sans text-[10px] font-medium tracking-[0.22em] uppercase text-corn-700 block mb-5">
+            <LabelCaps theme="welcome" className="block mb-5">
               Help · FAQ
-            </span>
+            </LabelCaps>
             <h1 className="font-display font-bold text-[#2A2118] text-[clamp(2rem,3.8vw,2.75rem)] leading-[1.0] tracking-[-0.02em]">
               Frequently<br />Asked Questions
             </h1>
@@ -158,9 +159,7 @@ export function Help() {
         className="px-10 pb-8 flex items-center justify-between"
       >
         <div className="flex items-center gap-3">
-          <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-corn-700">
-            Contact
-          </span>
+          <LabelCaps theme="welcome">Contact</LabelCaps>
           <span className="w-6 h-px bg-corn-700/35" />
           <a
             href={`mailto:${CONTACT_EMAIL}`}

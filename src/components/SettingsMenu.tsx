@@ -21,10 +21,10 @@ export function SettingsMenu({ variant = 'light' }: { variant?: 'light' | 'dark'
         <button
           className={
             variant === 'dark'
-              ? 'w-8 h-8 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/8 rounded transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30'
-              : 'w-8 h-8 flex items-center justify-center text-corn-700 hover:text-corn-900 hover:bg-corn-900/6 rounded transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-corn-900/30'
+              ? 'min-w-[40px] min-h-[40px] flex items-center justify-center text-white/70 hover:text-white hover:bg-white/8 rounded transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30'
+              : 'min-w-[40px] min-h-[40px] flex items-center justify-center text-corn-700 hover:text-corn-900 hover:bg-corn-900/6 rounded transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-corn-900/30'
           }
-          aria-label="Settings"
+          aria-label="Menu"
         >
           <Settings size={15} strokeWidth={1.8} />
         </button>

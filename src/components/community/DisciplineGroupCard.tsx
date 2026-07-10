@@ -3,19 +3,16 @@ import { Users } from 'lucide-react'
 import { disciplineSlug } from '@/lib/community-data'
 import type { CommunityGroupMeta } from '@/lib/community-groups'
 import { getDisciplineColor } from '@/lib/discipline-colors'
-import { getDisciplineBg } from '@/lib/discipline-bg'
+import { DisciplineMotif } from '@/components/community/DisciplineMotif'
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
-// Redesigned per founder feedback ("with a general picture like this",
-// referencing AP Students' blurred course-photo cards) — a real photo
-// banner, blurred and tinted with the discipline's color, replacing the
-// earlier faint-icon-watermark version. The title/description/stats stay in
-// the solid card body below the banner rather than overlaid on the photo, so
-// text contrast never depends on how bright or busy a given photo is.
+// Banner is a solid discipline-color field with a faint technical-drawing
+// motif, not a stock photo — keeps the "which discipline" cue (per founder
+// feedback that a plain text list didn't feel distinct enough) without an
+// Unsplash dependency or per-discipline image sourcing/licensing.
 export function DisciplineGroupCard({ group }: { group: CommunityGroupMeta }) {
   const color = getDisciplineColor(group.discipline)
-  const bg = getDisciplineBg(group.discipline)
 
   return (
     <Link to={`/dashboard/community/${disciplineSlug(group.discipline)}`}>
@@ -23,17 +20,11 @@ export function DisciplineGroupCard({ group }: { group: CommunityGroupMeta }) {
         theme="dashboard"
         className="p-0 h-full overflow-hidden hover:bg-white/[0.03] transition-colors duration-150"
       >
-        {/* Banner — blurred, color-tinted photo */}
-        <div className={cn('relative h-24 overflow-hidden border-b', color.border)}>
-          <img
-            src={bg}
-            alt=""
-            loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover scale-110 blur-[3px]"
-          />
-          <div className={cn('absolute inset-0 opacity-55 mix-blend-multiply', color.dot)} />
-          <div className="absolute inset-0 bg-dark-100/20" />
-          <span className={cn('absolute top-2.5 left-2.5 w-1.5 h-1.5 rounded-full ring-1 ring-black/40', color.dot)} />
+        {/* Banner — solid discipline color + faint brand motif */}
+        <div className={cn('relative h-24 overflow-hidden border-b', color.border, color.dot)}>
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/30" />
+          <DisciplineMotif size={170} className="absolute -right-8 -top-8 text-white/15" />
+          <span className="absolute top-2.5 left-2.5 w-1.5 h-1.5 rounded-full bg-white/90 ring-1 ring-black/30" />
         </div>
 
         <div className="p-5">
@@ -53,7 +44,7 @@ export function DisciplineGroupCard({ group }: { group: CommunityGroupMeta }) {
                 <span className="font-sans text-[11px] text-dark-muted">{group.recentActivityCount} new this week</span>
               </div>
             ) : (
-              <span className="font-sans text-[11px] text-white/30">Quiet this week</span>
+              <span className="font-sans text-[11px] text-dark-muted">Quiet this week</span>
             )}
           </div>
         </div>

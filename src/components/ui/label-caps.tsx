@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 // OVERVIEW / TRUST / SKILLS / CONNECTION REQUESTS / UPCOMING DEADLINES — the
 // recurring caps-label pattern. One component so tracking/size/color don't
 // drift screen to screen. Not the shadcn form Label (src/components/ui/label.tsx).
-const labelCapsVariants = cva('font-sans text-[11px] font-medium uppercase tracking-[0.16em]', {
+const labelCapsVariants = cva('font-sans text-label font-medium uppercase', {
   variants: {
     theme: {
       welcome:   'text-corn-700',

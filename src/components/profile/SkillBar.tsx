@@ -1,3 +1,5 @@
+import { cn } from '@/lib/utils'
+
 // Self-rated proficiency, 1–5. Read-only dots on other people's profiles,
 // clickable on your own (see ProfileDetail.tsx for the `editable` wiring).
 export function SkillBar({
@@ -25,9 +27,15 @@ export function SkillBar({
               onClick={() => onRate?.(level)}
               aria-label={`Rate ${name} ${level} of 5`}
               aria-pressed={filled}
-              className={`w-2.5 h-2.5 rounded-full transition-colors duration-150 ${
-                filled ? 'bg-gold-dark' : 'bg-white/12'
-              } ${editable ? 'hover:bg-gold-dark/70 cursor-pointer' : 'cursor-default'}`}
+              // Fills in on mount (and again for any newly-filled dot after a
+              // re-rate) — plain re-renders of an already-filled dot don't
+              // replay it, since its className doesn't change between them.
+              style={filled ? { animationDelay: `${(level - 1) * 25}ms` } : undefined}
+              className={cn(
+                'w-2.5 h-2.5 rounded-full transition-colors duration-150',
+                filled ? 'bg-gold-dark animate-fill-in motion-reduce:animate-none' : 'bg-white/12',
+                editable ? 'hover:bg-gold-dark/70 cursor-pointer' : 'cursor-default'
+              )}
             />
           )
         })}

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { JOINED_CLUBS } from '@/lib/clubs-data'
 import { getGroupMeta } from '@/lib/community-groups'
 import { disciplineSlug } from '@/lib/community-data'
+import { LabelCaps } from '@/components/ui/label-caps'
 
 // Redesigned per founder feedback: no discipline color-coding, no member
 // count — just a circled chat icon, the club name, and a notification
@@ -14,10 +15,16 @@ export function JoinedClubs() {
 
   return (
     <div>
-      <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-dark-muted block mb-3">
-        Joined Clubs
-      </span>
+      <LabelCaps className="block mb-3">Joined Clubs</LabelCaps>
 
+      {JOINED_CLUBS.length === 0 ? (
+        <p className="font-sans text-[0.8125rem] text-dark-muted">
+          You haven't joined a club yet.{' '}
+          <Link to="/dashboard/community" className="text-gold-dark hover:brightness-110 transition-all">
+            Browse disciplines →
+          </Link>
+        </p>
+      ) : (
       <div className="flex flex-col gap-2">
         {JOINED_CLUBS.map((club) => {
           const meta = getGroupMeta(club.name)
@@ -79,6 +86,7 @@ export function JoinedClubs() {
           )
         })}
       </div>
+      )}
     </div>
   )
 }

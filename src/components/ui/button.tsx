@@ -22,7 +22,7 @@ const buttonVariants = cva(
         done:    'bg-transparent border border-gold-dark text-gold-dark hover:bg-gold-dark/10',
       },
       size: {
-        sm:   'px-4 py-2 text-sm rounded',
+        sm:   'px-4 py-2 min-h-[40px] text-sm rounded',
         md:   'px-6 py-3 text-base rounded',
         lg:   'px-8 py-3.5 text-base rounded-sm tracking-wide',
         icon: 'p-2 rounded',

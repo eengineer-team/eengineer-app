@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { MessageSquarePlus, X } from 'lucide-react'
+import { LabelCaps } from '@/components/ui/label-caps'
 
 // General product-feedback affordance, next to SettingsMenu — same 8x8
 // icon-button shape/hover convention (see SettingsMenu.tsx) so the two read
@@ -48,9 +49,7 @@ export function FeedbackMenu({ variant = 'light' }: { variant?: 'light' | 'dark'
       {open && (
         <div className="absolute right-0 top-full mt-2 z-40 w-[300px] bg-corn-100 border border-corn-900/15 rounded-lg shadow-[0_12px_40px_rgba(42,33,24,0.18)] p-4">
           <div className="flex items-center justify-between mb-2.5">
-            <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-corn-700">
-              Feedback
-            </span>
+            <LabelCaps theme="welcome">Feedback</LabelCaps>
             <button
               onClick={() => setOpen(false)}
               className="text-corn-700 hover:text-corn-900 transition-colors"

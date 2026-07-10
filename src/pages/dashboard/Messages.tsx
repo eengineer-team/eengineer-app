@@ -5,6 +5,7 @@ import { useMessages } from '@/lib/messages-context'
 import { Avatar } from '@/components/ui/avatar'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { ProfilePreviewPopover } from '@/components/profile/ProfilePreviewPopover'
+import { cn } from '@/lib/utils'
 
 // Bare-minimum URL sniff — good enough to tell "this looks like a link" from
 // plain text without pulling in a validation library for a mock feature.
@@ -50,6 +51,9 @@ export function Messages() {
   const [previewPos, setPreviewPos] = React.useState<{ top: number; left: number } | null>(null)
   const [pendingAttachment, setPendingAttachment] = React.useState<Attachment | null>(null)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+  // The one bubble that should slide/fade in from the composer — cleared
+  // shortly after, so older bubbles (re-rendered on every send) never replay it.
+  const [justSentId, setJustSentId] = React.useState<string | null>(null)
 
   function openListPreview(e: React.MouseEvent, conversationId: string) {
     e.stopPropagation()
@@ -78,6 +82,7 @@ export function Messages() {
     const attachment: Attachment | undefined =
       pendingAttachment ?? (text && isLikelyUrl(text) ? { kind: 'link', url: text } : undefined)
     const bubbleText = attachment?.kind === 'link' && attachment.url === text ? '' : text
+    const newId = `m-${Date.now()}`
 
     setConversations((prev) =>
       prev.map((c) =>
@@ -86,12 +91,14 @@ export function Messages() {
               ...c,
               messages: [
                 ...c.messages,
-                { id: `m-${Date.now()}`, from: 'me', text: bubbleText, time: 'Now', attachment },
+                { id: newId, from: 'me', text: bubbleText, time: 'Now', attachment },
               ],
             }
           : c
       )
     )
+    setJustSentId(newId)
+    window.setTimeout(() => setJustSentId(null), 220)
     setDraft('')
     setPendingAttachment(null)
   }
@@ -176,7 +183,7 @@ export function Messages() {
             <button
               onClick={() => setMobileView('list')}
               aria-label="Back to conversations"
-              className="md:hidden w-8 h-8 flex-shrink-0 flex items-center justify-center text-white/60 hover:text-dark-text hover-white-tint rounded transition-colors"
+              className="md:hidden min-w-[40px] min-h-[40px] flex-shrink-0 flex items-center justify-center text-white/60 hover:text-dark-text hover-white-tint rounded transition-colors"
             >
               <ArrowLeft size={16} strokeWidth={1.8} />
             </button>
@@ -201,7 +208,14 @@ export function Messages() {
 
           <div className="flex-1 overflow-y-auto px-4 md:px-6 py-5 flex flex-col gap-3">
             {active.messages.map((m) => (
-              <div key={m.id} className={`flex flex-col ${m.from === 'me' ? 'items-end' : 'items-start'}`}>
+              <div
+                key={m.id}
+                className={cn(
+                  'flex flex-col',
+                  m.from === 'me' ? 'items-end' : 'items-start',
+                  m.id === justSentId && 'animate-bubble-in motion-reduce:animate-none'
+                )}
+              >
                 <div
                   className={`max-w-[85%] sm:max-w-[70%] rounded-lg overflow-hidden font-sans text-[0.8125rem] leading-snug ${
                     m.from === 'me' ? 'bg-gold-dark/15 border border-gold-dark/25 text-dark-text' : 'bg-white/6 text-white/85'
@@ -247,7 +261,7 @@ export function Messages() {
                 <button
                   onClick={() => setPendingAttachment(null)}
                   aria-label="Remove attachment"
-                  className="text-dark-muted hover:text-white/80 transition-colors flex-shrink-0"
+                  className="min-w-[40px] min-h-[40px] flex items-center justify-center text-dark-muted hover:text-white/80 transition-colors flex-shrink-0 -my-2 -mr-2"
                 >
                   <X size={14} strokeWidth={1.8} />
                 </button>
@@ -264,7 +278,7 @@ export function Messages() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 aria-label="Attach a picture or video"
-                className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded text-dark-muted hover:text-white/85 hover-white-tint transition-colors"
+                className="min-w-[40px] min-h-[40px] flex-shrink-0 flex items-center justify-center rounded text-dark-muted hover:text-white/85 hover-white-tint transition-colors"
               >
                 <Paperclip size={16} strokeWidth={1.8} />
               </button>
@@ -279,7 +293,7 @@ export function Messages() {
                 onClick={sendMessage}
                 disabled={!draft.trim() && !pendingAttachment}
                 aria-label="Send"
-                className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded bg-gold-dark text-dark-900 hover:brightness-110 disabled:opacity-40 disabled:pointer-events-none transition-all"
+                className="min-w-[40px] min-h-[40px] flex-shrink-0 flex items-center justify-center rounded bg-gold-dark text-dark-900 hover:brightness-110 disabled:opacity-40 disabled:pointer-events-none transition-all"
               >
                 <Send size={14} strokeWidth={2} />
               </button>

@@ -32,34 +32,13 @@ function GoogleMark() {
   )
 }
 
-const PROVIDERS: {
+const PRIMARY_PROVIDERS: {
   id: OAuthProvider
   label: string
   icon: React.ReactNode
-  badge: string
-  badgeClass: string
 }[] = [
-  {
-    id: 'github',
-    label: 'GitHub',
-    icon: <GithubMark />,
-    badge: 'Full access',
-    badgeClass: 'bg-emerald-700/10 text-emerald-800 border-emerald-700/20',
-  },
-  {
-    id: 'linkedin',
-    label: 'LinkedIn',
-    icon: <LinkedinMark />,
-    badge: 'Full access',
-    badgeClass: 'bg-emerald-700/10 text-emerald-800 border-emerald-700/20',
-  },
-  {
-    id: 'google',
-    label: 'Google',
-    icon: <GoogleMark />,
-    badge: 'Limited preview',
-    badgeClass: 'bg-amber-600/10 text-amber-800 border-amber-600/25',
-  },
+  { id: 'github', label: 'GitHub', icon: <GithubMark /> },
+  { id: 'linkedin', label: 'LinkedIn', icon: <LinkedinMark /> },
 ]
 
 export interface AuthFormProps {
@@ -79,33 +58,63 @@ export function AuthForm({ mode, loadingProvider, onOAuth }: AuthFormProps) {
         </h1>
       </div>
 
-      {/* OAuth providers */}
+      {/* Primary OAuth providers — the full-access path, unmistakably the
+          recommended CTA: solid fill, larger, listed first. */}
       <div className="flex flex-col gap-2.5 mb-4">
-        {PROVIDERS.map((p) => (
+        {PRIMARY_PROVIDERS.map((p) => (
           <button
             key={p.id}
             type="button"
             disabled={busy}
             onClick={() => onOAuth(p.id)}
             className="
-              w-full flex items-center justify-between gap-3
-              border border-corn-900/15 rounded bg-white/50
-              px-4 py-3 font-sans text-sm font-medium text-[#2A2118]
-              hover:bg-white/80 hover:border-corn-900/25 transition-all duration-150
+              w-full flex items-center justify-center gap-2.5
+              rounded bg-corn-900 text-corn-100
+              px-4 py-3.5 font-sans text-[0.9375rem] font-semibold
+              hover:bg-corn-800 active:bg-corn-900 transition-all duration-150
               disabled:opacity-50 disabled:pointer-events-none
             "
           >
-            <span className="flex items-center gap-2.5">
-              {p.icon}
-              {loadingProvider === p.id ? 'Connecting…' : p.label}
-            </span>
-            <span
-              className={`font-sans text-[10px] font-semibold tracking-wide uppercase border rounded px-1.5 py-0.5 ${p.badgeClass}`}
-            >
-              {p.badge}
+            {p.icon}
+            {loadingProvider === p.id ? 'Connecting…' : `Continue with ${p.label}`}
+            <span className="font-sans text-[10px] font-semibold tracking-wide uppercase text-corn-100/60 ml-1">
+              Full access
             </span>
           </button>
         ))}
+      </div>
+
+      {/* Divider */}
+      <div className="flex items-center gap-3 mb-4">
+        <div className="h-px flex-1 bg-corn-900/12" />
+        <span className="font-sans text-[11px] font-medium uppercase tracking-wide text-corn-700">
+          or preview with Google
+        </span>
+        <div className="h-px flex-1 bg-corn-900/12" />
+      </div>
+
+      {/* Secondary — Google, visibly de-emphasized */}
+      <div className="mb-4">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onOAuth('google')}
+          className="
+            w-full flex items-center justify-between gap-3
+            border border-corn-900/12 rounded bg-transparent
+            px-4 py-2.5 font-sans text-[0.8125rem] font-medium text-corn-700
+            hover:bg-corn-900/4 hover:text-[#2A2118] transition-all duration-150
+            disabled:opacity-50 disabled:pointer-events-none
+          "
+        >
+          <span className="flex items-center gap-2.5">
+            <GoogleMark />
+            {loadingProvider === 'google' ? 'Connecting…' : 'Continue with Google'}
+          </span>
+          <span className="font-sans text-[10px] font-semibold tracking-wide uppercase border rounded px-1.5 py-0.5 bg-amber-600/10 text-amber-800 border-amber-600/25">
+            Limited preview
+          </span>
+        </button>
       </div>
 
       {/* Warning banner */}

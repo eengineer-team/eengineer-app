@@ -34,17 +34,46 @@
   }
 
   /* ── Engineer's-notebook graph paper ──────────────────────────────────────
-     Millimeter grid over cornsilk: 8px minor lines, 40px major lines. Ink is
-     #2A2118 at 3.5% / 6% — measured against the text pairs in Welcome.tsx's
-     contrast-check comment, the grid shifts effective contrast by <0.05, so
-     every AA/AAA figure there still holds. Use on pre-auth surfaces only. */
+     Single 40px grid over cornsilk. The fine 8px sub-grid was removed per
+     design call — no more 5×5 squares-within-squares. Ink is #2A2118 at 6%;
+     dropping the minor lines only reduces ink, so Welcome.tsx's contrast-check
+     figures still hold (shift <0.05). Use on pre-auth surfaces only. */
   .bg-graph-paper {
+    position: relative;
     background-image:
       linear-gradient(to right, rgba(42, 33, 24, 0.06) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(42, 33, 24, 0.06) 1px, transparent 1px),
-      linear-gradient(to right, rgba(42, 33, 24, 0.035) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(42, 33, 24, 0.035) 1px, transparent 1px);
-    background-size: 40px 40px, 40px 40px, 8px 8px, 8px 8px;
+      linear-gradient(to bottom, rgba(42, 33, 24, 0.06) 1px, transparent 1px);
+    background-size: 40px 40px, 40px 40px;
+  }
+
+  /* Cursor spotlight (Variant A): a bolder copy of the 40px grid PLUS the fine
+     8px millimeter sub-grid (removed globally, revived only here as a reward for
+     hovering) — 40px is a multiple of 8, so the classic 5×5 lands cleanly.
+     Aligned to the base grid (identical origin/size), revealed only inside a
+     soft radius under the pointer via a radial mask centred on --mx/--my (set by
+     useCursorSpotlight). Peak line ink ~0.44 over cornsilk — clearly visible,
+     but the hero copy is near-black #2A2118 (~14:1) so the local boost still
+     can't drop it below AA. Pointer-events off so it never blocks the CTA. */
+  @media (hover: hover) and (pointer: fine) {
+    .bg-graph-paper::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(to right, rgba(42, 33, 24, 0.40) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(42, 33, 24, 0.40) 1px, transparent 1px),
+        linear-gradient(to right, rgba(42, 33, 24, 0.14) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(42, 33, 24, 0.14) 1px, transparent 1px);
+      background-size: 40px 40px, 40px 40px, 8px 8px, 8px 8px;
+      -webkit-mask-image: radial-gradient(circle 200px at var(--mx, -1000px) var(--my, -1000px), #000 0%, rgba(0, 0, 0, 0.55) 50%, transparent 80%);
+              mask-image: radial-gradient(circle 200px at var(--mx, -1000px) var(--my, -1000px), #000 0%, rgba(0, 0, 0, 0.55) 50%, transparent 80%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bg-graph-paper::after { display: none; }
   }
 
   .hover-white-tint {

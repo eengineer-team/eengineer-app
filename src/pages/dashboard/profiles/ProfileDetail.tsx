@@ -11,6 +11,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SkillBar } from '@/components/profile/SkillBar'
 import { EndorseDialog } from '@/components/profile/EndorseDialog'
+import { useMorphOnChange } from '@/lib/use-morph-on-change'
 
 function displayName(user: ReturnType<typeof useAuth>['user'], name: string) {
   return name === 'You' && user?.status === 'builder' ? user.name : name
@@ -52,6 +53,10 @@ export function ProfileDetail() {
   const [expOrg, setExpOrg] = React.useState('')
   const [expDuration, setExpDuration] = React.useState('')
   const [expDesc, setExpDesc] = React.useState('')
+
+  // Brief pop when Connect actually transitions (none → requested →
+  // connected) — never on mount, never on unrelated re-renders.
+  const connectMorph = useMorphOnChange(profile?.connectStatus)
 
   if (!profile) return <Navigate to="/dashboard/profiles" replace />
 
@@ -190,7 +195,13 @@ export function ProfileDetail() {
               {profile.connectStatus === 'connected' ? (
                 // Reached achievement, not a blocked action — skip Button's
                 // disabled:opacity-40 styling (same pattern as Network.tsx).
-                <span className={cn(buttonVariants({ variant: 'done', size: 'sm' }), 'pointer-events-none')}>
+                <span
+                  className={cn(
+                    buttonVariants({ variant: 'done', size: 'sm' }),
+                    'pointer-events-none',
+                    connectMorph && 'animate-pop-in motion-reduce:animate-none'
+                  )}
+                >
                   <Check size={14} strokeWidth={2.2} />
                   Connected
                 </span>
@@ -199,6 +210,7 @@ export function ProfileDetail() {
                   variant={profile.connectStatus === 'requested' ? 'shell' : 'accent'}
                   size="sm"
                   onClick={() => toggleConnect(profile.id)}
+                  className={cn(connectMorph && 'animate-pop-in motion-reduce:animate-none')}
                 >
                   {profile.connectStatus === 'requested' ? 'Requested' : 'Connect'}
                 </Button>
@@ -233,15 +245,19 @@ export function ProfileDetail() {
               role="switch"
               aria-checked={profile.openToWork}
               onClick={() => setOpenToWork(!profile.openToWork)}
-              className={`relative w-9 h-5 rounded-full flex-shrink-0 transition-colors duration-150 ${
-                profile.openToWork ? 'bg-emerald-500' : 'bg-white/15'
-              }`}
+              className="min-w-[40px] min-h-[40px] flex items-center justify-center flex-shrink-0"
             >
               <span
-                className={`absolute top-[3px] left-[3px] w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform duration-150 ${
-                  profile.openToWork ? 'translate-x-[16px]' : 'translate-x-0'
+                className={`relative w-9 h-5 rounded-full transition-colors duration-150 ${
+                  profile.openToWork ? 'bg-emerald-500' : 'bg-white/15'
                 }`}
-              />
+              >
+                <span
+                  className={`absolute top-[3px] left-[3px] w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform duration-150 ${
+                    profile.openToWork ? 'translate-x-[16px]' : 'translate-x-0'
+                  }`}
+                />
+              </span>
             </button>
           </div>
         )}
@@ -306,7 +322,11 @@ export function ProfileDetail() {
               >
                 {i}
                 {isOwn && (
-                  <button onClick={() => removeInterestHandler(i)} aria-label={`Remove ${i}`}>
+                  <button
+                    onClick={() => removeInterestHandler(i)}
+                    aria-label={`Remove ${i}`}
+                    className="min-w-[40px] min-h-[40px] -my-2.5 -mr-2 flex items-center justify-center"
+                  >
                     <X size={11} strokeWidth={2} className="text-dark-muted hover:text-white/80" />
                   </button>
                 )}

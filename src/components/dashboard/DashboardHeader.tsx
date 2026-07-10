@@ -20,12 +20,12 @@ function IconBadge({
   return (
     <button
       onClick={onClick}
-      className="relative w-8 h-8 flex items-center justify-center text-white/70 hover:text-white hover-white-tint rounded transition-colors duration-150"
+      className="relative min-w-[40px] min-h-[40px] flex items-center justify-center text-white/70 hover:text-white hover-white-tint rounded transition-colors duration-150"
       aria-label={count > 0 ? `${label}: ${count} unread` : label}
     >
       <Icon size={16} strokeWidth={1.8} />
       {count > 0 && (
-        <span className="absolute top-1 right-1 w-[7px] h-[7px] rounded-full bg-corn-700" />
+        <span className="absolute top-2.5 right-2.5 w-[7px] h-[7px] rounded-full bg-corn-700" />
       )}
     </button>
   )
@@ -50,7 +50,7 @@ export function DashboardHeader({ name, onMenuClick }: { name: string; onMenuCli
         <button
           onClick={onMenuClick}
           aria-label="Open menu"
-          className="md:hidden w-8 h-8 flex-shrink-0 flex items-center justify-center text-white/70 hover:text-white hover-white-tint rounded transition-colors duration-150"
+          className="md:hidden min-w-[40px] min-h-[40px] flex-shrink-0 flex items-center justify-center text-white/70 hover:text-white hover-white-tint rounded transition-colors duration-150"
         >
           <Menu size={18} strokeWidth={1.8} />
         </button>

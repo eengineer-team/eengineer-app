@@ -6,7 +6,7 @@ import { Chip } from '@/components/ui/chip'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { getDisciplineColor } from '@/lib/discipline-colors'
-import { getDisciplineIcon } from '@/lib/discipline-icons'
+import { DisciplineMotif } from '@/components/community/DisciplineMotif'
 import { cn } from '@/lib/utils'
 
 const MONTH_NAMES = [
@@ -31,7 +31,6 @@ export function CompetitionDetail({ competition: competitionProp }: { competitio
   if (!competition) return <Navigate to="/dashboard/calendar" replace />
 
   const color = getDisciplineColor(competition.discipline)
-  const Icon = getDisciplineIcon(competition.discipline)
 
   return (
     <div className="flex-1 px-8 py-8 max-w-[640px]">
@@ -44,11 +43,9 @@ export function CompetitionDetail({ competition: competitionProp }: { competitio
       </Link>
 
       <div className={cn('relative overflow-hidden bg-dark-surface border border-white/10 border-t-2 rounded-lg p-6 mb-6', color.border)}>
-        <Icon
+        <DisciplineMotif
           size={130}
-          strokeWidth={1}
-          className={cn('pointer-events-none absolute -top-6 -right-6 opacity-[0.05]', color.text)}
-          aria-hidden="true"
+          className={cn('absolute -top-6 -right-6 opacity-[0.05]', color.text)}
         />
         <div className="relative flex items-start justify-between gap-4 mb-3">
           <div className="min-w-0">

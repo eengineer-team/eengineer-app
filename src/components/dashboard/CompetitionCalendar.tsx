@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Bell } from 'lucide-react'
 import { SEED_COMPETITIONS } from '@/lib/calendar-data'
 import { getDisciplineColor } from '@/lib/discipline-colors'
+import { LabelCaps } from '@/components/ui/label-caps'
 import { cn } from '@/lib/utils'
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
@@ -77,26 +78,24 @@ export function CompetitionCalendar() {
   return (
     <div className="flex flex-col gap-4">
       <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
-        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-dark-muted block mb-3">
-          Competition Calendar
-        </span>
+        <LabelCaps className="block mb-3">Competition Calendar</LabelCaps>
 
         <div className="flex items-center justify-between mb-3">
           <span className="font-sans text-[0.875rem] font-semibold text-dark-text">
             {MONTH_NAMES[viewMonth.getMonth()]} {viewMonth.getFullYear()}
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center">
             <button
               onClick={goToPrevMonth}
               disabled={isViewingCurrentMonth}
-              className="p-1 rounded text-dark-muted hover:bg-white/7 hover:text-white/80 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+              className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded text-dark-muted hover:bg-white/7 hover:text-white/80 transition-colors disabled:opacity-30 disabled:pointer-events-none"
               aria-label="Previous month"
             >
               <ChevronLeft size={14} strokeWidth={2} />
             </button>
             <button
               onClick={goToNextMonth}
-              className="p-1 rounded text-dark-muted hover:bg-white/7 hover:text-white/80 transition-colors"
+              className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded text-dark-muted hover:bg-white/7 hover:text-white/80 transition-colors"
               aria-label="Next month"
             >
               <ChevronRight size={14} strokeWidth={2} />
@@ -134,11 +133,11 @@ export function CompetitionCalendar() {
               </>
             )
             return deadline ? (
-              <Link key={i} to={`/dashboard/competitions/${deadline.id}`} className="flex flex-col items-center gap-0.5 hover:opacity-80 transition-opacity">
+              <Link key={i} to={`/dashboard/competitions/${deadline.id}`} className="flex flex-col items-center justify-center gap-0.5 min-h-[40px] hover:opacity-80 transition-opacity">
                 {cellContent}
               </Link>
             ) : (
-              <div key={i} className="flex flex-col items-center gap-0.5">
+              <div key={i} className="flex flex-col items-center justify-center gap-0.5 min-h-[40px]">
                 {cellContent}
               </div>
             )
@@ -147,9 +146,7 @@ export function CompetitionCalendar() {
       </div>
 
       <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
-        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-dark-muted block mb-3">
-          Upcoming Deadlines
-        </span>
+        <LabelCaps className="block mb-3">Upcoming Deadlines</LabelCaps>
         <div className="flex flex-col gap-3">
           {upcoming.map((comp) => (
             <Link
@@ -175,9 +172,7 @@ export function CompetitionCalendar() {
       </div>
 
       <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
-        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-dark-muted block mb-3">
-          Daily Reminders
-        </span>
+        <LabelCaps className="block mb-3">Daily Reminders</LabelCaps>
         <div className="flex flex-col gap-2.5">
           {upcoming.map((comp) => {
             const daysUntil = Math.round((comp.deadline.getTime() - today.getTime()) / 86400000)

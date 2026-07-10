@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { LabelCaps } from '@/components/ui/label-caps'
 
 // Same "no overlay dimming" modal pattern as community/NewQuestionDialog.tsx —
 // consistent behavior for every custom dialog in the app. Reason is
@@ -30,9 +31,7 @@ export function EndorseDialog({
     // right-anchored popover from sm: up.
     <div className="fixed inset-x-4 top-20 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 z-40 sm:w-[360px] max-h-[calc(100vh-6rem)] overflow-y-auto bg-dark-100 border border-white/12 rounded-lg shadow-[0_12px_40px_rgba(0,0,0,0.5)] p-5">
       <div className="flex items-center justify-between mb-3">
-        <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-dark-muted">
-          Endorse {targetName}
-        </span>
+        <LabelCaps>Endorse {targetName}</LabelCaps>
         <button onClick={onClose} className="text-dark-muted hover:text-white transition-colors" aria-label="Close">
           <X size={16} strokeWidth={1.8} />
         </button>

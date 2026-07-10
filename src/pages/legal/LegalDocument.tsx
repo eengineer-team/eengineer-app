@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { SettingsMenu } from '@/components/SettingsMenu'
 import { Wordmark } from '@/components/ui/wordmark'
+import { LabelCaps } from '@/components/ui/label-caps'
 
 export function LegalDocument({
   title,
@@ -34,9 +35,9 @@ export function LegalDocument({
 
       <main className="flex-1 px-10 py-16">
         <div className="max-w-[640px] mx-auto">
-          <span className="font-sans text-[10px] font-medium tracking-[0.22em] uppercase text-corn-700 mb-4 block">
+          <LabelCaps theme="welcome" className="mb-4 block">
             Legal
-          </span>
+          </LabelCaps>
           <h1 className="font-display font-bold text-[#2A2118] text-[clamp(2rem,3.8vw,2.75rem)] leading-[1.05] tracking-[-0.02em] mb-2">
             {title}
           </h1>

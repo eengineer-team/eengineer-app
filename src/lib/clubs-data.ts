@@ -8,10 +8,8 @@ export interface JoinedClub {
 }
 
 // Mock data — real-time membership/unread counts land once the Community
-// backend exists (Phase 6). Shared between the Home landing widget and the
-// sidebar "My Clubs" group so both read from one source.
-export const JOINED_CLUBS: JoinedClub[] = [
-  { name: 'Aerospace', members: 412, unreadCount: 3 },
-  { name: 'Software', members: 968 },
-  { name: 'Mechanical', members: 355, unreadCount: 1 },
-]
+// backend exists (Phase 6), and joining/leaving isn't wired up yet either.
+// Shared between the Home landing widget and the sidebar "My Clubs" group so
+// both read from one source. Starts empty — a fresh Builder hasn't joined
+// anything; seeding this would show a stranger's clubs as their own.
+export const JOINED_CLUBS: JoinedClub[] = []

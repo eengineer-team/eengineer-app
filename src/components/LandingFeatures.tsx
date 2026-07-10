@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { MessageCircleQuestion } from 'lucide-react'
+import { LabelCaps } from '@/components/ui/label-caps'
 
 // Brand marks — lucide-react has no GitHub/LinkedIn logos, so these are the
 // same inline SVGs TeamAbout.tsx uses, just bigger and given a slight lean
@@ -70,9 +71,9 @@ export function LandingFeatures() {
   return (
     <section className="px-5 sm:px-10 py-16 border-t border-[#2A2118]/8">
       <div className="max-w-[640px] mb-12">
-        <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-corn-700 block mb-3">
+        <LabelCaps theme="welcome" className="block mb-3">
           Why eengineer
-        </span>
+        </LabelCaps>
         <h2 className="font-display font-extrabold text-[#2A2118] text-[clamp(2rem,3.8vw,2.75rem)] leading-[1.05] tracking-[-0.02em]">
           No anonymous accounts. No bot answers.
         </h2>
@@ -96,9 +97,9 @@ export function LandingFeatures() {
                 </div>
               )
             )}
-            <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-corn-700 mb-1.5">
+            <LabelCaps theme="welcome" className="mb-1.5">
               {f.tag}
-            </span>
+            </LabelCaps>
             <h3 className="font-sans text-[0.9375rem] font-semibold text-[#2A2118] tracking-tight mb-1.5">
               {f.title}
             </h3>

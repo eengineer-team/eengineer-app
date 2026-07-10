@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Bell } from 'lucide-react'
 import { SEED_COMPETITIONS } from '@/lib/calendar-data'
 import { getDisciplineColor } from '@/lib/discipline-colors'
+import { LabelCaps } from '@/components/ui/label-caps'
 import { cn } from '@/lib/utils'
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
@@ -76,9 +77,9 @@ export function LandingCalendar() {
     <div className="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-4 lg:gap-6 items-start w-full max-w-[1040px]">
       <div className="flex flex-col gap-4">
       <div className="bg-white/60 border border-corn-900/10 rounded-lg p-4">
-        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-corn-700 block mb-3">
+        <LabelCaps theme="welcome" className="block mb-3">
           Competition Calendar
-        </span>
+        </LabelCaps>
 
         <div className="flex items-center justify-between mb-3">
           <span className="font-sans text-[0.875rem] font-semibold text-[#2A2118]">
@@ -141,9 +142,9 @@ export function LandingCalendar() {
       </div>
 
       <div className="bg-white/60 border border-corn-900/10 rounded-lg p-4">
-        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-corn-700 block mb-3">
+        <LabelCaps theme="welcome" className="block mb-3">
           Daily Reminders
-        </span>
+        </LabelCaps>
         <div className="flex flex-col gap-2.5">
           {upcoming.map((comp) => {
             const daysUntil = Math.round((comp.deadline.getTime() - today.getTime()) / 86400000)
@@ -164,9 +165,9 @@ export function LandingCalendar() {
       {/* Right column — full competition cards: name, deadline, description,
           organizer. All of it comes straight from SEED_COMPETITIONS. */}
       <div className="bg-white/60 border border-corn-900/10 rounded-lg p-4">
-        <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-corn-700 block mb-3">
+        <LabelCaps theme="welcome" className="block mb-3">
           Upcoming Deadlines
-        </span>
+        </LabelCaps>
         <div className="flex flex-col gap-3">
           {upcoming.map((comp) => (
             <Link

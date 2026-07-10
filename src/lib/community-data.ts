@@ -101,9 +101,27 @@ export interface Webinar {
   discipline: Discipline
   title: string
   speaker: string
-  date: string
+  /** ISO 8601 UTC instant — never a hand-typed weekday/date string. */
+  startsAt: string
   attending: number
   registered: boolean
+}
+
+const WEBINAR_TIME_ZONE = 'America/New_York'
+
+// Derives the weekday/date/time from the real instant instead of a
+// hand-typed string, so it can never drift out of sync with the calendar.
+export function formatWebinarDate(startsAt: string): string {
+  const date = new Date(startsAt)
+  const weekday = date.toLocaleDateString('en-US', { weekday: 'short', timeZone: WEBINAR_TIME_ZONE })
+  const monthDay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: WEBINAR_TIME_ZONE })
+  const time = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: WEBINAR_TIME_ZONE,
+    timeZoneName: 'short',
+  })
+  return `${weekday}, ${monthDay} · ${time}`
 }
 
 // Monthly, grouped by discipline — Community Lead organizes/finds speakers,
@@ -114,7 +132,7 @@ export const SEED_WEBINARS: Webinar[] = [
     discipline: 'Aerospace',
     title: 'Aerospace Propulsion Systems',
     speaker: 'Dr. Elena Vasquez, JPL',
-    date: 'Fri, Jul 18 · 5:00 PM EST',
+    startsAt: '2026-07-17T21:00:00Z',
     attending: 23,
     registered: false,
   },
@@ -123,7 +141,7 @@ export const SEED_WEBINARS: Webinar[] = [
     discipline: 'Software',
     title: 'Building Reliable Firmware-to-Cloud Pipelines',
     speaker: 'Marcus Chen, Software Lead @ Anduril',
-    date: 'Tue, Jul 22 · 6:00 PM EST',
+    startsAt: '2026-07-21T22:00:00Z',
     attending: 41,
     registered: true,
   },
@@ -132,7 +150,7 @@ export const SEED_WEBINARS: Webinar[] = [
     discipline: 'Mechanical',
     title: 'Design for Additive Manufacturing',
     speaker: 'Rina Osei, Mechanical Engineer @ Boom Supersonic',
-    date: 'Thu, Jul 24 · 5:30 PM EST',
+    startsAt: '2026-07-23T21:30:00Z',
     attending: 17,
     registered: false,
   },
@@ -141,7 +159,7 @@ export const SEED_WEBINARS: Webinar[] = [
     discipline: 'Electrical',
     title: 'Power Electronics for Small UAVs',
     speaker: 'Tomás Ferreira, EE @ Skydio',
-    date: 'Mon, Aug 4 · 6:00 PM EST',
+    startsAt: '2026-08-03T22:00:00Z',
     attending: 12,
     registered: false,
   },

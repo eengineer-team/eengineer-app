@@ -6,6 +6,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Chip } from '@/components/ui/chip'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useMorphOnChange } from '@/lib/use-morph-on-change'
 
 // Compact profile preview for hover/click contexts (DM header, message
 // avatars) where jumping straight to the full profile page would lose the
@@ -29,6 +30,8 @@ export function ProfilePreviewPopover({
 }) {
   const { getProfile, toggleConnect } = useProfiles()
   const profile = getProfile(profileId)
+  // Brief pop when Connect actually transitions — never on mount.
+  const connectMorph = useMorphOnChange(profile?.connectStatus)
 
   if (!profile) return null
 
@@ -106,7 +109,13 @@ export function ProfilePreviewPopover({
         {profile.connectStatus === 'connected' ? (
           // Already connected — the relevant action is messaging, not
           // re-displaying "Connected" as a dead-end achievement badge here.
-          <Link to="/dashboard/messages" className={cn(buttonVariants({ variant: 'accent', size: 'sm' }))}>
+          <Link
+            to="/dashboard/messages"
+            className={cn(
+              buttonVariants({ variant: 'accent', size: 'sm' }),
+              connectMorph && 'animate-pop-in motion-reduce:animate-none'
+            )}
+          >
             <MessageSquare size={13} strokeWidth={2} />
             Message
           </Link>
@@ -115,6 +124,7 @@ export function ProfilePreviewPopover({
             variant={profile.connectStatus === 'requested' ? 'shell' : 'accent'}
             size="sm"
             onClick={() => toggleConnect(profile.id)}
+            className={cn(connectMorph && 'animate-pop-in motion-reduce:animate-none')}
           >
             {profile.connectStatus === 'requested' ? 'Requested' : 'Connect'}
           </Button>

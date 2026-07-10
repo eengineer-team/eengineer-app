@@ -6,7 +6,7 @@ import { Chip } from '@/components/ui/chip'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { Button } from '@/components/ui/button'
 import { getDisciplineColor } from '@/lib/discipline-colors'
-import { getDisciplineIcon } from '@/lib/discipline-icons'
+import { DisciplineMotif } from '@/components/community/DisciplineMotif'
 import { cn } from '@/lib/utils'
 
 // Collapsed by default — six full-length cards (title, org, badges,
@@ -22,7 +22,6 @@ import { cn } from '@/lib/utils'
 export function OpportunityCard({ opportunity, matched }: { opportunity: Opportunity; matched: boolean }) {
   const [expanded, setExpanded] = React.useState(false)
   const color = getDisciplineColor(opportunity.discipline)
-  const Icon = getDisciplineIcon(opportunity.discipline)
 
   return (
     <div
@@ -31,11 +30,9 @@ export function OpportunityCard({ opportunity, matched }: { opportunity: Opportu
         color.border
       )}
     >
-      <Icon
+      <DisciplineMotif
         size={110}
-        strokeWidth={1}
-        className={cn('pointer-events-none absolute -top-4 -right-4 opacity-[0.05]', color.text)}
-        aria-hidden="true"
+        className={cn('absolute -top-4 -right-4 opacity-[0.05]', color.text)}
       />
 
       <div className="relative flex items-start justify-between gap-3 mb-1">

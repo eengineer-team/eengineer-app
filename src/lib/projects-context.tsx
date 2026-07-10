@@ -9,6 +9,7 @@ import {
   type ProjectStat,
   type SupportingMaterial,
 } from '@/lib/projects-data'
+import { usePersistentState } from '@/lib/use-persistent-state'
 
 // In-memory project store, same pattern/caveat as profiles-context.tsx: only
 // the signed-in Builder's own project (ownerId === ME_ID) is ever editable
@@ -44,7 +45,7 @@ interface ProjectsContextValue {
 const ProjectsContext = React.createContext<ProjectsContextValue | null>(null)
 
 export function ProjectsProvider({ children }: { children: React.ReactNode }) {
-  const [projects, setProjects] = React.useState<Project[]>(SEED_PROJECTS)
+  const [projects, setProjects] = usePersistentState<Project[]>('ee:projects', SEED_PROJECTS)
 
   const getProject = React.useCallback((id: string) => projects.find((p) => p.id === id), [projects])
   const getProjectByOwner = React.useCallback(

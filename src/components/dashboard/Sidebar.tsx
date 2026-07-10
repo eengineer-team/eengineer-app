@@ -86,7 +86,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           <button
             onClick={() => setCollapsed((c) => !c)}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="hidden md:flex w-8 h-8 items-center justify-center text-dark-muted hover:text-dark-text hover-white-tint rounded transition-colors duration-150"
+            className="hidden md:flex min-w-[40px] min-h-[40px] items-center justify-center text-dark-muted hover:text-dark-text hover-white-tint rounded transition-colors duration-150"
           >
             {collapsed ? <PanelLeftOpen size={16} strokeWidth={1.8} /> : <PanelLeftClose size={16} strokeWidth={1.8} />}
           </button>
@@ -95,7 +95,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           <button
             onClick={onClose}
             aria-label="Close menu"
-            className="md:hidden w-8 h-8 flex items-center justify-center text-white/70 hover:text-white hover-white-tint rounded transition-colors duration-150"
+            className="md:hidden min-w-[40px] min-h-[40px] flex items-center justify-center text-white/70 hover:text-white hover-white-tint rounded transition-colors duration-150"
           >
             <X size={16} strokeWidth={1.8} />
           </button>

@@ -4,6 +4,7 @@ import { AuthProvider } from '@/lib/auth-context'
 import { ProfilesProvider } from '@/lib/profiles-context'
 import { MessagesProvider } from '@/lib/messages-context'
 import { ProjectsProvider } from '@/lib/projects-context'
+import { WebinarsProvider } from '@/lib/webinars-context'
 import { Welcome } from '@/pages/Welcome'
 import { Auth } from '@/pages/Auth'
 import { Onboarding } from '@/pages/Onboarding'
@@ -42,6 +43,7 @@ export default function App() {
               conversation state, not two independently-reset copies. */}
           <MessagesProvider>
           <ProjectsProvider>
+          <WebinarsProvider>
           <BrowserRouter>
             <Routes>
               <Route path="/"     element={<Welcome />} />
@@ -104,6 +106,7 @@ export default function App() {
               <Route path="/privacy" element={<Privacy />} />
             </Routes>
           </BrowserRouter>
+          </WebinarsProvider>
           </ProjectsProvider>
           </MessagesProvider>
         </ProfilesProvider>

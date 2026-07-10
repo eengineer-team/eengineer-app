@@ -1,10 +1,26 @@
 import * as React from 'react'
-import { Users, Check } from 'lucide-react'
-import { SEED_WEBINARS, type Discipline, type Webinar } from '@/lib/community-data'
+import { Users } from 'lucide-react'
+import { formatWebinarDate, type Discipline, type Webinar } from '@/lib/community-data'
 import { Button } from '@/components/ui/button'
 import { LabelCaps } from '@/components/ui/label-caps'
+import { DrawCheck } from '@/components/dashboard/DrawCheck'
+import { useWebinars } from '@/lib/webinars-context'
+import { cn } from '@/lib/utils'
 
 function WebinarCard({ webinar, onToggle }: { webinar: Webinar; onToggle: (id: string) => void }) {
+  // Only true for the moment right after *this* click registers — never on
+  // mount or on a later re-render, so the tick/draw-in plays once, as a
+  // reaction to the action, not as page-load decoration.
+  const [justRegistered, setJustRegistered] = React.useState(false)
+
+  function handleClick() {
+    if (!webinar.registered) {
+      setJustRegistered(true)
+      window.setTimeout(() => setJustRegistered(false), 220)
+    }
+    onToggle(webinar.id)
+  }
+
   return (
     <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4 flex items-center justify-between gap-4">
       <div className="min-w-0">
@@ -12,19 +28,26 @@ function WebinarCard({ webinar, onToggle }: { webinar: Webinar; onToggle: (id: s
           {webinar.title}
         </div>
         <div className="font-sans text-[0.8125rem] text-dark-muted mb-1.5">{webinar.speaker}</div>
-        <div className="font-sans text-[11px] text-dark-muted">{webinar.date}</div>
+        <div className="font-sans text-[11px] text-dark-muted">{formatWebinarDate(webinar.startsAt)}</div>
       </div>
       <div className="flex flex-col items-end gap-2 flex-shrink-0">
         <div className="flex items-center gap-1.5 text-dark-muted">
           <Users size={11} strokeWidth={1.8} />
-          <span className="font-sans text-[11px]">{webinar.attending} attending</span>
+          <span
+            className={cn(
+              'font-sans text-[11px] inline-block',
+              justRegistered && 'animate-pop-in motion-reduce:animate-none'
+            )}
+          >
+            {webinar.attending} attending
+          </span>
         </div>
         <Button
           variant={webinar.registered ? 'done' : 'accent'}
           size="sm"
-          onClick={() => onToggle(webinar.id)}
+          onClick={handleClick}
         >
-          {webinar.registered && <Check size={14} strokeWidth={2.2} />}
+          {webinar.registered && <DrawCheck animate={justRegistered} />}
           {webinar.registered ? 'Registered' : 'Register'}
         </Button>
       </div>
@@ -35,17 +58,7 @@ function WebinarCard({ webinar, onToggle }: { webinar: Webinar; onToggle: (id: s
 // `discipline` scopes the list to one group's webinars (Community hub → group
 // space). Omit to see everything grouped by discipline.
 export function Webinars({ discipline }: { discipline?: Discipline } = {}) {
-  const [webinars, setWebinars] = React.useState<Webinar[]>(SEED_WEBINARS)
-
-  function toggleRegistration(id: string) {
-    setWebinars((prev) =>
-      prev.map((w) =>
-        w.id === id
-          ? { ...w, registered: !w.registered, attending: w.attending + (w.registered ? -1 : 1) }
-          : w
-      )
-    )
-  }
+  const { webinars, toggleRegistration } = useWebinars()
 
   if (discipline) {
     const items = webinars.filter((w) => w.discipline === discipline)

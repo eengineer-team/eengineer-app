@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Plus, Minus } from 'lucide-react'
+import { LabelCaps } from '@/components/ui/label-caps'
 
 interface TeamMember {
   name: string
@@ -14,7 +15,7 @@ const TEAM: TeamMember[] = [
   {
     name: 'Jalen',
     photo: '/team/jalen.jpg',
-    github: '#',
+    github: null,
     linkedin: null,
     bio: 'They call me Jalen, and I come from 2009. I excel in swimming, ping pong and cs games. Attempted academic tests so far is IELTS and SAT with an according 7 and 1530 (1540 with a superscore). I am average above speed typer with a 100 wpm. My major is machine learning and the owner of couple of related projects in this field.',
     chips: ['Machine Learning', 'ML projects'],
@@ -22,8 +23,8 @@ const TEAM: TeamMember[] = [
   {
     name: 'Jakhongir',
     photo: '/team/jakhongir.jpg',
-    github: '#',
-    linkedin: '#',
+    github: null,
+    linkedin: null,
     bio: "Jakhongir, 16, from Navoi. Been building since 14 — now an automation & AI agent product for real estate. Business Analytics/BizOps by major, but I think in casting before I think in story. Give me a good problem and a team that laughs together, and I'll stay up too late solving it.",
     chips: ['Business Analytics / BizOps', 'Automation & AI agents', 'Navoi'],
   },
@@ -36,6 +37,10 @@ const TEAM: TeamMember[] = [
     chips: ['Mechanical / Environmental Engineering', 'Videography & Content', 'Khiva'],
   },
 ]
+
+function isRealLink(url: string | null): url is string {
+  return !!url && url !== '#'
+}
 
 function initials(name: string) {
   const parts = name.trim().split(/\s+/)
@@ -117,9 +122,9 @@ export function TeamAbout() {
       <div className="mt-10">
       {/* Section label + heading */}
       <div className="mb-12 max-w-[640px]">
-        <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-corn-700 block mb-3">
+        <LabelCaps theme="welcome" className="block mb-3">
           Team
-        </span>
+        </LabelCaps>
         <h2 className="font-display font-extrabold text-[#2A2118] text-[clamp(2rem,3.8vw,2.75rem)] leading-[1.05] tracking-[-0.02em] mb-3">
           The people behind it.
         </h2>
@@ -144,26 +149,26 @@ export function TeamAbout() {
                   {member.name}
                 </h3>
 
-                {(member.github || member.linkedin) && (
+                {(isRealLink(member.github) || isRealLink(member.linkedin)) && (
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {member.github && (
+                    {isRealLink(member.github) && (
                       <a
                         href={member.github}
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`${member.name} on GitHub`}
-                        className="w-[30px] h-[30px] flex items-center justify-center rounded border border-corn-900/15 text-corn-700 hover:border-corn-900/40 hover:text-[#2A2118] transition-colors duration-150"
+                        className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded border border-corn-900/15 text-corn-700 hover:border-corn-900/40 hover:text-[#2A2118] transition-colors duration-150"
                       >
                         <GithubIcon />
                       </a>
                     )}
-                    {member.linkedin && (
+                    {isRealLink(member.linkedin) && (
                       <a
                         href={member.linkedin}
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`${member.name} on LinkedIn`}
-                        className="w-[30px] h-[30px] flex items-center justify-center rounded border border-corn-900/15 text-corn-700 hover:border-corn-900/40 hover:text-[#2A2118] transition-colors duration-150"
+                        className="min-w-[40px] min-h-[40px] flex items-center justify-center rounded border border-corn-900/15 text-corn-700 hover:border-corn-900/40 hover:text-[#2A2118] transition-colors duration-150"
                       >
                         <LinkedinIcon />
                       </a>

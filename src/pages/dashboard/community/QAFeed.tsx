@@ -3,6 +3,7 @@ import { Send, AlertTriangle } from 'lucide-react'
 import { SEED_QUESTIONS, type Discipline, type Question } from '@/lib/community-data'
 import { textSimilarity, DUPLICATE_THRESHOLD } from '@/lib/similarity'
 import { QuestionCard } from '@/components/community/QuestionCard'
+import { usePersistentState } from '@/lib/use-persistent-state'
 
 let nextId = SEED_QUESTIONS.length + 1
 
@@ -12,7 +13,7 @@ let nextId = SEED_QUESTIONS.length + 1
 // report / comment, duplicate-check before posting) — just presented as a
 // running conversation instead of a stack of standalone cards.
 export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; discipline?: Discipline }) {
-  const [questions, setQuestions] = React.useState<Question[]>(SEED_QUESTIONS)
+  const [questions, setQuestions] = usePersistentState<Question[]>('ee:qa-feed', SEED_QUESTIONS)
   const [draft, setDraft] = React.useState('')
   const [duplicate, setDuplicate] = React.useState<Question | null>(null)
   const visible = discipline ? questions.filter((q) => q.category === discipline) : questions

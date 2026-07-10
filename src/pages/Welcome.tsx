@@ -9,6 +9,8 @@ import { SettingsMenu } from '@/components/SettingsMenu'
 import { FeedbackMenu } from '@/components/FeedbackMenu'
 import { Button } from '@/components/ui/button'
 import { Wordmark } from '@/components/ui/wordmark'
+import { LabelCaps } from '@/components/ui/label-caps'
+import { useCursorSpotlight } from '@/lib/use-cursor-spotlight'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -26,6 +28,11 @@ const stagger = {
 // #8B6914 on #FFF8DC → ~4.6:1                   (WCAG AA large text / labels only)
 
 export function Welcome() {
+  // Cursor-reactive graph paper: base grid stays calm, a bolder copy of the
+  // same grid is revealed in a soft radius under the pointer (desktop only,
+  // respects reduced-motion). Ref goes on the hero <main> carrying .bg-graph-paper.
+  const heroRef = useCursorSpotlight<HTMLElement>()
+
   return (
     <div className="min-h-screen bg-corn-100 flex flex-col">
 
@@ -57,12 +64,15 @@ export function Welcome() {
           seed data, any "product shot" here is a fabrication; empty is more
           honest and reads stronger. Revisit only when there are real screens
           with real user content to show. */}
-      <main className="flex-1 flex flex-col px-5 sm:px-10 py-10 lg:py-12 bg-graph-paper">
+      <main
+        ref={heroRef}
+        className="relative isolate flex-1 flex flex-col px-5 sm:px-10 py-10 lg:py-12 bg-graph-paper"
+      >
         <motion.div
           variants={stagger}
           initial="hidden"
           animate="show"
-          className="w-full max-w-[820px] flex flex-col"
+          className="relative z-10 w-full max-w-[820px] flex flex-col"
         >
 
           {/* Headline — now on the "display" token (tailwind.config.js) instead
@@ -89,10 +99,37 @@ export function Welcome() {
             className="flex items-center gap-2.5 text-corn-700 -mt-1 mb-7"
             aria-hidden="true"
           >
+            {/* Draws itself in once on load — reuses the `draw` keyframe
+                (tailwind.config.js), same mechanism as the technical-drawing
+                dimension line it's meant to evoke. Ticks/baseline first, then
+                the arrowheads, so it reads as one continuous stroke. */}
             <svg width="150" height="12" viewBox="0 0 150 12" fill="none" className="flex-shrink-0">
-              <path d="M1 1v10M149 1v10" stroke="currentColor" strokeWidth="1" />
-              <path d="M1 6h148" stroke="currentColor" strokeWidth="1" />
-              <path d="M8 3L2 6l6 3M142 3l6 3-6 3" stroke="currentColor" strokeWidth="1" fill="none" />
+              <path
+                d="M1 1v10M149 1v10"
+                stroke="currentColor"
+                strokeWidth="1"
+                pathLength={1000}
+                strokeDasharray={1000}
+                className="animate-draw motion-reduce:animate-none"
+              />
+              <path
+                d="M1 6h148"
+                stroke="currentColor"
+                strokeWidth="1"
+                pathLength={1000}
+                strokeDasharray={1000}
+                className="animate-draw motion-reduce:animate-none"
+              />
+              <path
+                d="M8 3L2 6l6 3M142 3l6 3-6 3"
+                stroke="currentColor"
+                strokeWidth="1"
+                fill="none"
+                pathLength={1000}
+                strokeDasharray={1000}
+                style={{ animationDelay: '250ms' }}
+                className="animate-draw motion-reduce:animate-none"
+              />
             </svg>
             <span className="font-sans italic text-[0.75rem] tracking-wide">
               fig. 0 — the whole idea
@@ -147,9 +184,9 @@ export function Welcome() {
           per founder spec ("must be in the middle left of the landing page"). */}
       <section className="px-5 sm:px-10 py-16 border-t border-[#2A2118]/8">
         <div className="max-w-[640px] mb-8">
-          <span className="font-sans text-[11px] font-medium tracking-[0.16em] uppercase text-corn-700 block mb-3">
+          <LabelCaps theme="welcome" className="block mb-3">
             Stay ahead
-          </span>
+          </LabelCaps>
           <h2 className="font-display font-extrabold text-[#2A2118] text-[clamp(1.75rem,3.2vw,2.25rem)] leading-[1.1] tracking-[-0.02em]">
             Every deadline that matters, in one place.
           </h2>
@@ -167,9 +204,7 @@ export function Welcome() {
         className="relative z-10 px-5 sm:px-10 pb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
       >
         <div className="flex items-center gap-3">
-          <span className="font-sans text-[10px] font-medium tracking-[0.18em] uppercase text-corn-700">
-            Contact
-          </span>
+          <LabelCaps theme="welcome">Contact</LabelCaps>
           <span className="w-6 h-px bg-corn-700/35" />
           <a
             href="mailto:bshoxrux48@gmail.com"
