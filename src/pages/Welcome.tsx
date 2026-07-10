@@ -6,6 +6,7 @@ import { LandingFeatures } from '@/components/LandingFeatures'
 import { FeaturedProject } from '@/components/FeaturedProject'
 import { LandingCalendar } from '@/components/LandingCalendar'
 import { SettingsMenu } from '@/components/SettingsMenu'
+import { FeedbackMenu } from '@/components/FeedbackMenu'
 import { Button } from '@/components/ui/button'
 import { Wordmark } from '@/components/ui/wordmark'
 
@@ -39,12 +40,14 @@ export function Welcome() {
           <Wordmark variant="light" />
         </motion.div>
 
-        {/* Settings — icon-only, top-right */}
+        {/* Feedback + Settings — icon-only, top-right */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.15 }}
+          className="flex items-center gap-1"
         >
+          <FeedbackMenu />
           <SettingsMenu />
         </motion.div>
       </header>
