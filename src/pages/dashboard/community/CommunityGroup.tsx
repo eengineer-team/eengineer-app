@@ -5,18 +5,20 @@ import { disciplineFromSlug } from '@/lib/community-data'
 import { QAFeed } from '@/pages/dashboard/community/QAFeed'
 import { Webinars } from '@/pages/dashboard/community/Webinars'
 import { Network } from '@/pages/dashboard/community/Network'
+import { Networking } from '@/pages/dashboard/community/Networking'
 import { useAuth } from '@/lib/auth-context'
 import { can } from '@/lib/permissions'
 import { getDisciplineIcon } from '@/lib/discipline-icons'
 import { getDisciplineColor } from '@/lib/discipline-colors'
 import { cn } from '@/lib/utils'
 
-type Tab = 'qa' | 'webinars' | 'members'
+type Tab = 'qa' | 'webinars' | 'members' | 'networking'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'qa', label: 'Community' },
   { id: 'webinars', label: 'Webinars' },
   { id: 'members', label: 'Members' },
+  { id: 'networking', label: 'Networking' },
 ]
 
 export function CommunityGroup() {
@@ -26,9 +28,14 @@ export function CommunityGroup() {
   const canVote = can(user, 'community:vote')
   const canSeeWebinars = can(user, 'community:webinars:view')
   const canSeeMembers = can(user, 'community:network:view')
+  const canSeeNetworking = can(user, 'community:networking:view')
   const [tab, setTab] = React.useState<Tab>('qa')
   const tabs = TABS.filter(
-    (t) => t.id === 'qa' || (t.id === 'webinars' && canSeeWebinars) || (t.id === 'members' && canSeeMembers)
+    (t) =>
+      t.id === 'qa' ||
+      (t.id === 'webinars' && canSeeWebinars) ||
+      (t.id === 'members' && canSeeMembers) ||
+      (t.id === 'networking' && canSeeNetworking)
   )
 
   if (!discipline) return <Navigate to="/dashboard/community" replace />
@@ -78,6 +85,7 @@ export function CommunityGroup() {
       {tab === 'qa' && <QAFeed readOnly={!canVote} discipline={discipline} />}
       {tab === 'webinars' && canSeeWebinars && <Webinars discipline={discipline} />}
       {tab === 'members' && canSeeMembers && <Network discipline={discipline} />}
+      {tab === 'networking' && canSeeNetworking && <Networking discipline={discipline} />}
       </div>
     </div>
   )

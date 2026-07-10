@@ -162,3 +162,44 @@ export const SEED_NETWORK: NetworkProfile[] = [
   { id: 'n4', name: 'Sophie K.', discipline: 'Mechanical', mutuals: 3, status: 'none' },
   { id: 'n5', name: 'Dev P.', discipline: 'Civil', mutuals: 2, status: 'none' },
 ]
+
+export interface Introduction {
+  id: string
+  authorId: string // 'me' for the signed-in Builder's own post
+  name: string
+  discipline: Discipline
+  text: string
+  time: string
+}
+
+// Self-intro feed, separate from the Members/connect list — introductions are
+// posted content ("who I am, what I'm building, what I'm into"), not a
+// connection-status row. No seed entry for authorId 'me': same honest-empty
+// pattern as ProjectsHub's "hasMyProject" gate — the Builder sees a composer,
+// not a fabricated post, until they actually write one.
+export const SEED_INTRODUCTIONS: Introduction[] = [
+  {
+    id: 'i1',
+    authorId: 'n1',
+    name: 'Marcus R.',
+    discipline: 'Software',
+    text: "Hey! I'm Marcus — building the firmware + dashboard stack for my school's robotics team. Into monorepos, PID tuning, and bad puns. Always happy to talk software architecture.",
+    time: '3d ago',
+  },
+  {
+    id: 'i2',
+    authorId: 'n2',
+    name: 'Priya T.',
+    discipline: 'Electrical',
+    text: "Priya here, EE focused on power systems for small UAVs. Currently deep in a current-sensing rabbit hole. Looking to connect with anyone working on drone avionics.",
+    time: '5d ago',
+  },
+  {
+    id: 'i3',
+    authorId: 'n4',
+    name: 'Sophie K.',
+    discipline: 'Mechanical',
+    text: "Mechanical engineer, mostly 3D-printed competition robot parts. I geek out about factor-of-safety math more than is probably normal. Open to teaming up on FRC-style projects.",
+    time: '1w ago',
+  },
+]

@@ -16,6 +16,8 @@ export type Action =
   | 'community:webinars:manage' // Community Lead: schedule/announce, no "run session" UI
   | 'community:network:view'
   | 'community:network:connect'
+  | 'community:networking:view'
+  | 'community:networking:post'
   | 'opportunities:view'
   | 'projects:view'
   | 'profiles:view'
@@ -34,6 +36,8 @@ const BUILDER_ACTIONS: Action[] = [
   'community:webinars:view',
   'community:network:view',
   'community:network:connect',
+  'community:networking:view',
+  'community:networking:post',
   'opportunities:view',
   'projects:view',
   'profiles:view',
