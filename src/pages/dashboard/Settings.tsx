@@ -1,9 +1,10 @@
 import * as React from 'react'
 import { useTheme } from 'next-themes'
-import { Sun, Moon, Monitor, Bell, Mail, Plus, Briefcase, X } from 'lucide-react'
+import { Sun, Moon, Monitor, Bell, Mail, Plus, Briefcase, X, Upload } from 'lucide-react'
 import { useProfiles } from '@/lib/profiles-context'
 import { useAuth } from '@/lib/auth-context'
-import { ME_ID, BACKGROUND_PRESETS } from '@/lib/profile-data'
+import { ME_ID, BACKGROUND_PRESETS, BACKGROUND_IMAGES } from '@/lib/profile-data'
+import { readFileAsAttachment } from '@/lib/attachments'
 import { Avatar } from '@/components/ui/avatar'
 import { Chip } from '@/components/ui/chip'
 import { LabelCaps } from '@/components/ui/label-caps'
@@ -77,6 +78,7 @@ export function SettingsPage() {
     addProject,
     addExperience,
     setBackground,
+    setBackgroundImage,
     setName,
     setBio,
     setInterests,
@@ -85,6 +87,15 @@ export function SettingsPage() {
   const { updateName } = useAuth()
 
   const profile = getProfile(ME_ID)
+
+  const bgFileInputRef = React.useRef<HTMLInputElement>(null)
+
+  function handleBackgroundFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !file.type.startsWith('image/')) return
+    readFileAsAttachment(file).then((a) => setBackgroundImage(a.url))
+  }
 
   const [newSkill, setNewSkill] = React.useState('')
   const [nameDraft, setNameDraft] = React.useState('')
@@ -179,8 +190,18 @@ export function SettingsPage() {
       <section className="mb-10">
         <LabelCaps className="block mb-3">Your Profile</LabelCaps>
 
-        <div className={`relative rounded-lg border border-white/8 p-6 mb-6 ${background.className}`}>
-          <div className="flex items-start gap-4">
+        <div
+          className={`relative rounded-lg border border-white/8 p-6 mb-6 overflow-hidden ${
+            profile.backgroundImageUrl ? '' : background.className
+          }`}
+          style={
+            profile.backgroundImageUrl
+              ? { backgroundImage: `url(${profile.backgroundImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+              : undefined
+          }
+        >
+          {profile.backgroundImageUrl && <div className="absolute inset-0 bg-black/55" />}
+          <div className="relative flex items-start gap-4">
             <div className="relative flex-shrink-0">
               <Avatar name={profile.name} src={profile.avatarUrl} theme="dashboard" size="lg" />
               {profile.online && (
@@ -254,7 +275,7 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 mt-5 pt-4 border-t border-white/8">
+          <div className="relative flex items-center gap-2 mt-5 pt-4 border-t border-white/8">
             <LabelCaps>Background</LabelCaps>
             <div className="flex items-center gap-1.5">
               {BACKGROUND_PRESETS.map((preset) => (
@@ -264,14 +285,49 @@ export function SettingsPage() {
                   aria-label={preset.label}
                   title={preset.label}
                   className={`w-6 h-6 rounded-full border transition-all duration-150 ${preset.className} ${
-                    profile.backgroundId === preset.id ? 'border-white/70 scale-110' : 'border-white/15'
+                    !profile.backgroundImageUrl && profile.backgroundId === preset.id ? 'border-white/70 scale-110' : 'border-white/15'
                   }`}
                 />
               ))}
             </div>
           </div>
 
-          <div className="flex items-center gap-3 mt-3 pt-3 border-t border-white/8">
+          <div className="relative flex items-center gap-2 mt-3 pt-3 border-t border-white/8">
+            <LabelCaps>Photo</LabelCaps>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {BACKGROUND_IMAGES.map((img) => (
+                <button
+                  key={img.id}
+                  onClick={() => setBackgroundImage(img.url)}
+                  aria-label={img.label}
+                  title={img.label}
+                  style={{ backgroundImage: `url(${img.url})` }}
+                  className={`w-8 h-8 rounded bg-cover bg-center border transition-all duration-150 ${
+                    profile.backgroundImageUrl === img.url ? 'border-white/70 scale-110' : 'border-white/15'
+                  }`}
+                />
+              ))}
+              <input ref={bgFileInputRef} type="file" accept="image/*" onChange={handleBackgroundFileSelected} className="hidden" />
+              <button
+                onClick={() => bgFileInputRef.current?.click()}
+                aria-label="Upload your own background photo"
+                title="Upload your own photo"
+                className="w-8 h-8 rounded border border-dashed border-white/20 flex items-center justify-center text-dark-muted hover:text-white/85 hover:border-white/35 transition-colors"
+              >
+                <Upload size={13} strokeWidth={1.8} />
+              </button>
+              {profile.backgroundImageUrl && (
+                <button
+                  onClick={() => setBackgroundImage(undefined)}
+                  className="font-sans text-[11px] text-dark-muted hover:text-white/80 transition-colors ml-1"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="relative flex items-center gap-3 mt-3 pt-3 border-t border-white/8">
             <LabelCaps>Open to work</LabelCaps>
             <Toggle checked={profile.openToWork} onChange={setOpenToWork} />
           </div>

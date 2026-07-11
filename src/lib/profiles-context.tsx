@@ -16,6 +16,7 @@ interface ProfilesContextValue {
   addProject: (project: Omit<ProjectEntry, 'id'>) => void
   addExperience: (entry: Omit<ExperienceEntry, 'id'>) => void
   setBackground: (backgroundId: string) => void
+  setBackgroundImage: (url: string | undefined) => void
   setName: (name: string) => void
   setBio: (bio: string) => void
   setAvatar: (avatarUrl: string) => void
@@ -60,8 +61,18 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
     }))
   }, [updateMe])
 
+  // Picking a solid color clears any photo background — the two are
+  // mutually exclusive in the header banner, so switching one off the other
+  // implicitly is less surprising than leaving a stale photo in place.
   const setBackground = React.useCallback((backgroundId: string) => {
-    updateMe((p) => ({ ...p, backgroundId }))
+    updateMe((p) => ({ ...p, backgroundId, backgroundImageUrl: undefined }))
+  }, [updateMe])
+
+  // url can be a BACKGROUND_IMAGES sample or a data URL from the user's own
+  // upload (see readFileAsAttachment-style FileReader use in Settings.tsx);
+  // passing undefined clears back to the solid color.
+  const setBackgroundImage = React.useCallback((url: string | undefined) => {
+    updateMe((p) => ({ ...p, backgroundImageUrl: url }))
   }, [updateMe])
 
   // Renames the ME profile — this is the source Avatar/Profiles/Community
@@ -147,6 +158,7 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
       addProject,
       addExperience,
       setBackground,
+      setBackgroundImage,
       setName,
       setBio,
       setAvatar,
@@ -164,6 +176,7 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
       addProject,
       addExperience,
       setBackground,
+      setBackgroundImage,
       setName,
       setBio,
       setAvatar,

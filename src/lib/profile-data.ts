@@ -51,6 +51,44 @@ export const BACKGROUND_PRESETS: BackgroundPreset[] = [
   { id: 'deep', label: 'Deep', className: 'bg-gradient-to-br from-dark-surface2 via-dark-surface to-dark-900' },
 ]
 
+export interface BackgroundImage {
+  id: string
+  label: string
+  /** Real, licensed sample photo — Unsplash License (free to use, verified
+   *  per-photo before adding here), not a placeholder or stock-site mockup. */
+  url: string
+}
+
+// Sample photo backgrounds a Builder can pick without uploading their own.
+// Each is a real Unsplash photo, license-checked individually (see the photo
+// page linked in each comment) rather than assumed from a search result.
+export const BACKGROUND_IMAGES: BackgroundImage[] = [
+  {
+    id: 'blueprint',
+    label: 'Blueprint',
+    // https://unsplash.com/photos/architectural-blueprint-of-a-multi-story-building-9tmKEDz03uw — Amsterdam City Archives, Unsplash License
+    url: 'https://images.unsplash.com/photo-1721244654394-36a7bc2da288?auto=format&fit=crop&w=1600&q=70',
+  },
+  {
+    id: 'circuit',
+    label: 'Circuit board',
+    // https://unsplash.com/photos/green-and-white-circuit-board-mbXEkW5ZyBQ — Magnus Engø, Unsplash License
+    url: 'https://images.unsplash.com/photo-1555589228-135c25ae8cf5?auto=format&fit=crop&w=1600&q=70',
+  },
+  {
+    id: 'workshop',
+    label: 'Workshop',
+    // https://unsplash.com/photos/close-up-of-an-old-metal-lathe-in-a-workshop-_VBsh_IKsD8 — LISK OBE, Unsplash License
+    url: 'https://images.unsplash.com/photo-1776090188130-26c7253ff423?auto=format&fit=crop&w=1600&q=70',
+  },
+  {
+    id: 'launch',
+    label: 'Launch',
+    // https://unsplash.com/photos/rocket-launched-at-nighttime-m010U75wdxE — Bill Jelen, Unsplash License
+    url: 'https://images.unsplash.com/photo-1530447920184-b88c8872?auto=format&fit=crop&w=1600&q=70',
+  },
+]
+
 export interface BuilderProfile {
   id: string
   name: string
@@ -58,6 +96,10 @@ export interface BuilderProfile {
   online: boolean
   bio: string
   backgroundId: string
+  /** Sample photo (BACKGROUND_IMAGES) or an uploaded data URL — when set,
+   *  this overrides backgroundId's color/gradient in the header banner.
+   *  Undefined means "use the solid color instead". */
+  backgroundImageUrl?: string
   /** Data URL or hosted image — falls back to initials in <Avatar> until set. */
   avatarUrl?: string
   skills: Skill[]

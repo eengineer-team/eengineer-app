@@ -60,8 +60,18 @@ export function ProfileDetail() {
       </Link>
 
       {/* Header banner */}
-      <div className={`relative rounded-lg border border-white/8 p-6 mb-6 ${background.className}`}>
-        <div className="flex items-start gap-4">
+      <div
+        className={`relative rounded-lg border border-white/8 p-6 mb-6 overflow-hidden ${
+          profile.backgroundImageUrl ? '' : background.className
+        }`}
+        style={
+          profile.backgroundImageUrl
+            ? { backgroundImage: `url(${profile.backgroundImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+            : undefined
+        }
+      >
+        {profile.backgroundImageUrl && <div className="absolute inset-0 bg-black/55" />}
+        <div className="relative flex items-start gap-4">
           <div className="relative flex-shrink-0">
             <Avatar name={name} src={profile.avatarUrl} theme="dashboard" size="lg" />
             {profile.online && (
