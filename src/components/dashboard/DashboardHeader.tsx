@@ -1,6 +1,5 @@
 import { Bell, MessageSquare, Menu } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { SettingsMenu } from '@/components/SettingsMenu'
 import { useAuth } from '@/lib/auth-context'
 import { can } from '@/lib/permissions'
 import { useMessages } from '@/lib/messages-context'
@@ -76,7 +75,6 @@ export function DashboardHeader({ name, onMenuClick }: { name: string; onMenuCli
             />
           </>
         )}
-        <SettingsMenu variant="dark" />
       </div>
     </header>
   )

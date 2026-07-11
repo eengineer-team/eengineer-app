@@ -6,19 +6,21 @@ import { QAFeed } from '@/pages/dashboard/community/QAFeed'
 import { Webinars } from '@/pages/dashboard/community/Webinars'
 import { Network } from '@/pages/dashboard/community/Network'
 import { Networking } from '@/pages/dashboard/community/Networking'
+import { Discussion } from '@/pages/dashboard/community/Discussion'
 import { useAuth } from '@/lib/auth-context'
 import { can } from '@/lib/permissions'
 import { getDisciplineColor } from '@/lib/discipline-colors'
-import { DisciplineMotif } from '@/components/community/DisciplineMotif'
+import { getDisciplineIcon } from '@/lib/discipline-icons'
 import { cn } from '@/lib/utils'
 
-type Tab = 'qa' | 'webinars' | 'members' | 'networking'
+type Tab = 'qa' | 'webinars' | 'members' | 'networking' | 'discussion'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'qa', label: 'Community' },
   { id: 'webinars', label: 'Webinars' },
   { id: 'members', label: 'Members' },
   { id: 'networking', label: 'Networking' },
+  { id: 'discussion', label: 'Discussion' },
 ]
 
 export function CommunityGroup() {
@@ -29,27 +31,31 @@ export function CommunityGroup() {
   const canSeeWebinars = can(user, 'community:webinars:view')
   const canSeeMembers = can(user, 'community:network:view')
   const canSeeNetworking = can(user, 'community:networking:view')
+  const canSeeDiscussion = can(user, 'community:discussion:view')
   const [tab, setTab] = React.useState<Tab>('qa')
   const tabs = TABS.filter(
     (t) =>
       t.id === 'qa' ||
       (t.id === 'webinars' && canSeeWebinars) ||
       (t.id === 'members' && canSeeMembers) ||
-      (t.id === 'networking' && canSeeNetworking)
+      (t.id === 'networking' && canSeeNetworking) ||
+      (t.id === 'discussion' && canSeeDiscussion)
   )
 
   if (!discipline) return <Navigate to="/dashboard/community" replace />
 
   const color = getDisciplineColor(discipline)
+  const Icon = getDisciplineIcon(discipline)
 
   return (
     <div className="relative flex-1 px-8 py-8 max-w-[720px] overflow-hidden">
-      {/* Faded brand motif — same idea as the hub card banners, so a
-          group's background reads as "which discipline" (via color) even
-          before you read any text. */}
-      <DisciplineMotif
+      {/* Faded discipline icon — same idea as the hub card banners, so a
+          group's background reads as "which discipline" (via color + icon)
+          even before you read any text. */}
+      <Icon
         size={340}
-        className={cn('absolute -top-10 -right-16 opacity-[0.04]', color.text)}
+        strokeWidth={1}
+        className={cn('absolute -top-10 -right-16 opacity-[0.05]', color.text)}
       />
 
       <div className="relative">
@@ -82,6 +88,7 @@ export function CommunityGroup() {
       {tab === 'webinars' && canSeeWebinars && <Webinars discipline={discipline} />}
       {tab === 'members' && canSeeMembers && <Network discipline={discipline} />}
       {tab === 'networking' && canSeeNetworking && <Networking discipline={discipline} />}
+      {tab === 'discussion' && canSeeDiscussion && <Discussion discipline={discipline} />}
       </div>
     </div>
   )

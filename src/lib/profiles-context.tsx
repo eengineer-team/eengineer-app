@@ -16,6 +16,7 @@ interface ProfilesContextValue {
   addProject: (project: Omit<ProjectEntry, 'id'>) => void
   addExperience: (entry: Omit<ExperienceEntry, 'id'>) => void
   setBackground: (backgroundId: string) => void
+  setName: (name: string) => void
   setBio: (bio: string) => void
   setAvatar: (avatarUrl: string) => void
   setDiscipline: (discipline: Discipline) => void
@@ -61,6 +62,16 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
 
   const setBackground = React.useCallback((backgroundId: string) => {
     updateMe((p) => ({ ...p, backgroundId }))
+  }, [updateMe])
+
+  // Renames the ME profile — this is the source Avatar/Profiles/Community
+  // read from. Settings.tsx also calls auth-context's updateName alongside
+  // this so the header greeting ("Hello, X") never drifts out of sync with
+  // the profile card's displayed name.
+  const setName = React.useCallback((name: string) => {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    updateMe((p) => ({ ...p, name: trimmed }))
   }, [updateMe])
 
   const setBio = React.useCallback((bio: string) => {
@@ -136,6 +147,7 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
       addProject,
       addExperience,
       setBackground,
+      setName,
       setBio,
       setAvatar,
       setDiscipline,
@@ -152,6 +164,7 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
       addProject,
       addExperience,
       setBackground,
+      setName,
       setBio,
       setAvatar,
       setDiscipline,

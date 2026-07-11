@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle, Settings, X, PanelLeftClose, PanelLeftOpen, Rocket } from 'lucide-react'
+import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle, Settings, LogOut, X, PanelLeftClose, PanelLeftOpen, Rocket } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '@/lib/auth-context'
 import { can, type Action } from '@/lib/permissions'
 import { Tooltip } from '@/components/ui/tooltip'
 import { Wordmark } from '@/components/ui/wordmark'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -39,7 +46,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ open, onClose }: SidebarProps) {
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const items = NAV_ITEMS.filter((item) => can(user, item.action))
   const [collapsed, setCollapsed] = useState(readStoredCollapsed)
 
@@ -120,32 +127,54 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           </nav>
         </div>
 
-        {/* Footer — Settings + Help. Settings used to live only in the top-right
-            menu; it's mirrored here too now since the sidebar footer is the more
-            discoverable spot for preferences like dark/light mode. */}
+        {/* Footer — single Settings entry. Folds in what used to be the top-right
+            header menu (Help, Sign out) so there's one Settings surface instead
+            of two competing ones. */}
         <div className="pt-4 border-t border-white/8 flex flex-col gap-1">
-          <Tooltip label="Settings" disabled={!collapsed} className="md:block">
-            <NavLink
-              to="/dashboard/settings"
-              onClick={onClose}
-              className={navItemClass}
-            >
-              <Settings size={19} strokeWidth={1.8} className="flex-shrink-0" />
-              <span className={collapsed ? 'md:hidden' : ''}>Settings</span>
-            </NavLink>
-          </Tooltip>
-          <Tooltip label="Help" disabled={!collapsed} className="md:block">
-            <Link
-              to="/help"
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded font-sans text-[0.875rem] font-medium text-dark-muted hover-white-tint hover:text-dark-text transition-colors duration-150',
-                collapsed && 'md:justify-center md:px-0',
+          <DropdownMenu>
+            <Tooltip label="Settings" disabled={!collapsed} className="md:block">
+              <DropdownMenuTrigger asChild>
+                <button
+                  className={cn(
+                    'flex items-center gap-3 px-3 py-2.5 rounded font-sans text-[0.875rem] font-medium text-dark-muted hover-white-tint hover:text-dark-text transition-colors duration-150 w-full',
+                    collapsed && 'md:justify-center md:px-0',
+                  )}
+                >
+                  <Settings size={19} strokeWidth={1.8} className="flex-shrink-0" />
+                  <span className={collapsed ? 'md:hidden' : ''}>Settings</span>
+                </button>
+              </DropdownMenuTrigger>
+            </Tooltip>
+            <DropdownMenuContent align="start" side="top">
+              <DropdownMenuItem asChild>
+                <NavLink to="/dashboard/settings" onClick={onClose} className="flex items-center gap-2.5">
+                  <Settings size={14} strokeWidth={1.8} />
+                  Settings
+                </NavLink>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/help" onClick={onClose} className="flex items-center gap-2.5">
+                  <HelpCircle size={14} strokeWidth={1.8} />
+                  Help
+                </Link>
+              </DropdownMenuItem>
+              {user?.status === 'builder' && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      onClose()
+                      signOut()
+                    }}
+                    className="flex items-center gap-2.5"
+                  >
+                    <LogOut size={14} strokeWidth={1.8} />
+                    Sign out
+                  </DropdownMenuItem>
+                </>
               )}
-            >
-              <HelpCircle size={19} strokeWidth={1.8} className="flex-shrink-0" />
-              <span className={collapsed ? 'md:hidden' : ''}>Help</span>
-            </Link>
-          </Tooltip>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </aside>
     </>

@@ -18,6 +18,8 @@ export type Action =
   | 'community:network:connect'
   | 'community:networking:view'
   | 'community:networking:post'
+  | 'community:discussion:view'
+  | 'community:discussion:post'
   | 'opportunities:view'
   | 'projects:view'
   | 'profiles:view'
@@ -38,6 +40,8 @@ const BUILDER_ACTIONS: Action[] = [
   'community:network:connect',
   'community:networking:view',
   'community:networking:post',
+  'community:discussion:view',
+  'community:discussion:post',
   'opportunities:view',
   'projects:view',
   'profiles:view',

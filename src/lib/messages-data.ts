@@ -1,13 +1,11 @@
-// Step 12 — Direct Messages. Mock in-memory thread data, same caveat as the
+// Step 12 -- Direct Messages. Mock in-memory thread data, same caveat as the
 // rest of the app's un-backed features: swap for a real backend later, the
 // shape (conversation -> messages[]) stays the same.
 
-export interface Attachment {
-  kind: 'image' | 'video' | 'link'
-  /** Data URL for image/video uploads, or the raw URL for a shared link. */
-  url: string
-  name?: string
-}
+// Attachment now lives in '@/lib/attachments' -- shared with Networking intros
+// and the Community discussion feed so all three surfaces use one type.
+export type { Attachment } from '@/lib/attachments'
+import type { Attachment } from '@/lib/attachments'
 
 export interface DirectMessage {
   id: string
@@ -25,6 +23,10 @@ export interface Conversation {
   discipline: string
   unread: number
   messages: DirectMessage[]
+  /** Id of the last `from: 'me'` message the other person has "seen" --
+   *  Telegram-style read receipt, shown only under the last message in the
+   *  thread. See Messages.tsx's sendMessage for how this gets set. */
+  seenMessageId?: string
 }
 
 export const SEED_CONVERSATIONS: Conversation[] = [
@@ -51,6 +53,7 @@ export const SEED_CONVERSATIONS: Conversation[] = [
       { id: 'm5', from: 'them', text: 'Thanks for the connect! Loved your current sensor writeup.', time: 'Yesterday' },
       { id: 'm6', from: 'me', text: 'Appreciate it — let me know if you want the schematic, happy to share.', time: 'Yesterday' },
     ],
+    seenMessageId: 'm6',
   },
   {
     id: 'dm3',

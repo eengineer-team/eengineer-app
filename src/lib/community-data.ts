@@ -1,3 +1,5 @@
+import type { Attachment } from '@/lib/attachments'
+
 export const DISCIPLINES = [
   'Aerospace',
   'Mechanical',
@@ -188,6 +190,9 @@ export interface Introduction {
   discipline: Discipline
   text: string
   time: string
+  /** Optional photo/video/file attached to the intro — same shared
+   *  Attachment type Messages uses (src/lib/attachments.ts). */
+  attachment?: Attachment
 }
 
 // Self-intro feed, separate from the Members/connect list — introductions are
@@ -219,5 +224,43 @@ export const SEED_INTRODUCTIONS: Introduction[] = [
     discipline: 'Mechanical',
     text: "Mechanical engineer, mostly 3D-printed competition robot parts. I geek out about factor-of-safety math more than is probably normal. Open to teaming up on FRC-style projects.",
     time: '1w ago',
+  },
+]
+
+export interface Post {
+  id: string
+  authorId: string // 'me' for the signed-in Builder's own post
+  name: string
+  discipline: Discipline
+  text: string
+  time: string
+  /** Optional photo/video/file attached to the post — same shared
+   *  Attachment type Messages and Introduction use (src/lib/attachments.ts). */
+  attachment?: Attachment
+}
+
+// Per-discipline discussion feed — a lightweight, running thread scoped to
+// one discipline's Community group ("Discussion" tab in CommunityGroup.tsx),
+// distinct from both the Q&A feed (structured questions with
+// approve/disapprove voting) and Networking (one intro per person, editable
+// in place). Posts here are just a chronological feed anyone can add to, no
+// voting or single-post-per-person constraint. No seed entry for authorId
+// 'me' — same honest-empty pattern as SEED_INTRODUCTIONS.
+export const SEED_POSTS: Post[] = [
+  {
+    id: 'p1',
+    authorId: 'n1',
+    name: 'Marcus R.',
+    discipline: 'Software',
+    text: 'Pushed a small update to the monorepo template — build caching is way faster now. Screenshot of the before/after CI times attached.',
+    time: '2d ago',
+  },
+  {
+    id: 'p2',
+    authorId: 'n3',
+    name: 'James O.',
+    discipline: 'Mechanical',
+    text: "Anyone else's team going to the regional meet next month? Trying to coordinate a carpool from campus.",
+    time: '4d ago',
   },
 ]

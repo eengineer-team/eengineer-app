@@ -4,6 +4,7 @@ import { AuthProvider } from '@/lib/auth-context'
 import { ProfilesProvider } from '@/lib/profiles-context'
 import { MessagesProvider } from '@/lib/messages-context'
 import { ProjectsProvider } from '@/lib/projects-context'
+import { CurrentActivityProvider } from '@/lib/current-activity-context'
 import { WebinarsProvider } from '@/lib/webinars-context'
 import { Welcome } from '@/pages/Welcome'
 import { Auth } from '@/pages/Auth'
@@ -23,6 +24,7 @@ import { ProfilesList } from '@/pages/dashboard/profiles/ProfilesList'
 import { ProfileDetail } from '@/pages/dashboard/profiles/ProfileDetail'
 import { Calendar } from '@/pages/dashboard/Calendar'
 import { CompetitionDetail } from '@/pages/dashboard/CompetitionDetail'
+import { OpportunityDetail } from '@/pages/dashboard/OpportunityDetail'
 import { Messages } from '@/pages/dashboard/Messages'
 import { SettingsPage } from '@/pages/dashboard/Settings'
 import { Terms } from '@/pages/legal/Terms'
@@ -43,6 +45,7 @@ export default function App() {
               conversation state, not two independently-reset copies. */}
           <MessagesProvider>
           <ProjectsProvider>
+          <CurrentActivityProvider>
           <WebinarsProvider>
           <BrowserRouter>
             <Routes>
@@ -62,6 +65,10 @@ export default function App() {
                 <Route
                   path="opportunities"
                   element={<RequireAction action="opportunities:view"><Opportunities /></RequireAction>}
+                />
+                <Route
+                  path="opportunities/:id"
+                  element={<RequireAction action="opportunities:view"><OpportunityDetail /></RequireAction>}
                 />
                 <Route
                   path="projects"
@@ -107,6 +114,7 @@ export default function App() {
             </Routes>
           </BrowserRouter>
           </WebinarsProvider>
+          </CurrentActivityProvider>
           </ProjectsProvider>
           </MessagesProvider>
         </ProfilesProvider>

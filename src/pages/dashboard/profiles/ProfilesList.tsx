@@ -29,7 +29,11 @@ export function ProfilesList() {
           return (
             <Link
               key={p.id}
-              to={`/dashboard/profiles/${p.id}`}
+              // Your own card goes to Settings — that's where profile editing
+              // lives now, not a "make your own account" flow inside Profiles
+              // (see ProfileDetail.tsx, which redirects the same way for a
+              // direct visit to /dashboard/profiles/{ME_ID}).
+              to={p.id === ME_ID ? '/dashboard/settings' : `/dashboard/profiles/${p.id}`}
               className="bg-white/[0.03] border border-white/8 rounded-lg p-5 hover:border-white/20 hover:bg-white/[0.05] transition-colors duration-150"
             >
               <div className="flex items-center gap-3 mb-3">

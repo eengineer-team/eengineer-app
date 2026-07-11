@@ -1,5 +1,7 @@
 import * as React from 'react'
+import { Paperclip, FileText, X } from 'lucide-react'
 import { SEED_INTRODUCTIONS, type Discipline, type Introduction } from '@/lib/community-data'
+import { readFileAsAttachment, type Attachment } from '@/lib/attachments'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
 import { LabelCaps } from '@/components/ui/label-caps'
@@ -12,7 +14,9 @@ import { LabelCaps } from '@/components/ui/label-caps'
 export function Networking({ discipline }: { discipline?: Discipline } = {}) {
   const [intros, setIntros] = React.useState<Introduction[]>(SEED_INTRODUCTIONS)
   const [draft, setDraft] = React.useState('')
+  const [pendingAttachment, setPendingAttachment] = React.useState<Attachment | null>(null)
   const [editing, setEditing] = React.useState(false)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   const scoped = discipline ? intros.filter((i) => i.discipline === discipline) : intros
   const mine = scoped.find((i) => i.authorId === 'me')
@@ -20,11 +24,11 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
 
   function post() {
     const text = draft.trim()
-    if (!text) return
+    if (!text && !pendingAttachment) return
     setIntros((prev) => {
       const existing = prev.find((i) => i.authorId === 'me')
       if (existing) {
-        return prev.map((i) => (i.authorId === 'me' ? { ...i, text, time: 'Just now' } : i))
+        return prev.map((i) => (i.authorId === 'me' ? { ...i, text, time: 'Just now', attachment: pendingAttachment ?? undefined } : i))
       }
       return [
         ...prev,
@@ -35,11 +39,39 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
           discipline: discipline ?? 'Other',
           text,
           time: 'Just now',
+          attachment: pendingAttachment ?? undefined,
         },
       ]
     })
     setDraft('')
+    setPendingAttachment(null)
     setEditing(false)
+  }
+
+  function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    readFileAsAttachment(file).then(setPendingAttachment)
+  }
+
+  function renderAttachment(attachment: Attachment) {
+    if (attachment.kind === 'image') {
+      return <img src={attachment.url} alt="" className="max-w-full max-h-64 rounded object-cover mt-2" />
+    }
+    if (attachment.kind === 'video') {
+      return <video src={attachment.url} controls className="max-w-full max-h-64 rounded mt-2" />
+    }
+    return (
+      <a
+        href={attachment.url}
+        download={attachment.name}
+        className="mt-2 inline-flex items-center gap-1.5 font-sans text-[12px] text-gold-dark underline underline-offset-2 decoration-current/40 hover:decoration-current"
+      >
+        <FileText size={13} strokeWidth={1.8} />
+        {attachment.name ?? 'Attachment'}
+      </a>
+    )
   }
 
   return (
@@ -49,10 +81,14 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
         {mine && !editing ? (
           <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
             <div className="flex items-start justify-between gap-4">
-              <p className="font-sans text-[0.875rem] text-dark-text leading-snug">{mine.text}</p>
+              <div className="min-w-0">
+                <p className="font-sans text-[0.875rem] text-dark-text leading-snug">{mine.text}</p>
+                {mine.attachment && renderAttachment(mine.attachment)}
+              </div>
               <button
                 onClick={() => {
                   setDraft(mine.text)
+                  setPendingAttachment(mine.attachment ?? null)
                   setEditing(true)
                 }}
                 className="flex-shrink-0 font-sans text-[12px] text-dark-muted hover:text-white/80 transition-colors"
@@ -70,8 +106,39 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
               placeholder="Introduce yourself — who you are, what you're building, and what you're into."
               className="w-full bg-white/5 border border-white/10 rounded px-3.5 py-2.5 font-sans text-[0.8125rem] text-dark-text placeholder:text-dark-muted focus:outline-none focus:border-white/25 resize-none mb-2"
             />
-            <div className="flex gap-2">
-              <Button variant="accent" size="sm" onClick={post} disabled={!draft.trim()}>
+            {pendingAttachment && (
+              <div className="flex items-center gap-2 mb-2 bg-white/6 border border-white/10 rounded px-3 py-2">
+                {pendingAttachment.kind === 'image' ? (
+                  <img src={pendingAttachment.url} alt="" className="w-9 h-9 rounded object-cover flex-shrink-0" />
+                ) : pendingAttachment.kind === 'video' ? (
+                  <video src={pendingAttachment.url} className="w-9 h-9 rounded object-cover flex-shrink-0" />
+                ) : (
+                  <span className="w-9 h-9 rounded bg-white/8 flex items-center justify-center flex-shrink-0">
+                    <FileText size={16} strokeWidth={1.8} className="text-dark-muted" />
+                  </span>
+                )}
+                <span className="flex-1 min-w-0 truncate font-sans text-[11px] text-white/60">
+                  {pendingAttachment.name ?? 'Attachment'}
+                </span>
+                <button
+                  onClick={() => setPendingAttachment(null)}
+                  aria-label="Remove attachment"
+                  className="min-w-[40px] min-h-[40px] flex items-center justify-center text-dark-muted hover:text-white/80 transition-colors flex-shrink-0 -my-2 -mr-2"
+                >
+                  <X size={14} strokeWidth={1.8} />
+                </button>
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <input ref={fileInputRef} type="file" onChange={handleFileSelected} className="hidden" />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                aria-label="Attach a picture, video, or file"
+                className="min-w-[36px] min-h-[36px] flex-shrink-0 flex items-center justify-center rounded text-dark-muted hover:text-white/85 hover-white-tint transition-colors"
+              >
+                <Paperclip size={15} strokeWidth={1.8} />
+              </button>
+              <Button variant="accent" size="sm" onClick={post} disabled={!draft.trim() && !pendingAttachment}>
                 Post introduction
               </Button>
               {editing && (
@@ -81,6 +148,7 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
                   onClick={() => {
                     setEditing(false)
                     setDraft('')
+                    setPendingAttachment(null)
                   }}
                 >
                   Cancel
@@ -109,6 +177,7 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
                   </div>
                   <div className="font-sans text-[0.75rem] text-dark-muted mb-2">{i.discipline}</div>
                   <p className="font-sans text-[0.8125rem] text-dark-text leading-snug">{i.text}</p>
+                  {i.attachment && renderAttachment(i.attachment)}
                 </div>
               </div>
             ))}
