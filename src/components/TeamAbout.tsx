@@ -112,7 +112,7 @@ export function TeamAbout() {
           pass, 07.2026) — the bios behind the toggle are the most alive text
           on the site, and a fully collapsed section hid that entirely. */}
       <p className="font-sans text-[0.9375rem] leading-[1.6] text-[#2A2118] max-w-[560px] mb-5">
-        Built by three students from Uzbekistan — Navoi, Khiva, and one guy who
+        Built by four students from Uzbekistan — Navoi, Khiva, and one guy who
         introduces himself as "coming from 2009."
       </p>
       <button
