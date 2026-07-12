@@ -20,7 +20,7 @@ export function OpportunityDetail() {
   const color = getDisciplineColor(opportunity.discipline)
 
   return (
-    <div className="flex-1 px-8 py-8 max-w-[720px]">
+    <div className="flex-1 w-full px-8 py-8 max-w-[720px] mx-auto">
       <Link
         to="/dashboard/opportunities"
         className="inline-flex items-center gap-1.5 font-sans text-[0.8125rem] text-dark-muted hover:text-white/85 transition-colors mb-6"
@@ -66,7 +66,7 @@ export function OpportunityDetail() {
             </span>
           </div>
 
-          <div className="flex items-center">
+          <div className="flex items-center flex-wrap gap-3">
             {/* Real destination — the org's own careers/students page, never a
                 fabricated per-posting URL. Omitted when there isn't one (the
                 edugrants-run fellowship has no outside site to send you to). */}
@@ -87,17 +87,17 @@ export function OpportunityDetail() {
           {/* Partner mark — same "In collaboration with edugrants" credit
               required on the card, promoted to a real logo here since this
               page is the canonical place to see full info about the listing.
-              No frame/border, pinned to the card's true right edge (not just
-              flex-pushed within the padded row) and sized up so it actually
-              reads at a glance. */}
-          <span className="absolute right-6 bottom-6 inline-flex items-center gap-3">
+              Kept in normal flow on its own row (not absolutely positioned)
+              so it can never overlap the Apply button above it, no matter
+              how long the button's label runs (e.g. long org names). */}
+          <div className="flex items-center gap-2.5 mt-5 pt-4 border-t border-white/8">
             <img
               src="/edugrants-mark-dark-transparent.png"
               alt="edugrants"
-              className="h-16 w-16 object-contain flex-shrink-0"
+              className="h-11 w-11 object-contain flex-shrink-0"
             />
-            <span className="font-sans text-[15px] font-medium text-gold-dark">Partner: edugrants</span>
-          </span>
+            <span className="font-sans text-[12px] font-medium text-gold-dark">Partner: edugrants</span>
+          </div>
         </div>
       </div>
 
