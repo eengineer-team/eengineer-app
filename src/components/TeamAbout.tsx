@@ -13,6 +13,14 @@ interface TeamMember {
 
 const TEAM: TeamMember[] = [
   {
+    name: 'Shohrux',
+    photo: '/team/shokhrukh.jpg',
+    github: null,
+    linkedin: null,
+    bio: "Shohrux here. I founded Eengineer to help high school engineering students like me. Initially, there was not a single high quality community that could connect engineers through a verified network. So we decided to create one. As our motto goes, connecting the world.",
+    chips: ['Founder'],
+  },
+  {
     name: 'Jalen',
     photo: '/team/jalen.jpg',
     github: null,
