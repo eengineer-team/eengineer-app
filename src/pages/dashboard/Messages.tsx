@@ -168,12 +168,12 @@ export function Messages() {
                       {c.withName}
                     </button>
                     {c.unread > 0 && (
-                      <span className="flex-shrink-0 w-4 h-4 rounded-full bg-gold-dark text-dark-900 font-sans text-[10px] font-bold flex items-center justify-center">
+                      <span className="flex-shrink-0 w-4 h-4 rounded-full bg-gold-dark text-dark-900 font-sans text-[12px] font-bold flex items-center justify-center">
                         {c.unread}
                       </span>
                     )}
                   </div>
-                  <p className="font-sans text-[11px] text-dark-muted truncate mt-0.5">
+                  <p className="font-sans text-[13px] text-dark-muted truncate mt-0.5">
                     {previewText(c.messages[c.messages.length - 1])}
                   </p>
                 </div>
@@ -209,7 +209,7 @@ export function Messages() {
               <Avatar name={active.withName} theme="dashboard" size="sm" />
               <div>
                 <div className="font-sans text-[0.875rem] font-semibold text-dark-text leading-tight">{active.withName}</div>
-                <div className="font-sans text-[11px] text-dark-muted">{active.discipline}</div>
+                <div className="font-sans text-[13px] text-dark-muted">{active.discipline}</div>
               </div>
             </button>
             {previewKey === 'header' && (
@@ -270,7 +270,7 @@ export function Messages() {
                     <p className={m.attachment ? 'px-3.5 py-2 pt-2' : ''}>{m.text}</p>
                   )}
                 </div>
-                <span className="font-sans text-[10px] text-dark-muted mt-1">
+                <span className="font-sans text-[12px] text-dark-muted mt-1">
                   {m.time}
                   {showSeen && <span className="text-gold-dark"> · Seen</span>}
                 </span>
@@ -291,7 +291,7 @@ export function Messages() {
                     <FileText size={16} strokeWidth={1.8} className="text-dark-muted" />
                   </span>
                 )}
-                <span className="flex-1 min-w-0 truncate font-sans text-[11px] text-white/60">
+                <span className="flex-1 min-w-0 truncate font-sans text-[13px] text-white/60">
                   {pendingAttachment.name ?? 'Attachment'}
                 </span>
                 <button

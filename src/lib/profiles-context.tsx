@@ -1,5 +1,12 @@
 import * as React from 'react'
-import { SEED_PROFILES, ME_ID, type BuilderProfile, type ProjectEntry, type ExperienceEntry } from '@/lib/profile-data'
+import {
+  SEED_PROFILES,
+  ME_ID,
+  MIN_ENDORSEMENT_REASON_LENGTH,
+  type BuilderProfile,
+  type ProjectEntry,
+  type ExperienceEntry,
+} from '@/lib/profile-data'
 import type { Discipline } from '@/lib/community-data'
 import { usePersistentState } from '@/lib/use-persistent-state'
 
@@ -23,7 +30,17 @@ interface ProfilesContextValue {
   setDiscipline: (discipline: Discipline) => void
   setOpenToWork: (openToWork: boolean) => void
   setInterests: (interests: string[]) => void
-  addEndorsement: (targetProfileId: string, targetType: 'skill' | 'project', targetName: string, reason: string, fromName: string) => void
+  setAllowDMs: (allow: boolean) => void
+  setBirthdate: (birthdate: string) => void
+  setGuardianConsent: (guardianEmail: string) => void
+  addEndorsement: (
+    targetProfileId: string,
+    targetType: 'skill' | 'project',
+    targetName: string,
+    reason: string,
+    fromName: string,
+    evidenceUrl?: string
+  ) => void
   toggleConnect: (targetProfileId: string) => void
 }
 
@@ -112,20 +129,54 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
     updateMe((p) => ({ ...p, interests }))
   }, [updateMe])
 
+  // Privacy toggle — enforced in ProfilePreviewPopover (the only place a
+  // "Message" action shows up for someone else's profile).
+  const setAllowDMs = React.useCallback((allow: boolean) => {
+    updateMe((p) => ({ ...p, allowDMs: allow }))
+  }, [updateMe])
+
+  const setBirthdate = React.useCallback((birthdate: string) => {
+    updateMe((p) => ({ ...p, birthdate }))
+  }, [updateMe])
+
+  const setGuardianConsent = React.useCallback((guardianEmail: string) => {
+    const trimmed = guardianEmail.trim()
+    if (!trimmed) return
+    updateMe((p) => ({ ...p, guardianConsentEmail: trimmed }))
+  }, [updateMe])
+
   // Endorsing is the one write any Builder can make on someone else's
-  // profile — reason is required by the caller-side dialog, enforced again
-  // here as a last line of defense.
+  // profile — a substantive reason is required by the caller-side dialog
+  // (min length, see MIN_ENDORSEMENT_REASON_LENGTH), enforced again here as
+  // a last line of defense so a bare "very good" can never actually save,
+  // dialog validation or not. evidenceUrl is optional — trimmed to empty
+  // string filtered out, never stored as just whitespace.
   const addEndorsement = React.useCallback(
-    (targetProfileId: string, targetType: 'skill' | 'project', targetName: string, reason: string, fromName: string) => {
+    (
+      targetProfileId: string,
+      targetType: 'skill' | 'project',
+      targetName: string,
+      reason: string,
+      fromName: string,
+      evidenceUrl?: string
+    ) => {
       const trimmedReason = reason.trim()
-      if (!trimmedReason) return
+      if (trimmedReason.length < MIN_ENDORSEMENT_REASON_LENGTH) return
+      const trimmedEvidence = evidenceUrl?.trim()
       setProfiles((prev) =>
         prev.map((p) =>
           p.id === targetProfileId
             ? {
                 ...p,
                 endorsements: [
-                  { id: `end-${Date.now()}`, fromName, targetType, targetName, reason: trimmedReason },
+                  {
+                    id: `end-${Date.now()}`,
+                    fromName,
+                    targetType,
+                    targetName,
+                    reason: trimmedReason,
+                    evidenceUrl: trimmedEvidence || undefined,
+                  },
                   ...p.endorsements,
                 ],
               }
@@ -165,6 +216,9 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
       setDiscipline,
       setOpenToWork,
       setInterests,
+      setAllowDMs,
+      setBirthdate,
+      setGuardianConsent,
       addEndorsement,
       toggleConnect,
     }),
@@ -183,6 +237,9 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
       setDiscipline,
       setOpenToWork,
       setInterests,
+      setAllowDMs,
+      setBirthdate,
+      setGuardianConsent,
       addEndorsement,
       toggleConnect,
     ]

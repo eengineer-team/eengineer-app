@@ -27,7 +27,7 @@ export function Opportunities() {
   const listings = isBuilder ? rankByDiscipline(SEED_OPPORTUNITIES, discipline) : SEED_OPPORTUNITIES
 
   return (
-    <div className="flex-1 px-8 py-8 max-w-[720px]">
+    <div className="flex-1 w-full px-8 py-8 max-w-[720px] mx-auto">
       <div className="flex items-center justify-between mb-1">
         <h1 className="font-display text-xl font-semibold text-dark-text">Opportunities</h1>
       </div>

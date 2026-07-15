@@ -26,7 +26,7 @@ const avatarVariants = cva('rounded-full flex items-center justify-center flex-s
 })
 
 const initialsFontSize: Record<'sm' | 'md' | 'lg', string> = {
-  sm: 'text-[9px]',
+  sm: 'text-[12px]',
   md: 'text-[0.75rem]',
   lg: 'text-lg',
 }

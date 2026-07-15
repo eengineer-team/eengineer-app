@@ -67,7 +67,7 @@ export function FeedbackMenu({ variant = 'light' }: { variant?: 'light' | 'dark'
             className="w-full bg-white/50 border border-corn-900/15 rounded px-2.5 py-2 font-sans text-[0.8125rem] text-[#2A2118] placeholder:text-corn-700/55 focus:outline-none focus:border-corn-900/35 resize-none mb-1.5"
             placeholder="What's working, what's not, what's missing..."
           />
-          <p className="font-sans text-[10px] text-corn-700/80 mb-3 leading-snug">
+          <p className="font-sans text-[12px] text-corn-700/80 mb-3 leading-snug">
             Opens your email client, addressed to us directly — no form, no server.
           </p>
 
@@ -75,7 +75,7 @@ export function FeedbackMenu({ variant = 'light' }: { variant?: 'light' | 'dark'
             <button
               onClick={handleSend}
               disabled={!text.trim()}
-              className="font-sans text-[11px] font-semibold uppercase tracking-[0.05em] px-3.5 py-2 rounded bg-corn-900 text-corn-100 hover:bg-corn-800 disabled:opacity-40 disabled:pointer-events-none transition-colors"
+              className="font-sans text-[13px] font-semibold uppercase tracking-[0.05em] px-3.5 py-2 rounded bg-corn-900 text-corn-100 hover:bg-corn-800 disabled:opacity-40 disabled:pointer-events-none transition-colors"
             >
               Send
             </button>

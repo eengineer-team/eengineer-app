@@ -33,7 +33,7 @@ export function CompetitionDetail({ competition: competitionProp }: { competitio
   const color = getDisciplineColor(competition.discipline)
 
   return (
-    <div className="flex-1 px-8 py-8 max-w-[640px]">
+    <div className="flex-1 w-full px-8 py-8 max-w-[640px] mx-auto">
       <Link
         to="/dashboard/calendar"
         className="inline-flex items-center gap-1.5 font-sans text-[0.8125rem] text-dark-muted hover:text-white/85 transition-colors mb-6"

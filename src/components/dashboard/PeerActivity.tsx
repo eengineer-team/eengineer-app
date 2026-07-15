@@ -46,13 +46,13 @@ export function PeerActivity({ className = '' }: { className?: string }) {
                 <h3 className="font-sans text-[0.8125rem] font-semibold text-dark-text leading-snug">
                   {project.title}
                 </h3>
-                <span className="font-sans text-[10px] text-dark-muted flex-shrink-0">{project.year}</span>
+                <span className="font-sans text-[12px] text-dark-muted flex-shrink-0">{project.year}</span>
               </div>
-              <p className="font-sans text-[11px] text-dark-muted leading-snug mb-2 line-clamp-2">
+              <p className="font-sans text-[13px] text-dark-muted leading-snug mb-2 line-clamp-2">
                 {project.description}
               </p>
               <div className="flex items-center justify-between">
-                <span className="font-sans text-[11px] text-dark-muted">{author.name}</span>
+                <span className="font-sans text-[13px] text-dark-muted">{author.name}</span>
                 <Chip theme="dashboard" discipline={author.discipline}>{author.discipline}</Chip>
               </div>
             </Link>

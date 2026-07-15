@@ -130,13 +130,13 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
                 <div className="flex gap-2">
                   <button
                     onClick={send}
-                    className="font-sans text-[11px] font-semibold text-corn-500 hover:brightness-110 transition-all"
+                    className="font-sans text-[13px] font-semibold text-corn-500 hover:brightness-110 transition-all"
                   >
                     Post anyway
                   </button>
                   <button
                     onClick={() => setDuplicate(null)}
-                    className="font-sans text-[11px] text-dark-muted hover:text-white/80 transition-colors"
+                    className="font-sans text-[13px] text-dark-muted hover:text-white/80 transition-colors"
                   >
                     Cancel
                   </button>

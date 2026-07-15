@@ -17,7 +17,7 @@ export function ProfilesList() {
   const { profiles } = useProfiles()
 
   return (
-    <div className="flex-1 px-8 py-8 max-w-[880px]">
+    <div className="flex-1 w-full px-8 py-8 max-w-[880px] mx-auto">
       <h1 className="font-display text-xl font-semibold text-dark-text mb-1">Profiles</h1>
       <p className="font-sans text-[0.8125rem] text-dark-muted mb-6">
         Every Builder's skills, projects, and endorsements — public to the network.

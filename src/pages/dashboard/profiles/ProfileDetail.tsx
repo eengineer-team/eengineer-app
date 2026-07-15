@@ -50,7 +50,7 @@ export function ProfileDetail() {
   }
 
   return (
-    <div className="flex-1 px-8 py-8 max-w-[720px]">
+    <div className="flex-1 w-full px-8 py-8 max-w-[720px] mx-auto">
       <Link
         to="/dashboard/profiles"
         className="inline-flex items-center gap-1.5 font-sans text-[0.8125rem] text-dark-muted hover:text-white/85 transition-colors mb-6"
@@ -81,11 +81,11 @@ export function ProfileDetail() {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <h1 className="font-display text-[1.25rem] font-bold text-dark-text leading-tight">{name}</h1>
-              <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 bg-gold-dark/15 border border-gold-dark/30 text-gold-dark font-sans text-[10px] font-semibold uppercase tracking-wide">
+              <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 bg-gold-dark/15 border border-gold-dark/30 text-gold-dark font-sans text-[12px] font-semibold uppercase tracking-wide">
                 Builder
               </span>
               {profile.openToWork && (
-                <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-sans text-[10px] font-semibold uppercase tracking-wide">
+                <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-sans text-[12px] font-semibold uppercase tracking-wide">
                   <Briefcase size={10} strokeWidth={2} />
                   Open to work
                 </span>
@@ -95,7 +95,7 @@ export function ProfileDetail() {
               <Chip theme="dashboard" discipline={profile.discipline}>{profile.discipline}</Chip>
               <div className="flex items-center gap-1.5 text-dark-muted">
                 <Users size={11} strokeWidth={1.8} />
-                <span className="font-sans text-[11px]">{profile.mutuals} mutual connections</span>
+                <span className="font-sans text-[13px]">{profile.mutuals} mutual connections</span>
               </div>
             </div>
             {(profile.githubUrl || profile.linkedinUrl) && (
@@ -190,7 +190,7 @@ export function ProfileDetail() {
               </div>
               <button
                 onClick={() => setEndorseTarget({ type: 'skill', name: skill.name })}
-                className="flex items-center gap-1 font-sans text-[11px] text-dark-muted hover:text-gold-dark transition-colors flex-shrink-0"
+                className="flex items-center gap-1 font-sans text-[13px] text-dark-muted hover:text-gold-dark transition-colors flex-shrink-0"
               >
                 <Award size={12} strokeWidth={1.8} />
                 Endorse{endorsementCountFor('skill', skill.name) > 0 ? ` (${endorsementCountFor('skill', skill.name)})` : ''}
@@ -199,8 +199,8 @@ export function ProfileDetail() {
                 <EndorseDialog
                   targetName={skill.name}
                   onClose={() => setEndorseTarget(null)}
-                  onSubmit={(reason) => {
-                    addEndorsement(profile.id, 'skill', skill.name, reason, myName)
+                  onSubmit={(reason, evidenceUrl) => {
+                    addEndorsement(profile.id, 'skill', skill.name, reason, myName, evidenceUrl)
                     setEndorseTarget(null)
                   }}
                 />
@@ -227,7 +227,7 @@ export function ProfileDetail() {
                   </h3>
                   <button
                     onClick={() => setEndorseTarget({ type: 'project', name: project.title })}
-                    className="flex items-center gap-1 font-sans text-[11px] text-dark-muted hover:text-gold-dark transition-colors flex-shrink-0"
+                    className="flex items-center gap-1 font-sans text-[13px] text-dark-muted hover:text-gold-dark transition-colors flex-shrink-0"
                   >
                     <Award size={12} strokeWidth={1.8} />
                     Endorse{endorsementCountFor('project', project.title) > 0 ? ` (${endorsementCountFor('project', project.title)})` : ''}
@@ -247,8 +247,8 @@ export function ProfileDetail() {
                   <EndorseDialog
                     targetName={project.title}
                     onClose={() => setEndorseTarget(null)}
-                    onSubmit={(reason) => {
-                      addEndorsement(profile.id, 'project', project.title, reason, myName)
+                    onSubmit={(reason, evidenceUrl) => {
+                      addEndorsement(profile.id, 'project', project.title, reason, myName, evidenceUrl)
                       setEndorseTarget(null)
                     }}
                   />
@@ -271,7 +271,7 @@ export function ProfileDetail() {
               <div key={exp.id} className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
                 <div className="flex items-start justify-between gap-3 mb-1">
                   <h3 className="font-sans text-[0.9375rem] font-semibold text-dark-text">{exp.role}</h3>
-                  <span className="font-sans text-[11px] text-dark-muted flex-shrink-0">{exp.duration}</span>
+                  <span className="font-sans text-[13px] text-dark-muted flex-shrink-0">{exp.duration}</span>
                 </div>
                 <p className="font-sans text-[12px] text-dark-muted mb-1.5">{exp.organization}</p>
                 {exp.description && (
@@ -299,6 +299,17 @@ export function ProfileDetail() {
                   </span>
                 </div>
                 <p className="font-sans text-[0.8125rem] leading-snug text-white/65 italic">"{e.reason}"</p>
+                {e.evidenceUrl && (
+                  <a
+                    href={e.evidenceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-flex items-center gap-1.5 font-sans text-[12px] text-gold-dark underline underline-offset-2 decoration-current/40 hover:decoration-current"
+                  >
+                    <LinkIcon size={12} strokeWidth={1.8} />
+                    View evidence
+                  </a>
+                )}
               </div>
             ))}
           </div>

@@ -66,7 +66,7 @@ export function JoinedClubs() {
                       <span className="font-sans text-[0.75rem] font-medium text-white/80">
                         {meta.latestMessage.author}
                       </span>
-                      <span className="font-sans text-[10px] text-dark-muted flex-shrink-0">
+                      <span className="font-sans text-[12px] text-dark-muted flex-shrink-0">
                         {meta.latestMessage.time}
                       </span>
                     </div>
@@ -75,7 +75,7 @@ export function JoinedClubs() {
                     </p>
                     <Link
                       to={`/dashboard/community/${disciplineSlug(club.name)}`}
-                      className="font-sans text-[11px] font-medium text-gold-dark hover:brightness-110 transition-all"
+                      className="font-sans text-[13px] font-medium text-gold-dark hover:brightness-110 transition-all"
                     >
                       Open chat →
                     </Link>

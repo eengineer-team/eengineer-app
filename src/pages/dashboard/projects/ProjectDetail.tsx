@@ -134,7 +134,7 @@ export function ProjectDetail() {
   const hasName = !!project.name.trim()
 
   return (
-    <div className="flex-1 px-4 md:px-8 py-6 md:py-8 max-w-[720px]">
+    <div className="flex-1 w-full px-4 md:px-8 py-6 md:py-8 max-w-[720px] mx-auto">
       <Link
         to="/dashboard/projects"
         className="inline-flex items-center gap-1.5 font-sans text-[0.8125rem] text-dark-muted hover:text-white/85 transition-colors mb-6"
@@ -153,7 +153,7 @@ export function ProjectDetail() {
             <>
               <button
                 onClick={() => coverInputRef.current?.click()}
-                className="absolute top-3 right-3 flex items-center gap-1.5 bg-dark-900/70 backdrop-blur-sm px-2.5 py-1.5 rounded font-sans text-[11px] text-dark-text hover:bg-dark-900/90 transition-colors"
+                className="absolute top-3 right-3 flex items-center gap-1.5 bg-dark-900/70 backdrop-blur-sm px-2.5 py-1.5 rounded font-sans text-[13px] text-dark-text hover:bg-dark-900/90 transition-colors"
               >
                 <Camera size={12} strokeWidth={1.8} />
                 {project.coverUrl ? 'Change cover' : 'Add cover'}
@@ -365,7 +365,7 @@ export function ProjectDetail() {
                 key={k}
                 onClick={() => setKind(k)}
                 className={cn(
-                  'font-sans text-[11px] rounded-sm px-2.5 py-1 border transition-colors duration-150',
+                  'font-sans text-[13px] rounded-sm px-2.5 py-1 border transition-colors duration-150',
                   project.kind === k
                     ? 'bg-gold-dark/15 border-gold-dark/40 text-gold-dark'
                     : 'border-white/10 text-dark-muted hover:text-white/85 hover:border-white/20'
@@ -379,7 +379,7 @@ export function ProjectDetail() {
 
         {isOwn && showStatForm && (
           <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4 mb-3">
-            <p className="font-sans text-[11px] text-dark-muted mb-2">{PROJECT_KIND_STAT_HINT[project.kind]}</p>
+            <p className="font-sans text-[13px] text-dark-muted mb-2">{PROJECT_KIND_STAT_HINT[project.kind]}</p>
             <div className="flex gap-2 mb-3">
               <input
                 value={statLabel}
@@ -421,7 +421,7 @@ export function ProjectDetail() {
                   </button>
                 )}
                 <div className="font-sans text-[1.0625rem] font-bold text-dark-text leading-none mb-1">{stat.value}</div>
-                <div className="font-sans text-[11px] text-dark-muted">{stat.label}</div>
+                <div className="font-sans text-[13px] text-dark-muted">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -566,7 +566,7 @@ export function ProjectDetail() {
                   <Avatar name={member.name} theme="dashboard" size="sm" />
                   <div className="min-w-0">
                     <div className="font-sans text-[0.8125rem] font-medium text-dark-text truncate">{member.name}</div>
-                    <div className="font-sans text-[11px] text-dark-muted truncate">{member.role}</div>
+                    <div className="font-sans text-[13px] text-dark-muted truncate">{member.role}</div>
                   </div>
                 </div>
                 {isOwn && (

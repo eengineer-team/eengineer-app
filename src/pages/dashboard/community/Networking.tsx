@@ -117,7 +117,7 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
                     <FileText size={16} strokeWidth={1.8} className="text-dark-muted" />
                   </span>
                 )}
-                <span className="flex-1 min-w-0 truncate font-sans text-[11px] text-white/60">
+                <span className="flex-1 min-w-0 truncate font-sans text-[13px] text-white/60">
                   {pendingAttachment.name ?? 'Attachment'}
                 </span>
                 <button
@@ -173,7 +173,7 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <div className="font-sans text-[0.875rem] font-semibold text-dark-text">{i.name}</div>
-                    <span className="font-sans text-[10px] text-dark-muted flex-shrink-0">{i.time}</span>
+                    <span className="font-sans text-[12px] text-dark-muted flex-shrink-0">{i.time}</span>
                   </div>
                   <div className="font-sans text-[0.75rem] text-dark-muted mb-2">{i.discipline}</div>
                   <p className="font-sans text-[0.8125rem] text-dark-text leading-snug">{i.text}</p>

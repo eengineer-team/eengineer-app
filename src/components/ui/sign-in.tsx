@@ -77,7 +77,7 @@ export function AuthForm({ mode, loadingProvider, onOAuth }: AuthFormProps) {
           >
             {p.icon}
             {loadingProvider === p.id ? 'Connecting…' : `Continue with ${p.label}`}
-            <span className="font-sans text-[10px] font-semibold tracking-wide uppercase text-corn-100/60 ml-1">
+            <span className="font-sans text-[12px] font-semibold tracking-wide uppercase text-corn-100/60 ml-1">
               Full access
             </span>
           </button>
@@ -87,7 +87,7 @@ export function AuthForm({ mode, loadingProvider, onOAuth }: AuthFormProps) {
       {/* Divider */}
       <div className="flex items-center gap-3 mb-4">
         <div className="h-px flex-1 bg-corn-900/12" />
-        <span className="font-sans text-[11px] font-medium uppercase tracking-wide text-corn-700">
+        <span className="font-sans text-[13px] font-medium uppercase tracking-wide text-corn-700">
           or preview with Google
         </span>
         <div className="h-px flex-1 bg-corn-900/12" />
@@ -111,7 +111,7 @@ export function AuthForm({ mode, loadingProvider, onOAuth }: AuthFormProps) {
             <GoogleMark />
             {loadingProvider === 'google' ? 'Connecting…' : 'Continue with Google'}
           </span>
-          <span className="font-sans text-[10px] font-semibold tracking-wide uppercase border rounded px-1.5 py-0.5 bg-amber-600/10 text-amber-800 border-amber-600/25">
+          <span className="font-sans text-[12px] font-semibold tracking-wide uppercase border rounded px-1.5 py-0.5 bg-amber-600/10 text-amber-800 border-amber-600/25">
             Limited preview
           </span>
         </button>
