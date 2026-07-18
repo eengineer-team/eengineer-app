@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { motion } from 'framer-motion'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, TriangleAlert } from 'lucide-react'
 import { SettingsMenu } from '@/components/SettingsMenu'
 import { AuthForm } from '@/components/ui/sign-in'
@@ -10,6 +10,7 @@ import { useAuth, type OAuthProvider } from '@/lib/auth-context'
 export function Auth() {
   const [params] = useSearchParams()
   const mode = params.get('mode') === 'signup' ? 'signup' : 'login'
+  const navigate = useNavigate()
   const location = useLocation()
   const { signInWithProvider } = useAuth()
   const [loadingProvider, setLoadingProvider] = React.useState<OAuthProvider | null>(null)
@@ -18,20 +19,24 @@ export function Auth() {
   // route (see the `upgrade` nav state in App.tsx / Sidebar.tsx).
   const upgradePrompt = Boolean((location.state as { upgrade?: boolean } | null)?.upgrade)
 
-  // Real Supabase OAuth: signInWithProvider redirects the browser to the
-  // provider and back to `redirectPath`, where detectSessionInUrl completes the
-  // handshake. Google returns a preview (no profile → read-only); GitHub/LinkedIn
-  // return a verified Builder. New Builders land on /onboarding, returning ones
-  // on /dashboard; preview can only reach /dashboard/community.
+  // Mock OAuth round-trip — a real backend token exchange isn't wired up yet
+  // (see PROGRESS.md open question #4). GitHub/LinkedIn become full Builder
+  // sessions; Google is a stateless preview per spec — nothing is persisted.
   function handleOAuth(provider: OAuthProvider) {
     setLoadingProvider(provider)
-    const redirectPath =
-      provider === 'google'
-        ? '/dashboard/community'
-        : mode === 'signup'
-          ? '/onboarding'
-          : '/dashboard'
-    signInWithProvider(provider, redirectPath)
+    window.setTimeout(() => {
+      signInWithProvider(provider)
+      if (provider === 'google') {
+        // Preview lacks dashboard:home:view, so landing on the index route
+        // would immediately bounce back here via RequireAction — send it to
+        // a route preview can actually reach instead.
+        navigate('/dashboard/community')
+      } else {
+        // New Builders pass through the (deferred, Step 13) onboarding hook
+        // first; returning Builders logging in skip straight to the dashboard.
+        navigate(mode === 'signup' ? '/onboarding' : '/dashboard')
+      }
+    }, 500)
   }
 
   return (

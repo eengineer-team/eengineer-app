@@ -1,20 +1,40 @@
 import * as React from 'react'
 import { Paperclip, FileText, X } from 'lucide-react'
-import { SEED_POSTS, type Discipline, type Post } from '@/lib/community-data'
+import type { Discipline, Post } from '@/lib/community-data'
 import { readFileAsAttachment, type Attachment } from '@/lib/attachments'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
+import { supabase } from '@/lib/supabase'
+import * as api from '@/lib/api/community'
 
-// Per-discipline discussion feed — distinct from Q&A (structured questions
-// with approve/disapprove voting) and Networking (one editable intro per
-// person). This is just a running chronological feed anyone can post to,
-// with the same photo/video/file attachment support as Messages and
-// Networking (src/lib/attachments.ts).
+// Per-discipline discussion feed — a lightweight, running thread scoped to
+// one discipline's Community group ("Discussion" tab in CommunityGroup.tsx),
+// distinct from both the Q&A feed (structured questions with
+// approve/disapprove voting) and Networking (one intro per person, editable
+// in place). Posts here are just a chronological feed anyone can add to, no
+// voting or single-post-per-person constraint. Supabase-backed via the
+// `discussion_posts` table.
 export function Discussion({ discipline }: { discipline?: Discipline } = {}) {
-  const [posts, setPosts] = React.useState<Post[]>(SEED_POSTS)
+  const [posts, setPosts] = React.useState<Post[]>([])
   const [draft, setDraft] = React.useState('')
   const [pendingAttachment, setPendingAttachment] = React.useState<Attachment | null>(null)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+  const uidRef = React.useRef<string | null>(null)
+
+  const refresh = React.useCallback(async () => {
+    uidRef.current = await api.currentUid()
+    try {
+      setPosts(await api.fetchDiscussionPosts())
+    } catch (err) {
+      console.error('Failed to load the discussion feed', err)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    void refresh()
+    const { data: sub } = supabase.auth.onAuthStateChange(() => void refresh())
+    return () => sub.subscription.unsubscribe()
+  }, [refresh])
 
   const scoped = discipline ? posts.filter((p) => p.discipline === discipline) : posts
   const ordered = [...scoped].reverse()
@@ -22,20 +42,18 @@ export function Discussion({ discipline }: { discipline?: Discipline } = {}) {
   function submit() {
     const text = draft.trim()
     if (!text && !pendingAttachment) return
-    setPosts((prev) => [
-      ...prev,
-      {
-        id: `p-${Date.now()}`,
-        authorId: 'me',
-        name: 'You',
-        discipline: discipline ?? 'Other',
-        text,
-        time: 'Just now',
-        attachment: pendingAttachment ?? undefined,
-      },
-    ])
+    const uid = uidRef.current
+    if (!uid) return
+
     setDraft('')
     setPendingAttachment(null)
+    api
+      .postDiscussionPost(uid, discipline ?? 'Other', text, pendingAttachment ?? undefined)
+      .then(refresh)
+      .catch((err) => {
+        console.error('Post failed', err)
+        void refresh()
+      })
   }
 
   function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {

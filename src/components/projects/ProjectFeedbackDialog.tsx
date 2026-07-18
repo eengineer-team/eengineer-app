@@ -32,7 +32,7 @@ export function ProjectFeedbackDialog({
         </button>
       </div>
 
-      <label className="font-sans text-[13px] text-dark-muted block mb-2">
+      <label className="font-sans text-[11px] text-dark-muted block mb-2">
         Visible to the project owner — required
       </label>
       <textarea

@@ -15,7 +15,7 @@ export function Calendar() {
   const [month, setMonth] = React.useState(new Date(now.getFullYear(), now.getMonth(), 1))
 
   return (
-    <div className="flex-1 w-full px-8 py-8 max-w-[560px] mx-auto">
+    <div className="flex-1 px-8 py-8 max-w-[420px]">
       <LabelCaps className="block mb-1">Competition Calendar</LabelCaps>
       <p className="font-sans text-[0.8125rem] text-dark-muted mb-6">
         Every upcoming deadline across disciplines -- past dates are never shown.

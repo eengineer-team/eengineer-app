@@ -195,7 +195,7 @@ export function TeamAbout() {
                 {member.chips.map((chip) => (
                   <span
                     key={chip}
-                    className="font-sans text-[13px] tracking-wide text-corn-800 bg-corn-900/6 border border-corn-900/10 rounded-sm px-2 py-0.5"
+                    className="font-sans text-[11px] tracking-wide text-corn-800 bg-corn-900/6 border border-corn-900/10 rounded-sm px-2 py-0.5"
                   >
                     {chip}
                   </span>

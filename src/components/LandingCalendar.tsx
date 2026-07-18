@@ -106,7 +106,7 @@ export function LandingCalendar() {
 
         <div className="grid grid-cols-7 gap-y-1.5 mb-1">
           {WEEKDAYS.map((wd) => (
-            <span key={wd} className="font-sans text-[12px] text-corn-700 text-center">
+            <span key={wd} className="font-sans text-[10px] text-corn-700 text-center">
               {wd}
             </span>
           ))}
@@ -126,8 +126,8 @@ export function LandingCalendar() {
                 <span
                   className={
                     isToday
-                      ? 'w-5 h-5 flex items-center justify-center rounded bg-corn-900 text-corn-100 font-sans text-[13px] font-semibold'
-                      : 'w-5 h-5 flex items-center justify-center font-sans text-[13px] text-[#2A2118]/80'
+                      ? 'w-5 h-5 flex items-center justify-center rounded bg-corn-900 text-corn-100 font-sans text-[11px] font-semibold'
+                      : 'w-5 h-5 flex items-center justify-center font-sans text-[11px] text-[#2A2118]/80'
                   }
                 >
                   {day}
@@ -152,7 +152,7 @@ export function LandingCalendar() {
             return (
               <div key={comp.id} className="flex items-start gap-2">
                 <Bell size={12} strokeWidth={1.8} className="text-corn-700 mt-0.5 flex-shrink-0" />
-                <span className="font-sans text-[13px] text-corn-800/85 leading-snug">
+                <span className="font-sans text-[11px] text-corn-800/85 leading-snug">
                   <span className="text-[#2A2118] font-medium">{comp.name}</span> deadline {label}.
                 </span>
               </div>
@@ -180,14 +180,14 @@ export function LandingCalendar() {
                 <span className="flex-1 min-w-0 font-sans text-[0.875rem] font-semibold text-[#2A2118] leading-snug">
                   {comp.name}
                 </span>
-                <span className="font-sans text-[12px] font-medium text-corn-900 bg-corn-500/25 rounded px-1.5 py-0.5 whitespace-nowrap">
+                <span className="font-sans text-[10px] font-medium text-corn-900 bg-corn-500/25 rounded px-1.5 py-0.5 whitespace-nowrap">
                   Deadline {formatShortDate(comp.deadline)}
                 </span>
               </div>
               <p className="font-sans text-[0.8125rem] leading-[1.55] text-[#2A2118]/75">
                 {comp.description}
               </p>
-              <div className="font-sans text-[13px] text-corn-800">
+              <div className="font-sans text-[11px] text-corn-800">
                 {comp.location} · {comp.discipline} · {comp.organizer}
               </div>
             </Link>

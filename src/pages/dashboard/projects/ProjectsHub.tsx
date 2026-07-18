@@ -64,7 +64,7 @@ export function ProjectsHub() {
   const otherProjects = projects.filter((p) => p.ownerId !== ME_ID && p.name.trim())
 
   return (
-    <div className="flex-1 w-full px-4 md:px-8 py-6 md:py-8 max-w-[1180px] mx-auto">
+    <div className="flex-1 px-4 md:px-8 py-6 md:py-8 max-w-[1180px]">
       <div className="flex items-center justify-between gap-4 mb-1">
         <h1 className="font-display text-xl font-semibold text-dark-text">Projects</h1>
         <Button variant={hasMyProject ? 'shell' : 'accent'} size="sm" asChild>
@@ -109,7 +109,7 @@ export function ProjectsHub() {
                   <FileText size={16} strokeWidth={1.8} className="text-dark-muted" />
                 </span>
               )}
-              <span className="flex-1 min-w-0 truncate font-sans text-[13px] text-white/60">
+              <span className="flex-1 min-w-0 truncate font-sans text-[11px] text-white/60">
                 {pendingAttachment.name ?? 'Attachment'}
               </span>
               <button
@@ -149,7 +149,7 @@ export function ProjectsHub() {
                       <span className="font-sans text-[0.875rem] font-semibold text-dark-text truncate">{a.name}</span>
                       <Chip theme="dashboard" discipline={a.discipline}>{a.discipline}</Chip>
                     </div>
-                    <span className="font-sans text-[12px] text-dark-muted flex-shrink-0">{a.time}</span>
+                    <span className="font-sans text-[10px] text-dark-muted flex-shrink-0">{a.time}</span>
                   </div>
                   <p className="font-sans text-[0.8125rem] text-dark-text leading-snug">{a.text}</p>
                   {a.attachment && renderActivityAttachment(a.attachment)}
@@ -213,15 +213,15 @@ export function ProjectsHub() {
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <Chip theme="dashboard" discipline={owner.discipline}>{owner.discipline}</Chip>
-                      <span className="font-sans text-[13px] text-dark-muted truncate">{owner.name}</span>
+                      <span className="font-sans text-[11px] text-dark-muted truncate">{owner.name}</span>
                     </div>
                     <div className="flex items-center gap-1 text-dark-muted flex-shrink-0">
                       <Users size={11} strokeWidth={1.8} />
-                      <span className="font-sans text-[13px]">{project.followerIds.length}</span>
+                      <span className="font-sans text-[11px]">{project.followerIds.length}</span>
                     </div>
                   </div>
                   {project.openToRecruitment && (
-                    <span className="inline-flex items-center self-start mt-2.5 rounded px-1.5 py-0.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-sans text-[12px] font-semibold uppercase tracking-wide">
+                    <span className="inline-flex items-center self-start mt-2.5 rounded px-1.5 py-0.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-sans text-[10px] font-semibold uppercase tracking-wide">
                       Open to team recruitment
                     </span>
                   )}

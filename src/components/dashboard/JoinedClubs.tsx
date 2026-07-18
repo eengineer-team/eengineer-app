@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { MessageCircle, Bell } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { JOINED_CLUBS } from '@/lib/clubs-data'
+import { useJoinedClubs } from '@/lib/clubs-context'
 import { getGroupMeta } from '@/lib/community-groups'
 import { disciplineSlug } from '@/lib/community-data'
 import { LabelCaps } from '@/components/ui/label-caps'
@@ -12,12 +12,13 @@ import { LabelCaps } from '@/components/ui/label-caps'
 // jumping straight into the group; "Open chat" still does the full navigate.
 export function JoinedClubs() {
   const [expanded, setExpanded] = React.useState<string | null>(null)
+  const { joinedClubs } = useJoinedClubs()
 
   return (
     <div>
       <LabelCaps className="block mb-3">Joined Clubs</LabelCaps>
 
-      {JOINED_CLUBS.length === 0 ? (
+      {joinedClubs.length === 0 ? (
         <p className="font-sans text-[0.8125rem] text-dark-muted">
           You haven't joined a club yet.{' '}
           <Link to="/dashboard/community" className="text-gold-dark hover:brightness-110 transition-all">
@@ -26,7 +27,7 @@ export function JoinedClubs() {
         </p>
       ) : (
       <div className="flex flex-col gap-2">
-        {JOINED_CLUBS.map((club) => {
+        {joinedClubs.map((club) => {
           const meta = getGroupMeta(club.name)
           const isOpen = expanded === club.name
           // Only a real unread message count lights this up — general

@@ -1,55 +1,91 @@
 import * as React from 'react'
 import { Send, AlertTriangle } from 'lucide-react'
-import { SEED_QUESTIONS, type Discipline, type Question } from '@/lib/community-data'
+import type { Discipline, Question } from '@/lib/community-data'
 import { textSimilarity, DUPLICATE_THRESHOLD } from '@/lib/similarity'
 import { QuestionCard } from '@/components/community/QuestionCard'
-import { usePersistentState } from '@/lib/use-persistent-state'
-
-let nextId = SEED_QUESTIONS.length + 1
+import { supabase } from '@/lib/supabase'
+import * as api from '@/lib/api/community'
 
 // Telegram-groupchat-style feed (per founder feedback) — continuous message
-// list with a persistent composer at the bottom, replacing the old "Ask a
-// question" button + popup dialog. Same underlying rules as before (vote /
-// report / comment, duplicate-check before posting) — just presented as a
-// running conversation instead of a stack of standalone cards.
+// list with a persistent composer at the bottom. Live-backed by Supabase:
+// fetches on mount, subscribes to Realtime on questions/question_votes/
+// question_comments so a vote or reply from another Builder shows up without
+// a manual refresh, and reconciles optimistic updates against the server.
 export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; discipline?: Discipline }) {
-  const [questions, setQuestions] = usePersistentState<Question[]>('ee:qa-feed', SEED_QUESTIONS)
+  const [questions, setQuestions] = React.useState<Question[]>([])
   const [draft, setDraft] = React.useState('')
   const [duplicate, setDuplicate] = React.useState<Question | null>(null)
+  const uidRef = React.useRef<string | null>(null)
   const visible = discipline ? questions.filter((q) => q.category === discipline) : questions
 
+  const refresh = React.useCallback(async () => {
+    uidRef.current = await api.currentUid()
+    try {
+      setQuestions(await api.fetchQuestions())
+    } catch (err) {
+      console.error('Failed to load the Q&A feed', err)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    void refresh()
+    const authSub = supabase.auth.onAuthStateChange(() => void refresh())
+    const channel = supabase
+      .channel(`qa-feed-${discipline ?? 'all'}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'questions' }, () => void refresh())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'question_votes' }, () => void refresh())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'question_comments' }, () => void refresh())
+      .subscribe()
+    return () => {
+      authSub.data.subscription.unsubscribe()
+      void supabase.removeChannel(channel)
+    }
+  }, [refresh, discipline])
+
   function handleVote(id: string, vote: 'approve' | 'disapprove') {
+    const uid = uidRef.current
+    if (!uid) return
+    const target = questions.find((q) => q.id === id)
+    if (!target) return
+    const currentVote = target.myVote
+
     setQuestions((prev) =>
       prev.map((q) => {
         if (q.id !== id) return q
         const wasVote = q.myVote
         let approvals = q.approvals
         let disapprovals = q.disapprovals
-
         if (wasVote === 'approve') approvals--
         if (wasVote === 'disapprove') disapprovals--
-
         const nextVote = wasVote === vote ? null : vote
         if (nextVote === 'approve') approvals++
         if (nextVote === 'disapprove') disapprovals++
-
         return { ...q, approvals, disapprovals, myVote: nextVote }
       })
     )
+    api.voteQuestion(uid, id, vote, currentVote).catch((err) => {
+      console.error('Vote failed', err)
+      void refresh()
+    })
   }
 
+  // See api/community.ts reportQuestion: the report queue is staff-only, so
+  // this flips "Reported" locally for the reporter — it can't be re-read
+  // from the server and won't survive a refresh, by design.
   function handleReport(id: string) {
+    const uid = uidRef.current
+    if (!uid) return
     setQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, reported: true } : q)))
+    api.reportQuestion(uid, id).catch((err) => console.error('Report failed', err))
   }
 
   function handleComment(id: string, text: string) {
-    setQuestions((prev) =>
-      prev.map((q) =>
-        q.id === id
-          ? { ...q, comments: [...q.comments, { id: `c-${Date.now()}`, author: 'You', text, time: 'Just now' }] }
-          : q
-      )
-    )
+    const uid = uidRef.current
+    if (!uid) return
+    api.commentQuestion(uid, id, text).catch((err) => {
+      console.error('Comment failed', err)
+      void refresh()
+    })
   }
 
   function findDuplicate(text: string): Question | null {
@@ -68,6 +104,8 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
   function send() {
     const text = draft.trim()
     if (!text) return
+    const uid = uidRef.current
+    if (!uid) return
 
     if (!duplicate) {
       const found = findDuplicate(text)
@@ -77,21 +115,12 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
       }
     }
 
-    const question: Question = {
-      id: `q-${nextId++}`,
-      category: discipline ?? 'Other',
-      text,
-      author: 'You',
-      time: 'Just now',
-      approvals: 0,
-      disapprovals: 0,
-      myVote: null,
-      reported: false,
-      comments: [],
-    }
-    setQuestions((prev) => [...prev, question])
     setDraft('')
     setDuplicate(null)
+    api.postQuestion(uid, discipline ?? 'Other', text).catch((err) => {
+      console.error('Post failed', err)
+      void refresh()
+    })
   }
 
   return (

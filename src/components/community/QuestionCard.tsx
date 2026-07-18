@@ -40,7 +40,7 @@ export function QuestionCard({
           <span className="font-sans text-[0.8125rem] font-semibold text-dark-text">
             {question.author}
           </span>
-          <span className="font-sans text-[13px] text-dark-muted">{question.time}</span>
+          <span className="font-sans text-[11px] text-dark-muted">{question.time}</span>
         </div>
 
         {/* Message bubble */}
@@ -54,7 +54,7 @@ export function QuestionCard({
           <div className="flex items-center gap-0.5 -ml-2 mt-0.5">
             <button
               onClick={() => onVote(question.id, 'approve')}
-              className={`flex items-center gap-1.5 px-2 py-1 rounded font-sans text-[13px] transition-colors duration-150 ${
+              className={`flex items-center gap-1.5 px-2 py-1 rounded font-sans text-[11px] transition-colors duration-150 ${
                 question.myVote === 'approve' ? 'text-corn-500' : 'text-dark-muted hover-white-tint hover:text-white/80'
               }`}
             >
@@ -64,7 +64,7 @@ export function QuestionCard({
 
             <button
               onClick={() => onVote(question.id, 'disapprove')}
-              className={`flex items-center gap-1.5 px-2 py-1 rounded font-sans text-[13px] transition-colors duration-150 ${
+              className={`flex items-center gap-1.5 px-2 py-1 rounded font-sans text-[11px] transition-colors duration-150 ${
                 question.myVote === 'disapprove' ? 'text-red-400' : 'text-dark-muted hover-white-tint hover:text-white/80'
               }`}
             >
@@ -75,7 +75,7 @@ export function QuestionCard({
             <button
               onClick={() => onReport(question.id)}
               disabled={question.reported}
-              className={`flex items-center gap-1.5 px-2 py-1 rounded font-sans text-[13px] transition-colors duration-150 disabled:opacity-50 ${
+              className={`flex items-center gap-1.5 px-2 py-1 rounded font-sans text-[11px] transition-colors duration-150 disabled:opacity-50 ${
                 question.reported ? 'text-dark-muted' : 'text-dark-muted hover-white-tint hover:text-white/80'
               }`}
             >
@@ -85,7 +85,7 @@ export function QuestionCard({
 
             <button
               onClick={() => setShowComments((v) => !v)}
-              className="flex items-center gap-1.5 px-2 py-1 rounded font-sans text-[13px] text-dark-muted hover-white-tint hover:text-white/80 transition-colors duration-150"
+              className="flex items-center gap-1.5 px-2 py-1 rounded font-sans text-[11px] text-dark-muted hover-white-tint hover:text-white/80 transition-colors duration-150"
             >
               <MessageCircle size={12} strokeWidth={1.8} />
               {question.comments.length}
@@ -102,7 +102,7 @@ export function QuestionCard({
                 <div className="min-w-0">
                   <div className="flex items-baseline gap-2">
                     <span className="font-sans text-[0.75rem] font-medium text-white/80">{c.author}</span>
-                    {c.time && <span className="font-sans text-[12px] text-dark-muted">{c.time}</span>}
+                    {c.time && <span className="font-sans text-[10px] text-dark-muted">{c.time}</span>}
                   </div>
                   <div className="inline-block bg-white/6 rounded-lg rounded-tl-sm px-3 py-1.5 mt-0.5">
                     <p className="font-sans text-[0.8125rem] text-white/80 leading-snug">{c.text}</p>

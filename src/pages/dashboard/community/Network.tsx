@@ -28,7 +28,7 @@ function ProfileCard({
         <div className="font-sans text-[0.75rem] text-dark-muted mt-0.5">{profile.discipline}</div>
         <div className="flex items-center gap-1.5 text-dark-muted mt-1">
           <Users size={10} strokeWidth={1.8} />
-          <span className="font-sans text-[13px]">{profile.mutuals} mutual connections</span>
+          <span className="font-sans text-[11px]">{profile.mutuals} mutual connections</span>
         </div>
       </div>
 

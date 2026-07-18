@@ -20,22 +20,12 @@ export interface ProjectEntry {
   skillNames: string[] // ties a project to the skills it demonstrates
 }
 
-// A one- or two-word reason ("very good", "great job") isn't evidence of
-// anything — this is the shared floor both EndorseDialog (client-side hint/
-// disable) and profiles-context (server-side enforcement) check against.
-export const MIN_ENDORSEMENT_REASON_LENGTH = 20
-
 export interface Endorsement {
   id: string
   fromName: string
   targetType: 'skill' | 'project'
   targetName: string
   reason: string // mandatory per spec — never optional
-  /** Optional link backing up the claim — a PR, a shared doc, a live demo,
-   *  a post. Not required (not everything worth endorsing has a public
-   *  link), but when present it's shown right alongside the reason so the
-   *  endorsement isn't just someone's unverifiable word. */
-  evidenceUrl?: string
 }
 
 export interface ExperienceEntry {
@@ -125,21 +115,6 @@ export interface BuilderProfile {
   /** Set during onboarding (Step 13) — surfaced as a badge on the profile. */
   openToWork: boolean
   interests: string[]
-  /** Privacy toggle (Settings) — undefined/true means DMs are open, same as
-   *  every existing seeded profile before this field existed. Only ever
-   *  false when the Builder explicitly turns it off. Enforced wherever a
-   *  "Message" action would otherwise appear (see ProfilePreviewPopover). */
-  allowDMs?: boolean
-  /** Collected once at onboarding (Step: age gate) — needed to compute age
-   *  for the parental-consent requirement below. Never shown publicly. */
-  birthdate?: string
-  /** Present only if the Builder was under 18 at onboarding and a
-   *  parent/guardian's email was captured as consent — required before
-   *  onboarding can proceed for minors (see Onboarding.tsx). Not a real
-   *  verification (no backend to confirm the guardian actually consented),
-   *  same mock-app caveat as everything else here — but it's a real,
-   *  non-skippable form gate, not a decorative checkbox. */
-  guardianConsentEmail?: string
 }
 
 // Fixed id for whoever is currently signed in — the only profile the

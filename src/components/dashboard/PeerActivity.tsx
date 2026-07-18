@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { JOINED_CLUBS } from '@/lib/clubs-data'
+import { useJoinedClubs } from '@/lib/clubs-context'
 import { useProfiles } from '@/lib/profiles-context'
 import { Chip } from '@/components/ui/chip'
 
@@ -13,7 +13,8 @@ import { Chip } from '@/components/ui/chip'
 // just a different width via `className` at each call site.
 export function PeerActivity({ className = '' }: { className?: string }) {
   const { profiles } = useProfiles()
-  const joinedDisciplines = new Set(JOINED_CLUBS.map((c) => c.name))
+  const { joinedClubs } = useJoinedClubs()
+  const joinedDisciplines = new Set(joinedClubs.map((c) => c.name))
 
   const latestProjects = profiles
     .filter((p) => joinedDisciplines.has(p.discipline))

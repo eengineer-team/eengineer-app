@@ -1,22 +1,41 @@
 import * as React from 'react'
 import { Paperclip, FileText, X } from 'lucide-react'
-import { SEED_INTRODUCTIONS, type Discipline, type Introduction } from '@/lib/community-data'
+import type { Discipline, Introduction } from '@/lib/community-data'
 import { readFileAsAttachment, type Attachment } from '@/lib/attachments'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
 import { LabelCaps } from '@/components/ui/label-caps'
+import { supabase } from '@/lib/supabase'
+import * as api from '@/lib/api/community'
 
 // `discipline` scopes the feed to one group's members (Community hub → group
 // space); omit for a global "Networking" view. Introductions are posted
 // content, not a connect/status row — kept as a separate model from
 // NetworkProfile (see community-data.ts) so this can't get tangled with the
-// Members connect-request flow.
+// Members connect-request flow. Supabase-backed: one `introductions` row per
+// Builder (unique profile_id) — posting again edits it in place.
 export function Networking({ discipline }: { discipline?: Discipline } = {}) {
-  const [intros, setIntros] = React.useState<Introduction[]>(SEED_INTRODUCTIONS)
+  const [intros, setIntros] = React.useState<Introduction[]>([])
   const [draft, setDraft] = React.useState('')
   const [pendingAttachment, setPendingAttachment] = React.useState<Attachment | null>(null)
   const [editing, setEditing] = React.useState(false)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+  const uidRef = React.useRef<string | null>(null)
+
+  const refresh = React.useCallback(async () => {
+    uidRef.current = await api.currentUid()
+    try {
+      setIntros(await api.fetchIntroductions())
+    } catch (err) {
+      console.error('Failed to load introductions', err)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    void refresh()
+    const { data: sub } = supabase.auth.onAuthStateChange(() => void refresh())
+    return () => sub.subscription.unsubscribe()
+  }, [refresh])
 
   const scoped = discipline ? intros.filter((i) => i.discipline === discipline) : intros
   const mine = scoped.find((i) => i.authorId === 'me')
@@ -25,27 +44,20 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
   function post() {
     const text = draft.trim()
     if (!text && !pendingAttachment) return
-    setIntros((prev) => {
-      const existing = prev.find((i) => i.authorId === 'me')
-      if (existing) {
-        return prev.map((i) => (i.authorId === 'me' ? { ...i, text, time: 'Just now', attachment: pendingAttachment ?? undefined } : i))
-      }
-      return [
-        ...prev,
-        {
-          id: `i-${Date.now()}`,
-          authorId: 'me',
-          name: 'You',
-          discipline: discipline ?? 'Other',
-          text,
-          time: 'Just now',
-          attachment: pendingAttachment ?? undefined,
-        },
-      ]
-    })
+    const uid = uidRef.current
+    if (!uid) return
+    // Preserves the existing intro's discipline on edit (same as the old
+    // mock: only a brand-new intro takes the current group's discipline).
+    const existing = intros.find((i) => i.authorId === 'me')
+    const targetDiscipline = existing?.discipline ?? discipline ?? 'Other'
+
     setDraft('')
     setPendingAttachment(null)
     setEditing(false)
+    api.upsertIntroduction(uid, targetDiscipline, text, pendingAttachment ?? undefined).then(refresh).catch((err) => {
+      console.error('Introduction save failed', err)
+      void refresh()
+    })
   }
 
   function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {

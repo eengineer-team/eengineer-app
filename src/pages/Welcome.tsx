@@ -213,7 +213,7 @@ export function Welcome() {
             bshoxrux48@gmail.com
           </a>
         </div>
-        <span className="font-sans text-[12px] text-corn-700">© 2026</span>
+        <span className="font-sans text-[10px] text-corn-700">© 2026</span>
       </motion.footer>
     </div>
   )

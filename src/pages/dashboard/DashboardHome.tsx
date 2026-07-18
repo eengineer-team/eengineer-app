@@ -36,7 +36,7 @@ export function DashboardHome() {
   const isEmpty = !!me && me.skills.length === 0 && me.projects.length === 0 && me.experience.length === 0
 
   return (
-    <div className="flex-1 w-full max-w-[1180px] mx-auto flex flex-col md:flex-row gap-8 md:gap-10 px-4 md:px-8 py-6 md:py-8">
+    <div className="flex-1 flex flex-col md:flex-row gap-8 md:gap-10 px-4 md:px-8 py-6 md:py-8">
       {/* Left column */}
       <div className="flex-1 min-w-0 md:max-w-[560px] flex flex-col gap-8">
         {isEmpty && <StartHere />}
@@ -58,7 +58,7 @@ export function DashboardHome() {
           <div className="font-sans text-[0.875rem] font-semibold text-dark-text leading-snug mb-1">
             {nextWebinar.title}
           </div>
-          <div className="font-sans text-[13px] text-dark-muted mb-3">
+          <div className="font-sans text-[11px] text-dark-muted mb-3">
             {nextWebinar.discipline} · {formatWebinarDate(nextWebinar.startsAt)}
           </div>
           <div className="h-px bg-white/8 mb-3" />
@@ -67,7 +67,7 @@ export function DashboardHome() {
               <Users size={11} strokeWidth={1.8} />
               <span
                 className={cn(
-                  'font-sans text-[13px] inline-block',
+                  'font-sans text-[11px] inline-block',
                   justRegistered && 'animate-pop-in motion-reduce:animate-none'
                 )}
               >

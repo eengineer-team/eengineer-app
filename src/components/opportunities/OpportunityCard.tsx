@@ -67,7 +67,7 @@ export function OpportunityCard({ opportunity, matched }: { opportunity: Opportu
 
       {/* Mandatory partner attribution — condition of using edugrants data,
           not optional copyright text. */}
-      <p className="relative font-sans text-[13px] text-dark-muted mt-4 pt-3 border-t border-white/8">
+      <p className="relative font-sans text-[11px] text-dark-muted mt-4 pt-3 border-t border-white/8">
         In collaboration with <span className="text-dark-muted">edugrants</span>
       </p>
     </div>

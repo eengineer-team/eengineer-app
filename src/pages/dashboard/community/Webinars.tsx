@@ -28,14 +28,14 @@ function WebinarCard({ webinar, onToggle }: { webinar: Webinar; onToggle: (id: s
           {webinar.title}
         </div>
         <div className="font-sans text-[0.8125rem] text-dark-muted mb-1.5">{webinar.speaker}</div>
-        <div className="font-sans text-[13px] text-dark-muted">{formatWebinarDate(webinar.startsAt)}</div>
+        <div className="font-sans text-[11px] text-dark-muted">{formatWebinarDate(webinar.startsAt)}</div>
       </div>
       <div className="flex flex-col items-end gap-2 flex-shrink-0">
         <div className="flex items-center gap-1.5 text-dark-muted">
           <Users size={11} strokeWidth={1.8} />
           <span
             className={cn(
-              'font-sans text-[13px] inline-block',
+              'font-sans text-[11px] inline-block',
               justRegistered && 'animate-pop-in motion-reduce:animate-none'
             )}
           >

@@ -80,7 +80,7 @@ export function CalendarYearView({ year, onYearChange, onSelectMonth }: Calendar
               )}
             >
               <span className="font-sans text-[0.8125rem] font-medium text-dark-text">{name}</span>
-              <span className="font-sans text-[13px] text-dark-muted">
+              <span className="font-sans text-[11px] text-dark-muted">
                 {count === 0 ? 'No deadlines' : count === 1 ? '1 deadline' : `${count} deadlines`}
               </span>
             </button>
