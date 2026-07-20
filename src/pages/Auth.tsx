@@ -84,8 +84,9 @@ export function Auth() {
             <div className="flex items-start gap-2.5 rounded border border-amber-600/25 bg-amber-600/8 px-4 py-3 mb-4 max-w-[420px]">
               <TriangleAlert size={15} strokeWidth={1.8} className="text-amber-800 flex-shrink-0 mt-0.5" />
               <p className="font-sans text-[0.75rem] leading-[1.5] text-amber-900">
-                That section is only open to verified Builders. Sign in with GitHub or LinkedIn to
-                upgrade from Google preview and unlock full access.
+                That section is only open to verified Builders. Sign in with GitHub to
+                upgrade from Google preview and unlock full access (LinkedIn sign-in is
+                coming soon).
               </p>
             </div>
           )}

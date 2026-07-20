@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Link } from 'react-router-dom'
 import { TriangleAlert } from 'lucide-react'
 import type { OAuthProvider } from '@/lib/auth-context'
+import { cn } from '@/lib/utils'
 
 // lucide-react's icon set doesn't include brand marks — inline the
 // standard GitHub/LinkedIn/Google glyphs instead of a generic icon.
@@ -36,9 +37,13 @@ const PRIMARY_PROVIDERS: {
   id: OAuthProvider
   label: string
   icon: React.ReactNode
+  // LinkedIn OAuth isn't wired up yet (2026-07) -- GitHub is the only
+  // working "full access" provider for now. Kept in the list rather than
+  // removed so the option is visibly on the way, not silently gone.
+  comingSoon?: boolean
 }[] = [
   { id: 'github', label: 'GitHub', icon: <GithubMark /> },
-  { id: 'linkedin', label: 'LinkedIn', icon: <LinkedinMark /> },
+  { id: 'linkedin', label: 'LinkedIn', icon: <LinkedinMark />, comingSoon: true },
 ]
 
 export interface AuthFormProps {
@@ -65,20 +70,25 @@ export function AuthForm({ mode, loadingProvider, onOAuth }: AuthFormProps) {
           <button
             key={p.id}
             type="button"
-            disabled={busy}
+            disabled={busy || p.comingSoon}
             onClick={() => onOAuth(p.id)}
-            className="
-              w-full flex items-center justify-center gap-2.5
-              rounded bg-corn-900 text-corn-100
-              px-4 py-3.5 font-sans text-[0.9375rem] font-semibold
-              hover:bg-corn-800 active:bg-corn-900 transition-all duration-150
-              disabled:opacity-50 disabled:pointer-events-none
-            "
+            className={cn(
+              'w-full flex items-center justify-center gap-2.5',
+              'rounded px-4 py-3.5 font-sans text-[0.9375rem] font-semibold transition-all duration-150',
+              p.comingSoon
+                ? 'bg-corn-900/8 text-corn-900/50 disabled:opacity-100 cursor-not-allowed'
+                : 'bg-corn-900 text-corn-100 hover:bg-corn-800 active:bg-corn-900 disabled:opacity-50 disabled:pointer-events-none'
+            )}
           >
             {p.icon}
-            {loadingProvider === p.id ? 'Connecting…' : `Continue with ${p.label}`}
-            <span className="font-sans text-[12px] font-semibold tracking-wide uppercase text-corn-100/60 ml-1">
-              Full access
+            {p.comingSoon ? `${p.label}` : loadingProvider === p.id ? 'Connecting…' : `Continue with ${p.label}`}
+            <span
+              className={cn(
+                'font-sans text-[12px] font-semibold tracking-wide uppercase ml-1',
+                p.comingSoon ? 'text-corn-900/40' : 'text-corn-100/60'
+              )}
+            >
+              {p.comingSoon ? 'Coming soon' : 'Full access'}
             </span>
           </button>
         ))}
@@ -122,8 +132,9 @@ export function AuthForm({ mode, loadingProvider, onOAuth }: AuthFormProps) {
         <TriangleAlert size={15} strokeWidth={1.8} className="text-amber-800 flex-shrink-0 mt-0.5" />
         <p className="font-sans text-[0.75rem] leading-[1.5] text-amber-900">
           Google gets you a quick, read-only look around — nothing saved, nothing created.
-          Want full access? Sign up with GitHub or LinkedIn instead. We don't touch your
-          data either way — it's just there to prove you're a real person, not a bot.
+          Want full access? Sign up with GitHub instead (LinkedIn sign-in is coming soon).
+          We don't touch your data either way — it's just there to prove you're a real
+          person, not a bot.
         </p>
       </div>
 

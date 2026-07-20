@@ -142,9 +142,9 @@ export function Welcome() {
             transition={{ duration: 0.4 }}
             className="font-sans text-[1rem] leading-[1.65] text-[#2A2118] max-w-[460px] mb-9"
           >
-            Every profile here is tied to a real GitHub or LinkedIn account — no anonymous
-            feedback, no bots. Post what you're building across nine disciplines, from model
-            rockets to bridges, and track every competition deadline in your field.
+            Every profile here is tied to a real GitHub account — no anonymous feedback, no
+            bots. Post what you're building across nine disciplines, from model rockets to
+            bridges, and track every competition deadline in your field.
           </motion.p>
 
           {/* CTA buttons */}
