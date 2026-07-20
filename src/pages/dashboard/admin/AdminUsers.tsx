@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Chip } from '@/components/ui/chip'
+import { errorMessage } from '@/lib/utils'
 import * as adminApi from '@/lib/api/admin'
 import type { AdminProfileRow } from '@/lib/api/admin'
 
@@ -14,7 +15,7 @@ export function AdminUsers() {
     adminApi
       .fetchAllProfiles()
       .then((r) => !cancelled && setRows(r))
-      .catch((err) => !cancelled && setLoadError(err instanceof Error ? err.message : 'Failed to load users.'))
+      .catch((err) => !cancelled && setLoadError(errorMessage(err, 'Failed to load users.')))
       .finally(() => !cancelled && setLoading(false))
     return () => {
       cancelled = true

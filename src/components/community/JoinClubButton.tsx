@@ -2,6 +2,7 @@ import * as React from 'react'
 import type { Discipline } from '@/lib/community-data'
 import { useJoinedClubs } from '@/lib/clubs-context'
 import { Button } from '@/components/ui/button'
+import { errorMessage } from '@/lib/utils'
 
 // Join is one click (reversible, low-stakes). Leave confirms inline — it
 // doesn't destroy anything, but it silently empties JoinedClubs/PeerActivity
@@ -25,7 +26,7 @@ export function JoinClubButton({ discipline }: { discipline: Discipline }) {
     try {
       await join(discipline)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't join.")
+      setError(errorMessage(err, "Couldn't join."))
     } finally {
       setPending(false)
     }
@@ -40,7 +41,7 @@ export function JoinClubButton({ discipline }: { discipline: Discipline }) {
       await leave(discipline)
       setConfirming(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't leave.")
+      setError(errorMessage(err, "Couldn't leave."))
     } finally {
       setPending(false)
     }

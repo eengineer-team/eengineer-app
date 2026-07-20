@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
+import { errorDetail, errorMessage } from '@/lib/utils'
 import * as adminApi from '@/lib/api/admin'
 import type { AdminRoleRow } from '@/lib/api/admin'
 import type { Role } from '@/lib/auth-context'
@@ -32,7 +33,7 @@ export function AdminRoles() {
       setRows(roles.filter((r) => r.role !== 'super-admin').sort((a, b) => a.displayName.localeCompare(b.displayName)))
       setMyId(uid)
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'Failed to load roles.')
+      setLoadError(errorMessage(err, 'Failed to load roles.'))
     } finally {
       setLoading(false)
     }
@@ -57,7 +58,8 @@ export function AdminRoles() {
       setNotice(`${pending.row.displayName}'s role was updated. They must sign out and back in for it to take effect.`)
       await refresh()
     } catch (err) {
-      setActionError(err instanceof Error ? `Couldn't update role: ${err.message}` : "Couldn't update role.")
+      const detail = errorDetail(err)
+      setActionError(detail ? `Couldn't update role: ${detail}` : "Couldn't update role.")
     }
   }
 

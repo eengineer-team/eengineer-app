@@ -14,7 +14,7 @@ import { Chip } from '@/components/ui/chip'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { cn } from '@/lib/utils'
+import { cn, errorDetail } from '@/lib/utils'
 import { ProjectFeedbackDialog } from '@/components/projects/ProjectFeedbackDialog'
 
 const PROJECT_KINDS: ProjectKind[] = ['telegram', 'website', 'other']
@@ -146,7 +146,8 @@ export function ProjectDetail() {
       .catch((err) => {
         setDeleting(false)
         setShowDeleteConfirm(false)
-        setDeleteError(err instanceof Error ? `Couldn't delete: ${err.message}` : "Couldn't delete this project.")
+        const detail = errorDetail(err)
+        setDeleteError(detail ? `Couldn't delete: ${detail}` : "Couldn't delete this project.")
       })
   }
 

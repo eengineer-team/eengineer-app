@@ -9,7 +9,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Chip } from '@/components/ui/chip'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { cn, errorMessage } from '@/lib/utils'
 import { SkillBar } from '@/components/profile/SkillBar'
 import { EndorseDialog } from '@/components/profile/EndorseDialog'
 import { useMorphOnChange } from '@/lib/use-morph-on-change'
@@ -51,7 +51,7 @@ export function ProfileDetail() {
       await startConversation(profile.id)
       navigate('/dashboard/messages')
     } catch (err) {
-      setMessageError(err instanceof Error ? err.message : "Couldn't start that conversation.")
+      setMessageError(errorMessage(err, "Couldn't start that conversation."))
     }
   }
 

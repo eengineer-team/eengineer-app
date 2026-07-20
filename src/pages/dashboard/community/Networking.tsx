@@ -8,6 +8,7 @@ import { LabelCaps } from '@/components/ui/label-caps'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { supabase } from '@/lib/supabase'
 import * as api from '@/lib/api/community'
+import { errorDetail } from '@/lib/utils'
 
 // `discipline` scopes the feed to one group's members (Community hub → group
 // space); omit for a global "Networking" view. Introductions are posted
@@ -82,7 +83,8 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
     setIntros((prev) => prev.filter((i) => i.id !== mine.id))
     api.deleteIntroduction(mine.id).catch((err) => {
       setIntros(previous)
-      setDeleteError(err instanceof Error ? `Couldn't delete: ${err.message}` : "Couldn't delete your introduction.")
+      const detail = errorDetail(err)
+      setDeleteError(detail ? `Couldn't delete: ${detail}` : "Couldn't delete your introduction.")
     })
   }
 

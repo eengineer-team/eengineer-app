@@ -7,6 +7,7 @@ import { useCurrentActivity } from '@/lib/current-activity-context'
 import { ME_ID } from '@/lib/profile-data'
 import { readFileAsAttachment, type Attachment } from '@/lib/attachments'
 import { formatRelativeTime } from '@/lib/api/community'
+import { errorMessage } from '@/lib/utils'
 import { Avatar } from '@/components/ui/avatar'
 import { Chip } from '@/components/ui/chip'
 import { Button } from '@/components/ui/button'
@@ -58,13 +59,13 @@ export function ProjectsHub() {
     post(me.discipline, text, attachment).catch((err: unknown) => {
       setDraft(text)
       setPendingAttachment(attachment ?? null)
-      setPostError(err instanceof Error ? err.message : "Couldn't post that update.")
+      setPostError(errorMessage(err, "Couldn't post that update."))
     })
   }
 
   function handleRemove(id: string) {
     remove(id).catch((err: unknown) => {
-      setPostError(err instanceof Error ? err.message : "Couldn't remove that update.")
+      setPostError(errorMessage(err, "Couldn't remove that update."))
     })
   }
 

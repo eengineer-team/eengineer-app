@@ -34,6 +34,22 @@ const TARGET_AUTHOR_COL: Record<ModerationTargetType, string> = {
   activity_update: 'author_id',
 }
 
+// PostgREST needs an explicit constraint name whenever more than one FK path
+// connects a table to `profiles`. `questions` has both the direct
+// questions_author_id_fkey AND a many-to-many path through question_votes
+// (question_votes_question_id_fkey + question_votes_user_id_fkey -> profiles),
+// so a bare `profiles!inner` there throws PGRST201 ("more than one
+// relationship was found") — confirmed live against the REST endpoint. The
+// other tables have no such junction table to profiles, so the generic form
+// is unambiguous and left as-is.
+const TARGET_PROFILES_EMBED: Record<ModerationTargetType, string> = {
+  question: 'profiles!questions_author_id_fkey',
+  question_comment: 'profiles',
+  introduction: 'profiles',
+  discussion_post: 'profiles',
+  activity_update: 'profiles',
+}
+
 export interface ReportRow {
   id: string
   reporterId: string
@@ -99,9 +115,10 @@ export async function resolveTargetContent(targetType: string, targetId: string)
   const table = TARGET_TABLES[targetType as ModerationTargetType]
   if (!table) return { exists: false, text: '', authorId: '', authorName: '' }
   const authorCol = TARGET_AUTHOR_COL[targetType as ModerationTargetType]
+  const profilesEmbed = TARGET_PROFILES_EMBED[targetType as ModerationTargetType]
   const { data, error } = await supabase
     .from(table)
-    .select(`text, ${authorCol}, profiles!inner ( display_name )`)
+    .select(`text, ${authorCol}, ${profilesEmbed}!inner ( display_name )`)
     .eq('id', targetId)
     .maybeSingle()
   if (error) throw error

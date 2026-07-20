@@ -7,6 +7,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { supabase } from '@/lib/supabase'
 import * as api from '@/lib/api/community'
+import { errorDetail } from '@/lib/utils'
 
 // Per-discipline discussion feed — a lightweight, running thread scoped to
 // one discipline's Community group ("Discussion" tab in CommunityGroup.tsx),
@@ -76,7 +77,8 @@ export function Discussion({ discipline }: { discipline?: Discipline } = {}) {
     setPosts((prev) => prev.filter((p) => p.id !== id))
     api.deleteDiscussionPost(id).catch((err) => {
       setPosts(previous)
-      setDeleteError(err instanceof Error ? `Couldn't delete: ${err.message}` : "Couldn't delete that post.")
+      const detail = errorDetail(err)
+      setDeleteError(detail ? `Couldn't delete: ${detail}` : "Couldn't delete that post.")
     })
   }
 

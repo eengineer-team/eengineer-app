@@ -7,7 +7,7 @@ import { useMessages } from '@/lib/messages-context'
 import { Avatar } from '@/components/ui/avatar'
 import { Chip } from '@/components/ui/chip'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { cn, errorMessage } from '@/lib/utils'
 import { useMorphOnChange } from '@/lib/use-morph-on-change'
 
 // Compact profile preview for hover/click contexts (DM header, message
@@ -51,7 +51,7 @@ export function ProfilePreviewPopover({
       await startConversation(profileId)
       navigate('/dashboard/messages')
     } catch (err) {
-      setMessageError(err instanceof Error ? err.message : "Couldn't start that conversation.")
+      setMessageError(errorMessage(err, "Couldn't start that conversation."))
     }
   }
 

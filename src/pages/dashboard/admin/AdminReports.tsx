@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { cn } from '@/lib/utils'
+import { cn, errorDetail, errorMessage } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
 import { formatRelativeTime } from '@/lib/api/community'
@@ -44,7 +44,7 @@ export function AdminReports() {
       )
       setContentByReport(Object.fromEntries(contentEntries))
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'Failed to load the report queue.')
+      setLoadError(errorMessage(err, 'Failed to load the report queue.'))
     } finally {
       setLoading(false)
     }
@@ -69,7 +69,8 @@ export function AdminReports() {
       setDialog(null)
       await refresh(status)
     } catch (err) {
-      setActionError(err instanceof Error ? `Couldn't remove that content: ${err.message}` : "Couldn't remove that content.")
+      const detail = errorDetail(err)
+      setActionError(detail ? `Couldn't remove that content: ${detail}` : "Couldn't remove that content.")
     }
   }
 
@@ -82,7 +83,8 @@ export function AdminReports() {
       setDialog(null)
       await refresh(status)
     } catch (err) {
-      setActionError(err instanceof Error ? `Couldn't dismiss that report: ${err.message}` : "Couldn't dismiss that report.")
+      const detail = errorDetail(err)
+      setActionError(detail ? `Couldn't dismiss that report: ${detail}` : "Couldn't dismiss that report.")
     }
   }
 

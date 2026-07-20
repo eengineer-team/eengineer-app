@@ -9,7 +9,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { ProfilePreviewPopover } from '@/components/profile/ProfilePreviewPopover'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { cn } from '@/lib/utils'
+import { cn, errorDetail } from '@/lib/utils'
 
 // Bare-minimum URL sniff -- good enough to tell "this looks like a link" from
 // plain text without pulling in a validation library.
@@ -116,7 +116,8 @@ export function Messages() {
       // Put the draft back rather than silently eating what they typed.
       setDraft(savedDraft)
       setPendingAttachment(savedAttachment)
-      setSendError(err instanceof Error ? `Couldn't send: ${err.message}` : "Couldn't send that message.")
+      const detail = errorDetail(err)
+      setSendError(detail ? `Couldn't send: ${detail}` : "Couldn't send that message.")
     }
   }
 
@@ -144,7 +145,8 @@ export function Messages() {
     try {
       await deleteMessage(id)
     } catch (err) {
-      setSendError(err instanceof Error ? `Couldn't delete: ${err.message}` : "Couldn't delete that message.")
+      const detail = errorDetail(err)
+      setSendError(detail ? `Couldn't delete: ${detail}` : "Couldn't delete that message.")
     }
   }
 
@@ -155,7 +157,7 @@ export function Messages() {
     try {
       await blockUser(active.otherParticipantId)
     } catch (err) {
-      setBlockError(err instanceof Error ? err.message : "Couldn't block that person.")
+      setBlockError(errorMessage(err, "Couldn't block that person."))
     }
   }
 
@@ -165,7 +167,7 @@ export function Messages() {
     try {
       await unblockUser(active.otherParticipantId)
     } catch (err) {
-      setBlockError(err instanceof Error ? err.message : "Couldn't unblock that person.")
+      setBlockError(errorMessage(err, "Couldn't unblock that person."))
     }
   }
 

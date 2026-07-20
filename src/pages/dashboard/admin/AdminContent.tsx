@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { cn } from '@/lib/utils'
+import { cn, errorDetail, errorMessage } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import { ReasonDialog } from '@/components/admin/ReasonDialog'
@@ -32,7 +32,7 @@ export function AdminContent() {
     try {
       setRows(await adminApi.fetchContent(t, d ?? undefined))
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'Failed to load content.')
+      setLoadError(errorMessage(err, 'Failed to load content.'))
     } finally {
       setLoading(false)
     }
@@ -51,7 +51,8 @@ export function AdminContent() {
       setTarget(null)
       await refresh(targetType, discipline)
     } catch (err) {
-      setActionError(err instanceof Error ? `Couldn't remove that content: ${err.message}` : "Couldn't remove that content.")
+      const detail = errorDetail(err)
+      setActionError(detail ? `Couldn't remove that content: ${detail}` : "Couldn't remove that content.")
     }
   }
 

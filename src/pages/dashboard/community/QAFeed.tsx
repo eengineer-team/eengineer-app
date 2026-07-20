@@ -5,6 +5,7 @@ import { textSimilarity, DUPLICATE_THRESHOLD } from '@/lib/similarity'
 import { QuestionCard } from '@/components/community/QuestionCard'
 import { supabase } from '@/lib/supabase'
 import * as api from '@/lib/api/community'
+import { errorDetail } from '@/lib/utils'
 
 // Telegram-groupchat-style feed (per founder feedback) — continuous message
 // list with a persistent composer at the bottom. Live-backed by Supabase:
@@ -144,7 +145,8 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
     setQuestions((prev) => prev.filter((q) => q.id !== id))
     api.deleteQuestion(id).catch((err) => {
       setQuestions(previous)
-      setDeleteError(err instanceof Error ? `Couldn't delete: ${err.message}` : "Couldn't delete that message.")
+      const detail = errorDetail(err)
+      setDeleteError(detail ? `Couldn't delete: ${detail}` : "Couldn't delete that message.")
     })
   }
 
@@ -156,7 +158,8 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
     )
     api.deleteQuestionComment(id).catch((err) => {
       setQuestions(previous)
-      setDeleteError(err instanceof Error ? `Couldn't delete: ${err.message}` : "Couldn't delete that reply.")
+      const detail = errorDetail(err)
+      setDeleteError(detail ? `Couldn't delete: ${detail}` : "Couldn't delete that reply.")
     })
   }
 
@@ -199,7 +202,8 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
       console.error('Post failed', err)
       // Put the draft back rather than silently eating what they typed.
       setDraft(text)
-      setPostError(err instanceof Error ? `Couldn't post: ${err.message}` : "Couldn't post your message.")
+      const detail = errorDetail(err)
+      setPostError(detail ? `Couldn't post: ${detail}` : "Couldn't post your message.")
       void refresh()
     })
   }
