@@ -1,11 +1,12 @@
 import * as React from 'react'
 import { Link } from 'react-router-dom'
-import { Users, Rocket, Paperclip, FileText, X, Radio } from 'lucide-react'
+import { Users, Rocket, Paperclip, FileText, X, Radio, Trash2 } from 'lucide-react'
 import { useProjects } from '@/lib/projects-context'
 import { useProfiles } from '@/lib/profiles-context'
 import { useCurrentActivity } from '@/lib/current-activity-context'
 import { ME_ID } from '@/lib/profile-data'
 import { readFileAsAttachment, type Attachment } from '@/lib/attachments'
+import { formatRelativeTime } from '@/lib/api/community'
 import { Avatar } from '@/components/ui/avatar'
 import { Chip } from '@/components/ui/chip'
 import { Button } from '@/components/ui/button'
@@ -33,7 +34,7 @@ function renderActivityAttachment(attachment: Attachment) {
 export function ProjectsHub() {
   const { projects } = useProjects()
   const { getProfile } = useProfiles()
-  const { activity, post } = useCurrentActivity()
+  const { activity, post, remove } = useCurrentActivity()
 
   const myProject = projects.find((p) => p.ownerId === ME_ID)
   const hasMyProject = !!myProject?.name.trim()
@@ -41,13 +42,30 @@ export function ProjectsHub() {
 
   const [draft, setDraft] = React.useState('')
   const [pendingAttachment, setPendingAttachment] = React.useState<Attachment | null>(null)
+  const [postError, setPostError] = React.useState<string | null>(null)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   function submitActivity() {
     if (!me) return
-    post(me.name, me.discipline, draft, pendingAttachment ?? undefined)
+    setPostError(null)
+    const text = draft
+    const attachment = pendingAttachment ?? undefined
+    // Clear the composer optimistically, but put it back on failure rather
+    // than silently eating what was typed — the same lesson QAFeed's send()
+    // learned the hard way.
     setDraft('')
     setPendingAttachment(null)
+    post(me.discipline, text, attachment).catch((err: unknown) => {
+      setDraft(text)
+      setPendingAttachment(attachment ?? null)
+      setPostError(err instanceof Error ? err.message : "Couldn't post that update.")
+    })
+  }
+
+  function handleRemove(id: string) {
+    remove(id).catch((err: unknown) => {
+      setPostError(err instanceof Error ? err.message : "Couldn't remove that update.")
+    })
   }
 
   function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
@@ -136,20 +154,37 @@ export function ProjectsHub() {
           </div>
         </div>
 
+        {postError && (
+          <p className="font-sans text-[0.8125rem] text-red-400 mb-3" role="alert">
+            {postError}
+          </p>
+        )}
+
         {activity.length === 0 ? (
           <p className="font-sans text-[0.8125rem] text-dark-muted">No updates yet — be the first to share.</p>
         ) : (
           <div className="flex flex-col gap-3">
             {activity.map((a) => (
               <div key={a.id} className="bg-white/[0.03] border border-white/8 rounded-lg p-4 flex gap-3">
-                <Avatar name={a.name} size="md" theme="dashboard" />
+                <Avatar name={a.authorName} size="md" theme="dashboard" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-sans text-[0.875rem] font-semibold text-dark-text truncate">{a.name}</span>
+                      <span className="font-sans text-[0.875rem] font-semibold text-dark-text truncate">{a.authorName}</span>
                       <Chip theme="dashboard" discipline={a.discipline}>{a.discipline}</Chip>
                     </div>
-                    <span className="font-sans text-[12px] text-dark-muted flex-shrink-0">{a.time}</span>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="font-sans text-[12px] text-dark-muted">{formatRelativeTime(a.createdAt)}</span>
+                      {a.authorId === ME_ID && (
+                        <button
+                          onClick={() => handleRemove(a.id)}
+                          aria-label="Delete this update"
+                          className="min-w-[28px] min-h-[28px] flex items-center justify-center rounded text-dark-muted hover:text-red-400 transition-colors"
+                        >
+                          <Trash2 size={13} strokeWidth={1.8} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <p className="font-sans text-[0.8125rem] text-dark-text leading-snug">{a.text}</p>
                   {a.attachment && renderActivityAttachment(a.attachment)}

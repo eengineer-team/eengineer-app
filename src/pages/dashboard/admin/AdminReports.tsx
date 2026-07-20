@@ -21,6 +21,7 @@ const TARGET_LABEL: Record<string, string> = {
   question_comment: 'Comment',
   introduction: 'Introduction',
   discussion_post: 'Discussion post',
+  activity_update: 'Activity update',
 }
 
 export function AdminReports() {

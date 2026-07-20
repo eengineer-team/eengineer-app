@@ -8,15 +8,21 @@ import type { Role } from '@/lib/auth-context'
 // authorization. Every destructive action takes a reason and writes a
 // moderation_actions row; there is no code path that skips the log.
 
-export type ModerationTargetType = 'question' | 'question_comment' | 'introduction' | 'discussion_post'
+export type ModerationTargetType =
+  | 'question'
+  | 'question_comment'
+  | 'introduction'
+  | 'discussion_post'
+  | 'activity_update'
 
-type ContentTableName = 'questions' | 'question_comments' | 'introductions' | 'discussion_posts'
+type ContentTableName = 'questions' | 'question_comments' | 'introductions' | 'discussion_posts' | 'activity_updates'
 
 const TARGET_TABLES: Record<ModerationTargetType, ContentTableName> = {
   question: 'questions',
   question_comment: 'question_comments',
   introduction: 'introductions',
   discussion_post: 'discussion_posts',
+  activity_update: 'activity_updates',
 }
 
 // author_id column differs per table.
@@ -25,6 +31,7 @@ const TARGET_AUTHOR_COL: Record<ModerationTargetType, string> = {
   question_comment: 'author_id',
   introduction: 'profile_id',
   discussion_post: 'profile_id',
+  activity_update: 'author_id',
 }
 
 export interface ReportRow {
@@ -199,6 +206,7 @@ const CONTENT_SELECT: Record<ModerationTargetType, string> = {
   question_comment: `id, text, author_id, created_at, profiles!question_comments_author_id_fkey ( display_name ), questions ( discipline )`,
   introduction: `id, discipline, text, profile_id, created_at, profiles ( display_name )`,
   discussion_post: `id, discipline, text, profile_id, created_at, profiles ( display_name )`,
+  activity_update: `id, discipline, text, author_id, created_at, profiles!activity_updates_author_id_fkey ( display_name )`,
 }
 
 export async function fetchContent(targetType: ModerationTargetType, discipline?: Discipline): Promise<ContentRow[]> {

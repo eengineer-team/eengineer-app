@@ -14,6 +14,7 @@ const TYPE_TABS: { value: ModerationTargetType; label: string }[] = [
   { value: 'question_comment', label: 'Comments' },
   { value: 'introduction', label: 'Introductions' },
   { value: 'discussion_post', label: 'Discussion posts' },
+  { value: 'activity_update', label: 'Activity updates' },
 ]
 
 export function AdminContent() {

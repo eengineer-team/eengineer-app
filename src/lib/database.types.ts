@@ -254,6 +254,77 @@ export type Database = {
           },
         ]
       }
+      activity_updates: {
+        Row: {
+          attachment_kind: string | null
+          attachment_name: string | null
+          attachment_url: string | null
+          author_id: string
+          created_at: string
+          discipline:
+            | "Aerospace"
+            | "Mechanical"
+            | "Electrical"
+            | "Software"
+            | "Civil"
+            | "Chemical"
+            | "Biomedical"
+            | "Materials"
+            | "Environmental"
+            | "Other"
+          id: string
+          text: string
+        }
+        Insert: {
+          attachment_kind?: string | null
+          attachment_name?: string | null
+          attachment_url?: string | null
+          author_id: string
+          created_at?: string
+          discipline:
+            | "Aerospace"
+            | "Mechanical"
+            | "Electrical"
+            | "Software"
+            | "Civil"
+            | "Chemical"
+            | "Biomedical"
+            | "Materials"
+            | "Environmental"
+            | "Other"
+          id?: string
+          text?: string
+        }
+        Update: {
+          attachment_kind?: string | null
+          attachment_name?: string | null
+          attachment_url?: string | null
+          author_id?: string
+          created_at?: string
+          discipline?:
+            | "Aerospace"
+            | "Mechanical"
+            | "Electrical"
+            | "Software"
+            | "Civil"
+            | "Chemical"
+            | "Biomedical"
+            | "Materials"
+            | "Environmental"
+            | "Other"
+          id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_updates_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       discussion_posts: {
         Row: {
           attachment_kind: string | null
