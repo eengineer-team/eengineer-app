@@ -6,6 +6,7 @@ import { ME_ID } from '@/lib/profile-data'
 import { DashboardBoot } from '@/components/DashboardBoot'
 import { Sidebar } from '@/components/dashboard/Sidebar'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
+import { DashboardErrorBoundary } from '@/components/dashboard/DashboardErrorBoundary'
 
 function displayName(user: NonNullable<ReturnType<typeof useAuth>['user']>) {
   return user.status === 'builder' ? firstNameOf(user.name) : 'Preview'
@@ -50,7 +51,9 @@ export function Dashboard() {
 
       <div className="flex-1 flex flex-col min-w-0">
         <DashboardHeader name={displayName(user)} onMenuClick={() => setMobileNavOpen(true)} />
-        <Outlet />
+        <DashboardErrorBoundary>
+          <Outlet />
+        </DashboardErrorBoundary>
       </div>
     </div>
   )
