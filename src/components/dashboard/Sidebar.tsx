@@ -79,7 +79,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         {/* Brand + desktop collapse toggle share one row — no dead space above Home */}
         <div className={cn('flex items-center justify-between mb-6', collapsed && 'md:flex-col md:justify-center md:gap-2')}>
           <Link
-            to="/"
+            to="/dashboard"
             className={cn('flex items-center group', collapsed ? 'md:px-0' : 'px-2')}
           >
             <Wordmark

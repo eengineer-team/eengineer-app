@@ -1375,6 +1375,30 @@ export type Database = {
           },
         ]
       }
+      waitlist_signups: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          organization: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          organization: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          organization?: string
+        }
+        Relationships: []
+      }
       skills: {
         Row: {
           id: string

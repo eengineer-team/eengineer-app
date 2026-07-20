@@ -17,7 +17,7 @@ export function LegalDocument({
   return (
     <div className="min-h-screen bg-corn-100 flex flex-col">
       <header className="flex items-center justify-between px-10 pt-8">
-        <Link to="/" className="flex items-center group">
+        <Link to="/home" className="flex items-center group">
           <Wordmark variant="light" className="transition-opacity group-hover:opacity-70" />
         </Link>
         <SettingsMenu />
@@ -25,7 +25,7 @@ export function LegalDocument({
 
       <div className="px-10 pt-7">
         <Link
-          to="/"
+          to="/home"
           className="inline-flex items-center gap-1.5 font-sans text-[0.8125rem] text-corn-700 hover:text-[#2A2118] transition-colors"
         >
           <ArrowLeft size={13} strokeWidth={2} />

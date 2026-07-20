@@ -10,6 +10,7 @@ import { ClubsProvider } from '@/lib/clubs-context'
 import { CompetitionsProvider } from '@/lib/competitions-context'
 import { OpportunitiesProvider } from '@/lib/opportunities-context'
 import { Welcome } from '@/pages/Welcome'
+import { Waitlist } from '@/pages/Waitlist'
 import { Auth } from '@/pages/Auth'
 import { Onboarding } from '@/pages/Onboarding'
 import { Help } from '@/pages/Help'
@@ -60,7 +61,12 @@ export default function App() {
           <OpportunitiesProvider>
           <BrowserRouter>
             <Routes>
-              <Route path="/"     element={<Welcome />} />
+              {/* "/" is the waitlist interstitial (2026-07 launch decision) --
+                  the real marketing landing moved to /home. Not a hard gate:
+                  the waitlist screen always links straight through to /home
+                  for anyone who already knows they want to sign up or log in. */}
+              <Route path="/"     element={<Waitlist />} />
+              <Route path="/home" element={<Welcome />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/help" element={<Help />} />

@@ -47,7 +47,7 @@ export function Auth() {
       {/* Header — same pattern as Welcome/Help */}
       <header className="flex items-center justify-between px-10 pt-8">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-          <Link to="/" className="flex items-center group">
+          <Link to="/home" className="flex items-center group">
             <Wordmark variant="light" className="transition-opacity group-hover:opacity-70" />
           </Link>
         </motion.div>
@@ -65,7 +65,7 @@ export function Auth() {
         className="px-10 pt-7"
       >
         <Link
-          to="/"
+          to="/home"
           className="inline-flex items-center gap-1.5 font-sans text-[0.8125rem] text-corn-700 hover:text-[#2A2118] transition-colors"
         >
           <ArrowLeft size={13} strokeWidth={2} />
