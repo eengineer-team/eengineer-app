@@ -97,6 +97,13 @@ export async function fetchAllMessages(uid: string, conversationIds: string[]): 
 // Reuses an existing conversation between the pair if one exists in either
 // column order (participant_a/participant_b is not canonical) — never
 // creates a duplicate thread for the same two people.
+//
+// The table has `check (participant_a < participant_b)` — verified live: an
+// insert with participant_a = the calling user's uid fails that check
+// whenever the caller's uuid happens to be the larger of the two, which is a
+// coin flip independent of who clicked "Message" first. Sorting the pair
+// before insert (rather than assuming participant_a = uid) is required, not
+// a style choice.
 export async function findOrCreateConversation(uid: string, otherId: string): Promise<string> {
   const { data: existing, error: findError } = await supabase
     .from('conversations')
@@ -106,9 +113,10 @@ export async function findOrCreateConversation(uid: string, otherId: string): Pr
   if (findError) throw findError
   if (existing) return existing.id
 
+  const [participantA, participantB] = uid < otherId ? [uid, otherId] : [otherId, uid]
   const { data: created, error: insertError } = await supabase
     .from('conversations')
-    .insert({ participant_a: uid, participant_b: otherId })
+    .insert({ participant_a: participantA, participant_b: participantB })
     .select('id')
     .single()
   if (insertError) throw insertError
