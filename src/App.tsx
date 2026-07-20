@@ -21,7 +21,7 @@ import { CommunityGroup } from '@/pages/dashboard/community/CommunityGroup'
 import { Opportunities } from '@/pages/dashboard/Opportunities'
 import { ProjectsHub } from '@/pages/dashboard/projects/ProjectsHub'
 import { ProjectDetail } from '@/pages/dashboard/projects/ProjectDetail'
-import { ME_PROJECT_ID } from '@/lib/projects-data'
+import { MyProjectRedirect } from '@/pages/dashboard/projects/MyProjectRedirect'
 import { ProfilesLayout } from '@/pages/dashboard/profiles/ProfilesLayout'
 import { ProfilesList } from '@/pages/dashboard/profiles/ProfilesList'
 import { ProfileDetail } from '@/pages/dashboard/profiles/ProfileDetail'
@@ -87,11 +87,11 @@ export default function App() {
                 />
                 {/* Stable "My Project" nav target — mirrors ProfileDetail's
                     isOwn branching (one component handles both edit + view)
-                    rather than a separate editor component/route. */}
-                <Route
-                  path="projects/mine"
-                  element={<Navigate to={`/dashboard/projects/${ME_PROJECT_ID}`} replace />}
-                />
+                    rather than a separate editor component/route. Resolves
+                    to the Builder's real project id at navigation time
+                    (MyProjectRedirect) rather than a hardcoded id, since
+                    every Builder's project id is a live-generated UUID. */}
+                <Route path="projects/mine" element={<MyProjectRedirect />} />
                 <Route
                   path="projects/:id"
                   element={<RequireAction action="projects:view"><ProjectDetail /></RequireAction>}

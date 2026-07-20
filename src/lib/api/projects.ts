@@ -60,10 +60,21 @@ export async function currentUid(): Promise<string | null> {
 // Every Builder gets a project row lazily, on first read — there's no
 // signup-time trigger for `projects` the way there is for `profiles`. Keeps
 // the "always exactly one project per Builder" guarantee the mock data had.
+//
+// This must be a single atomic upsert, not a select-then-insert: two calls
+// racing (double effect invocation, multiple tabs, a fast remount) could
+// each see "no row yet" and each insert one. That race actually happened —
+// it silently produced dozens of duplicate empty rows per Builder before the
+// unique constraint on owner_id existed (see migration
+// 20260720150000_projects_owner_unique.sql), and once a Builder had more
+// than one row, fetchProjects()'s .maybeSingle() started throwing on every
+// load, taking down the whole Projects Hub for that account. onConflict +
+// ignoreDuplicates relies on the DB constraint to make concurrent calls a
+// no-op instead of a duplicate.
 async function ensureMyProject(uid: string): Promise<void> {
-  const { data } = await supabase.from('projects').select('id').eq('owner_id', uid).maybeSingle()
-  if (data) return
-  const { error } = await supabase.from('projects').insert({ owner_id: uid })
+  const { error } = await supabase
+    .from('projects')
+    .upsert({ owner_id: uid }, { onConflict: 'owner_id', ignoreDuplicates: true })
   if (error) throw error
 }
 
