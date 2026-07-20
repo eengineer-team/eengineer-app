@@ -22,6 +22,10 @@ import { cn } from '@/lib/utils'
 // spec this is a mock/demo product with no real backend yet, so forcing
 // completion would just create a dead end for anyone who doesn't want to
 // fill it in right now.
+// Hard floor for an account. eengineer is stated as a 13–18 platform, and
+// under-13 sign-ups are refused rather than routed through parental consent.
+const MINIMUM_AGE = 13
+
 // Whole-years age as of today from a "YYYY-MM-DD" birthdate string.
 function ageFromBirthdate(birthdate: string): number | null {
   const parsed = new Date(birthdate)
@@ -73,9 +77,19 @@ export function Onboarding() {
   const [guardianConsentChecked, setGuardianConsentChecked] = React.useState(false)
 
   const age = birthdate ? ageFromBirthdate(birthdate) : null
-  const isMinor = age !== null && age < 18
-  const hasValidBirthdate = birthdate.trim() !== '' && age !== null
-  const canProceed = hasValidBirthdate && (!isMinor || (guardianConsentChecked && guardianEmail.trim() !== ''))
+  // A date in the future or an implausible one is a typo, not an age — treat it
+  // as "not filled in yet" rather than silently computing a negative age.
+  const hasValidBirthdate = birthdate.trim() !== '' && age !== null && age >= 0 && age < 120
+  // Below this we refuse the account outright. The platform is stated as 13–18,
+  // and guardian consent is NOT an escape hatch for under-13: taking a younger
+  // child's data on a parent's say-so is exactly what child-privacy rules exist
+  // to prevent, so this must be checked before the consent branch, not after.
+  const isUnderMinimumAge = hasValidBirthdate && age < MINIMUM_AGE
+  const isMinor = hasValidBirthdate && age >= MINIMUM_AGE && age < 18
+  const canProceed =
+    hasValidBirthdate &&
+    !isUnderMinimumAge &&
+    (!isMinor || (guardianConsentChecked && guardianEmail.trim() !== ''))
 
   // Only a freshly-signed-in Builder should land here — anyone else (no
   // session, or a stateless Google preview) has no ME profile to write into.
@@ -163,15 +177,30 @@ export function Onboarding() {
               max={new Date().toISOString().slice(0, 10)}
               className={inputClass}
             />
-            {birthdate.trim() !== '' && age === null && (
+            {birthdate.trim() !== '' && !hasValidBirthdate && (
               <p className="font-sans text-[12px] text-red-600 mt-1.5">That doesn't look like a valid date.</p>
+            )}
+
+            {isUnderMinimumAge && (
+              <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4" role="alert">
+                <p className="font-sans text-[0.8125rem] leading-[1.55] text-[#2A2118]">
+                  You need to be at least {MINIMUM_AGE} to have an eengineer account, so we can't set
+                  one up for you yet — and a parent's permission can't change that. Come back when
+                  you turn {MINIMUM_AGE}; the engineering will still be here.
+                </p>
+              </div>
             )}
 
             {isMinor && (
               <div className="mt-4 bg-corn-900/5 border border-corn-900/15 rounded-lg p-4">
+                {/* Wording deliberately describes what actually happens today: we
+                    record the address, we do not yet email it. Claiming the
+                    guardian "confirmed" anything would be untrue until the
+                    verification email in FINISH.md is built. */}
                 <p className="font-sans text-[0.8125rem] leading-[1.55] text-[#2A2118] mb-3">
-                  Since you're under 18, we need a parent or legal guardian's email confirming they're
-                  aware of and okay with you using eengineer, before you can continue.
+                  Since you're under 18, we need a parent or legal guardian's email address, and your
+                  confirmation that they know you're here. We store the address so we can contact them
+                  about your account.
                 </p>
                 <input
                   value={guardianEmail}
