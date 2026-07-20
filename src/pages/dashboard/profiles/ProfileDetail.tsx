@@ -1,8 +1,9 @@
 import * as React from 'react'
-import { useParams, Link, Navigate } from 'react-router-dom'
-import { ArrowLeft, Award, Code2, Link as LinkIcon, Users, Check, Briefcase } from 'lucide-react'
+import { useParams, Link, Navigate, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Award, Code2, Link as LinkIcon, Users, Check, Briefcase, MessageSquare } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { useProfiles } from '@/lib/profiles-context'
+import { useMessages } from '@/lib/messages-context'
 import { ME_ID, BACKGROUND_PRESETS } from '@/lib/profile-data'
 import { Avatar } from '@/components/ui/avatar'
 import { Chip } from '@/components/ui/chip'
@@ -26,14 +27,33 @@ export function ProfileDetail() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
   const { getProfile, addEndorsement, toggleConnect, loading } = useProfiles()
+  const { startConversation } = useMessages()
+  const navigate = useNavigate()
 
   const profile = id ? getProfile(id) : undefined
 
   const [endorseTarget, setEndorseTarget] = React.useState<EndorseTarget>(null)
+  const [messageError, setMessageError] = React.useState<string | null>(null)
 
   // Brief pop when Connect actually transitions (none → requested →
   // connected) — never on mount, never on unrelated re-renders.
   const connectMorph = useMorphOnChange(profile?.connectStatus)
+
+  // conv_insert requires app.can_message() (connected + both verified +
+  // neither blocked + both allow_dms) — only reachable from the
+  // "connected, DMs on" branch below, but the RLS denial is still the real
+  // boundary, so a failure here surfaces visibly instead of navigating to a
+  // dead conversation.
+  async function handleMessage() {
+    if (!profile) return
+    setMessageError(null)
+    try {
+      await startConversation(profile.id)
+      navigate('/dashboard/messages')
+    } catch (err) {
+      setMessageError(err instanceof Error ? err.message : "Couldn't start that conversation.")
+    }
+  }
 
   // Wait for the first fetch before deciding this id doesn't exist. Without
   // this, opening or refreshing a profile URL directly bounces straight back
@@ -136,21 +156,46 @@ export function ProfileDetail() {
             )}
           </div>
 
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex flex-col items-end gap-2">
             {profile.connectStatus === 'connected' ? (
-              // Reached achievement, not a blocked action — skip Button's
-              // disabled:opacity-40 styling (same pattern as Network.tsx).
-              <span
-                className={cn(
-                  buttonVariants({ variant: 'done', size: 'sm' }),
-                  'pointer-events-none',
-                  connectMorph && 'animate-pop-in motion-reduce:animate-none'
+              <>
+                {/* Reached achievement, not a blocked action — skip Button's
+                    disabled:opacity-40 styling (same pattern as Network.tsx). */}
+                <span
+                  className={cn(
+                    buttonVariants({ variant: 'done', size: 'sm' }),
+                    'pointer-events-none',
+                    connectMorph && 'animate-pop-in motion-reduce:animate-none'
+                  )}
+                >
+                  <Check size={14} strokeWidth={2.2} />
+                  Connected
+                </span>
+                {/* app.can_message also requires both allow_dms=true — DMs
+                    off is shown instead of a Message button that would 403,
+                    same rule as ProfilePreviewPopover. */}
+                {profile.allowDMs === false ? (
+                  <span
+                    className="flex items-center gap-1.5 font-sans text-[12px] text-dark-muted/70"
+                    title={`${name} has turned off direct messages`}
+                  >
+                    <MessageSquare size={12} strokeWidth={2} />
+                    DMs off
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => void handleMessage()}
+                    className="flex items-center gap-1.5 font-sans text-[12px] font-medium text-gold-dark hover:brightness-110 transition-all"
+                  >
+                    <MessageSquare size={12} strokeWidth={2} />
+                    Message
+                  </button>
                 )}
-              >
-                <Check size={14} strokeWidth={2.2} />
-                Connected
-              </span>
+              </>
             ) : (
+              // Not connected — messaging is deliberately unreachable here.
+              // app.can_message requires app.are_connected(a, b); Connect is
+              // the only path to a Message action, never the other way.
               <Button
                 variant={profile.connectStatus === 'requested' ? 'shell' : 'accent'}
                 size="sm"
@@ -159,6 +204,11 @@ export function ProfileDetail() {
               >
                 {profile.connectStatus === 'requested' ? 'Requested' : 'Connect'}
               </Button>
+            )}
+            {messageError && (
+              <p className="font-sans text-[11px] text-red-400 text-right" role="alert">
+                {messageError}
+              </p>
             )}
           </div>
         </div>

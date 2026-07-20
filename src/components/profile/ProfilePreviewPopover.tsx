@@ -1,7 +1,9 @@
+import * as React from 'react'
 import { createPortal } from 'react-dom'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { X, Code2, Link as LinkIcon, Users, MessageSquare } from 'lucide-react'
 import { useProfiles } from '@/lib/profiles-context'
+import { useMessages } from '@/lib/messages-context'
 import { Avatar } from '@/components/ui/avatar'
 import { Chip } from '@/components/ui/chip'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -29,11 +31,29 @@ export function ProfilePreviewPopover({
   fixedPosition?: { top: number; left: number }
 }) {
   const { getProfile, toggleConnect } = useProfiles()
+  const { startConversation } = useMessages()
+  const navigate = useNavigate()
   const profile = getProfile(profileId)
   // Brief pop when Connect actually transitions — never on mount.
   const connectMorph = useMorphOnChange(profile?.connectStatus)
+  const [messageError, setMessageError] = React.useState<string | null>(null)
 
   if (!profile) return null
+
+  // conv_insert requires app.can_message() (connected + both verified +
+  // neither blocked + both allow_dms) — this only ever gets called from the
+  // "connected, DMs on" branch below, but the RLS denial is still the real
+  // boundary, so a failure here surfaces visibly rather than navigating to a
+  // dead conversation.
+  async function handleMessage() {
+    setMessageError(null)
+    try {
+      await startConversation(profileId)
+      navigate('/dashboard/messages')
+    } catch (err) {
+      setMessageError(err instanceof Error ? err.message : "Couldn't start that conversation.")
+    }
+  }
 
   const content = (
     <div
@@ -108,8 +128,10 @@ export function ProfilePreviewPopover({
         </Link>
         {profile.connectStatus === 'connected' ? (
           profile.allowDMs === false ? (
-            // Turned off in their Settings — show that instead of a link
-            // that would otherwise pretend messaging still works.
+            // Turned off in their Settings — show that instead of a button
+            // that would otherwise pretend messaging still works. app.can_message
+            // enforces this server-side too; this is the up-front UI reflection
+            // of it, not the real boundary.
             <span
               className="flex items-center gap-1.5 font-sans text-[12px] text-dark-muted/70 px-3 py-2"
               title={`${profile.name} has turned off direct messages`}
@@ -120,8 +142,8 @@ export function ProfilePreviewPopover({
           ) : (
             // Already connected — the relevant action is messaging, not
             // re-displaying "Connected" as a dead-end achievement badge here.
-            <Link
-              to="/dashboard/messages"
+            <button
+              onClick={() => void handleMessage()}
               className={cn(
                 buttonVariants({ variant: 'accent', size: 'sm' }),
                 connectMorph && 'animate-pop-in motion-reduce:animate-none'
@@ -129,9 +151,13 @@ export function ProfilePreviewPopover({
             >
               <MessageSquare size={13} strokeWidth={2} />
               Message
-            </Link>
+            </button>
           )
         ) : (
+          // Not connected — messaging is deliberately unreachable here.
+          // app.can_message requires app.are_connected(a, b); a Connect
+          // button is the only path to a Message action, never the other
+          // way around.
           <Button
             variant={profile.connectStatus === 'requested' ? 'shell' : 'accent'}
             size="sm"
@@ -142,6 +168,11 @@ export function ProfilePreviewPopover({
           </Button>
         )}
       </div>
+      {messageError && (
+        <p className="font-sans text-[11px] text-red-400 mt-2 text-right" role="alert">
+          {messageError}
+        </p>
+      )}
     </div>
   )
 
