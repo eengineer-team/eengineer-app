@@ -889,3 +889,172 @@ read the reported content, remove it with a reason, and the report flips to
 of what was removed; a Builder sees no admin nav and gets bounced from /dashboard/admin;
 a super-admin can promote someone to community-lead and is told they must re-login.
 ```
+
+---
+
+## 22. DOMAIN 3 LEFTOVERS — Members tab is fake, and clubs can't be joined
+
+```
+Two gaps left behind when the Community domain was migrated. Both are visible
+lies in the product today. No migration needed — RLS already allows everything
+below.
+
+PROBLEM A — the Members tab shows invented people.
+src/pages/dashboard/community/Network.tsx still does:
+  import { SEED_NETWORK } from '@/lib/community-data'
+  const [profiles, setProfiles] = React.useState<NetworkProfile[]>(SEED_NETWORK)
+Every sibling tab (QAFeed, Webinars, Networking, Discussion) was moved to
+Supabase; this one was missed. A Builder browsing "Members" of their discipline
+sees fictional people listed next to real ones, and can try to connect with them.
+
+Fix: read real profiles filtered by the tab's discipline. profiles-context is
+ALREADY live and loaded — use useProfiles() rather than adding another fetch.
+Map BuilderProfile onto whatever NetworkProfile fields the card needs; if the
+shapes have drifted, change the context/mapping, not the card's JSX. Keep the
+honest empty state for a discipline with no members yet — an empty list is the
+truth, seed data is not. profiles SELECT is app.is_builder(), so this works for
+Builders and correctly shows nothing to preview users.
+
+PROBLEM B — clubs cannot be joined, so two dashboard widgets are dead forever.
+club_memberships is (profile_id, discipline, joined_at) — a "club" is just a
+discipline, there is no clubs table. RLS is already in place:
+  clubs_select : app.is_builder()
+  clubs_write  : ALL, app.is_builder() AND profile_id = auth.uid()
+So join/leave is permitted server-side and has simply never been built.
+clubs-context.tsx is read-only and says so in a comment. Because nobody can
+join, club_memberships has 0 rows, and JoinedClubs + PeerActivity on
+DashboardHome are permanently empty for every user.
+
+Fix:
+- Extend clubs-context with join(discipline) and leave(discipline) (insert /
+  delete on club_memberships for auth.uid()), optimistic then reconciled.
+  Update that stale "no join/leave UI exists yet" comment.
+- Add a Join / Leave control on the discipline group page (CommunityGroup
+  header is the natural spot) and on the CommunityHub discipline cards.
+- Leaving should confirm — it's not destructive, but it silently empties the
+  user's dashboard widgets, so a one-click accident is annoying.
+- Verify JoinedClubs and PeerActivity light up once a membership exists.
+
+Done when: Members lists only real profiles for that discipline; I can join a
+discipline, see it in the dashboard sidebar/widgets, leave it, and the change
+survives a refresh; club_memberships has real rows.
+```
+
+---
+
+## 23. DOMAIN 5 — Opportunities and the calendar still read mock data
+
+```
+The data was migrated but the screens were not. Live DB right now:
+  opportunities: 6 rows, columns id, title, organization, discipline, location,
+    remote, description, url, deadline, created_at, requirements[],
+    responsibilities[], image_url, apply_url, source, deadline_label
+  competitions:  3 rows, columns id, name, location, remote, discipline,
+    organizer, description, requirements[], deadline
+Meanwhile Opportunities.tsx, OpportunityDetail.tsx, CompetitionDetail.tsx,
+Calendar.tsx, CompetitionCalendar.tsx, LandingCalendar.tsx, deadlines.ts and
+calendar-data.ts all still read SEED_ constants.
+
+Fix: move all of them onto Supabase, following the pattern the community domain
+already uses (api/ module + context, optimistic writes reconciled against the
+server, honest empty states).
+
+READ THIS BEFORE TOUCHING LandingCalendar.tsx — it is the one real trap here:
+  competitions SELECT is `app.is_builder()`, granted to the `authenticated`
+  role only. There is NO anon policy. LandingCalendar renders on the PUBLIC
+  Welcome page, where the visitor is anonymous. Migrate it naively and the
+  homepage calendar goes empty for every logged-out visitor — which is most of
+  them.
+  Contest deadlines are public information and nothing about them is sensitive,
+  so the right fix is a small migration adding an anon-readable SELECT policy on
+  competitions (to anon, authenticated) and then reading the same source
+  everywhere. If you would rather not widen it, leave LandingCalendar on static
+  data and say so in a comment — but do not silently ship an empty homepage.
+  Note opportunities SELECT is `app.is_builder() OR app.is_preview()`, also not
+  anon: check every screen you migrate for who is actually allowed to see it.
+
+Also: `discipline` on opportunities is the enum and nullable — null means
+"all disciplines" and must render as that, not as blank or "Other". competitions
+stores discipline as plain text, not the enum — do not assume they match.
+
+Done when: no SEED_ import remains in the opportunities/calendar screens; the 6
+opportunities and 3 competitions come from the database; the logged-out homepage
+calendar still shows content; deadlines render from real timestamps.
+```
+
+---
+
+## 24. DOMAIN 4 — Direct messages (the last mock, and the most sensitive)
+
+```
+messages-context.tsx and Messages.tsx are still entirely mock: SEED_CONVERSATIONS
+plus usePersistentState in localStorage. conversations and messages both have 0
+rows. Nothing a user "sends" today leaves their own browser — two people cannot
+actually talk to each other. This is the last unmigrated domain and the one with
+real safety weight, because the users are 13–18.
+
+THE BACKEND IS BUILT AND STRICTER THAN THE CURRENT UI ASSUMES. Verified live:
+  conversations(id, participant_a, participant_b, created_at)   -- two-party only
+  messages(id, conversation_id, sender_id, text, attachment_kind,
+           attachment_url, attachment_name, created_at)
+  conv_select : app.is_builder() AND uid in (participant_a, participant_b)
+  conv_insert : app.is_verified() AND uid is a participant
+                AND app.can_message(participant_a, participant_b)
+  msg_select  : participant AND NOT app.is_blocked(...)
+  msg_insert  : sender_id = uid AND participant AND can_message(...)
+  msg_delete  : sender_id = uid
+
+  app.can_message(a,b) =
+      a <> b
+      AND both profiles verified
+      AND app.are_connected(a, b)      <-- THIS ONE MATTERS
+      AND NOT blocked either direction
+      AND both profiles have allow_dms = true
+
+So: YOU CANNOT MESSAGE SOMEONE YOU ARE NOT CONNECTED WITH, and you cannot
+message someone who turned DMs off. The UI must reflect that rule up front —
+show "Connect first to send a message" instead of a Message button that fails,
+and hide/disable messaging for anyone with allow_dms off. A composer that
+posts and then 403s is the worst possible version of this.
+
+Do:
+- Replace messages-context's localStorage store with Supabase: list the current
+  user's conversations, resolve the other participant's profile, load messages
+  for the active conversation, send, and delete-your-own (msg_delete already
+  allows it — this also satisfies the DM half of block 20).
+- Starting a conversation: only from a connected profile. Reuse the existing
+  conversation if one already exists between the pair in either column order —
+  do not create duplicates (participant_a/participant_b ordering is not
+  canonical, so check both directions).
+- Blocking: the blocks table exists (blocker_id, blocked_id) with own-row RLS.
+  Add block/unblock in the conversation view. Blocking hides the thread in both
+  directions via msg_select — make sure the UI handles a thread that becomes
+  unreadable rather than crashing on empty data.
+- Live delivery: messages is NOT in the supabase_realtime publication (only
+  questions, question_votes, question_comments are). A chat that needs a manual
+  refresh is not a chat, so add a migration putting `messages` in the
+  publication, then subscribe per active conversation. Follow the hard-won rules
+  from QAFeed.tsx: wait for the session and call realtime.setAuth before
+  subscribing, pass a status callback to .subscribe(), and never call a Supabase
+  auth method inside an onAuthStateChange callback — defer with setTimeout(0).
+- Attachments: the columns exist (attachment_kind/url/name) and storage buckets
+  are already created. Wire them, or leave attachments out and remove the dead
+  UI — do not leave a paperclip button that does nothing.
+
+SAFETY — read carefully:
+- Do NOT add message scanning, keyword filters, or automated moderation. The
+  repo's standing decision (see the note in Messages.tsx) is that DMs are
+  unmoderated by design and that changing this needs founder sign-off. Not your
+  call in this block.
+- Do NOT weaken can_message to make the UI simpler. The connection requirement
+  is the child-safety control that stops adults cold-messaging minors. If it
+  makes a flow awkward, change the flow.
+- Privacy.tsx describes how messaging works. If anything you build contradicts
+  it, stop and flag it rather than shipping the mismatch.
+
+Done when: two real accounts that are connected can hold a conversation that
+persists across refresh and arrives without one; a non-connected profile offers
+no way to message; a user with DMs off cannot be messaged; blocking hides the
+thread both ways; I can delete my own message; and conversations/messages have
+real rows.
+```
