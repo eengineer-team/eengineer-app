@@ -1,25 +1,20 @@
-import * as React from 'react'
-import { Users, Check, X } from 'lucide-react'
-import { SEED_NETWORK, type Discipline, type NetworkProfile } from '@/lib/community-data'
+import { Link } from 'react-router-dom'
+import { Users, Check } from 'lucide-react'
+import type { Discipline } from '@/lib/community-data'
+import { ME_ID, type BuilderProfile } from '@/lib/profile-data'
+import { useProfiles } from '@/lib/profiles-context'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { cn } from '@/lib/utils'
 
-function ProfileCard({
-  profile,
-  onConnect,
-  onAccept,
-  onDecline,
-}: {
-  profile: NetworkProfile
-  onConnect: (id: string) => void
-  onAccept: (id: string) => void
-  onDecline: (id: string) => void
-}) {
+function ProfileCard({ profile, onConnect }: { profile: BuilderProfile; onConnect: (id: string) => void }) {
   return (
-    <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4 flex items-center gap-4">
-      <Avatar name={profile.name} size="md" theme="dashboard" />
+    <Link
+      to={`/dashboard/profiles/${profile.id}`}
+      className="bg-white/[0.03] border border-white/8 rounded-lg p-4 flex items-center gap-4 hover:border-white/20 hover:bg-white/[0.05] transition-colors duration-150"
+    >
+      <Avatar name={profile.name} src={profile.avatarUrl} size="md" theme="dashboard" />
 
       <div className="flex-1 min-w-0">
         <div className="font-sans text-[0.875rem] font-semibold text-dark-text leading-tight">
@@ -33,100 +28,52 @@ function ProfileCard({
       </div>
 
       <div className="flex-shrink-0">
-        {profile.status === 'none' && (
-          <Button variant="accent" size="sm" onClick={() => onConnect(profile.id)}>
-            Connect
-          </Button>
-        )}
-        {profile.status === 'requested' && (
-          <Button variant="shell" size="sm" onClick={() => onConnect(profile.id)}>
-            Requested
-          </Button>
-        )}
-        {/* Not a real disabled state — connected is a reached achievement, not a
-            blocked action, so this skips Button's disabled:opacity-40 styling. */}
-        {profile.status === 'connected' && (
+        {profile.connectStatus === 'connected' ? (
+          // Reached achievement, not a blocked action — skip Button's
+          // disabled:opacity-40 styling (same pattern as ProfileDetail.tsx).
           <span className={cn(buttonVariants({ variant: 'done', size: 'sm' }), 'pointer-events-none')}>
             <Check size={14} strokeWidth={2.2} />
             Connected
           </span>
-        )}
-        {profile.status === 'incoming' && (
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => onAccept(profile.id)}
-              aria-label={`Accept ${profile.name}`}
-              className="w-8 h-8 flex items-center justify-center rounded bg-corn-700 text-white hover:bg-corn-600 transition-colors"
-            >
-              <Check size={14} strokeWidth={2.2} />
-            </button>
-            <button
-              onClick={() => onDecline(profile.id)}
-              aria-label={`Decline ${profile.name}`}
-              className="w-8 h-8 flex items-center justify-center rounded hover-white-tint text-white/60 hover:text-dark-text transition-colors"
-            >
-              <X size={14} strokeWidth={2.2} />
-            </button>
-          </div>
+        ) : (
+          <Button
+            variant={profile.connectStatus === 'requested' ? 'shell' : 'accent'}
+            size="sm"
+            onClick={(e) => {
+              e.preventDefault()
+              onConnect(profile.id)
+            }}
+          >
+            {profile.connectStatus === 'requested' ? 'Requested' : 'Connect'}
+          </Button>
         )}
       </div>
-    </div>
+    </Link>
   )
 }
 
 // `discipline` scopes the list to one group's members (Community hub → group
-// space, label "Members"); omit for the global "My Network" view.
+// space, label "Members"); omit for the global "My Network" view. Backed by
+// the same live profiles-context every other profile surface reads — no
+// separate fetch, no seed data. profiles SELECT is app.is_builder(), so
+// preview users correctly see nothing here.
 export function Network({ discipline }: { discipline?: Discipline } = {}) {
-  const [profiles, setProfiles] = React.useState<NetworkProfile[]>(SEED_NETWORK)
+  const { profiles, toggleConnect } = useProfiles()
 
-  function setStatus(id: string, status: NetworkProfile['status']) {
-    setProfiles((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)))
-  }
-
-  function handleConnect(id: string) {
-    const p = profiles.find((x) => x.id === id)
-    setStatus(id, p?.status === 'requested' ? 'none' : 'requested')
-  }
-
-  const scoped = discipline ? profiles.filter((p) => p.discipline === discipline) : profiles
-  const incoming = scoped.filter((p) => p.status === 'incoming')
-  const rest = scoped.filter((p) => p.status !== 'incoming')
+  const scoped = profiles.filter((p) => p.id !== ME_ID && (!discipline || p.discipline === discipline))
 
   return (
     <div className="flex flex-col gap-8">
-      {incoming.length > 0 && (
-        <div>
-          <LabelCaps className="block mb-3">Connection requests</LabelCaps>
-          <div className="flex flex-col gap-3">
-            {incoming.map((p) => (
-              <ProfileCard
-                key={p.id}
-                profile={p}
-                onConnect={handleConnect}
-                onAccept={(id) => setStatus(id, 'connected')}
-                onDecline={(id) => setStatus(id, 'none')}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
       <div>
         <LabelCaps className="block mb-3">{discipline ? 'Members' : 'My Network'}</LabelCaps>
-        {rest.length === 0 ? (
+        {scoped.length === 0 ? (
           <p className="font-sans text-[0.8125rem] text-dark-muted">
             {discipline ? `No members in ${discipline} yet.` : 'No connections yet.'}
           </p>
         ) : (
           <div className="flex flex-col gap-3">
-            {rest.map((p) => (
-              <ProfileCard
-                key={p.id}
-                profile={p}
-                onConnect={handleConnect}
-                onAccept={(id) => setStatus(id, 'connected')}
-                onDecline={(id) => setStatus(id, 'none')}
-              />
+            {scoped.map((p) => (
+              <ProfileCard key={p.id} profile={p} onConnect={toggleConnect} />
             ))}
           </div>
         )}

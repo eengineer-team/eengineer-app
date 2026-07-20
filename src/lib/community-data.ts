@@ -173,22 +173,6 @@ export const SEED_WEBINARS: Webinar[] = [
   },
 ]
 
-export interface NetworkProfile {
-  id: string
-  name: string
-  discipline: Discipline
-  mutuals: number
-  status: 'none' | 'requested' | 'incoming' | 'connected'
-}
-
-export const SEED_NETWORK: NetworkProfile[] = [
-  { id: 'n1', name: 'Marcus R.', discipline: 'Software', mutuals: 6, status: 'none' },
-  { id: 'n2', name: 'Priya T.', discipline: 'Electrical', mutuals: 11, status: 'incoming' },
-  { id: 'n3', name: 'James O.', discipline: 'Mechanical', mutuals: 4, status: 'connected' },
-  { id: 'n4', name: 'Sophie K.', discipline: 'Mechanical', mutuals: 3, status: 'none' },
-  { id: 'n5', name: 'Dev P.', discipline: 'Civil', mutuals: 2, status: 'none' },
-]
-
 export interface Introduction {
   id: string
   authorId: string // 'me' for the signed-in Builder's own post

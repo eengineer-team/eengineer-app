@@ -172,6 +172,16 @@ export async function fetchJoinedClubs(uid: string): Promise<JoinedClub[]> {
   return (data ?? []).map((r) => ({ name: r.discipline, members: getGroupMeta(r.discipline).memberCount }))
 }
 
+export async function joinClub(uid: string, discipline: Discipline): Promise<void> {
+  const { error } = await supabase.from('club_memberships').insert({ profile_id: uid, discipline })
+  if (error) throw error
+}
+
+export async function leaveClub(uid: string, discipline: Discipline): Promise<void> {
+  const { error } = await supabase.from('club_memberships').delete().eq('profile_id', uid).eq('discipline', discipline)
+  if (error) throw error
+}
+
 // ── Webinars + RSVPs ─────────────────────────────────────────────────────────
 
 type WebinarRow = { id: string; discipline: Discipline; title: string; speaker: string; starts_at: string }

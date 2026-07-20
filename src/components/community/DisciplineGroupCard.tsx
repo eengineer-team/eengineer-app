@@ -5,6 +5,8 @@ import type { CommunityGroupMeta } from '@/lib/community-groups'
 import { getDisciplineColor } from '@/lib/discipline-colors'
 import { getDisciplineIcon } from '@/lib/discipline-icons'
 import { Card } from '@/components/ui/card'
+import { JoinClubButton } from '@/components/community/JoinClubButton'
+import { useAuth } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 
 // Banner is a solid discipline-color field with a specifically-chosen icon
@@ -14,6 +16,7 @@ import { cn } from '@/lib/utils'
 // plain text list, and later a single repeated motif, didn't feel distinct
 // enough) without an Unsplash dependency or per-discipline image licensing.
 export function DisciplineGroupCard({ group }: { group: CommunityGroupMeta }) {
+  const { user } = useAuth()
   const color = getDisciplineColor(group.discipline)
   const Icon = getDisciplineIcon(group.discipline)
 
@@ -38,7 +41,7 @@ export function DisciplineGroupCard({ group }: { group: CommunityGroupMeta }) {
 
           <p className="font-sans text-[0.8125rem] leading-snug text-dark-muted mb-4">{group.description}</p>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-1.5 text-dark-muted">
               <Users size={12} strokeWidth={1.8} />
               <span className="font-sans text-[13px]">{group.memberCount} members</span>
@@ -53,6 +56,10 @@ export function DisciplineGroupCard({ group }: { group: CommunityGroupMeta }) {
               <span className="font-sans text-[13px] text-dark-muted">Quiet this week</span>
             )}
           </div>
+
+          {/* club_memberships write RLS requires app.is_builder() — preview
+              users can browse the hub but were never able to join. */}
+          {user?.status === 'builder' && <JoinClubButton discipline={group.discipline} />}
         </div>
       </Card>
     </Link>

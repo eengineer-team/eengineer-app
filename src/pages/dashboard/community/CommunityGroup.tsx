@@ -7,6 +7,7 @@ import { Webinars } from '@/pages/dashboard/community/Webinars'
 import { Network } from '@/pages/dashboard/community/Network'
 import { Networking } from '@/pages/dashboard/community/Networking'
 import { Discussion } from '@/pages/dashboard/community/Discussion'
+import { JoinClubButton } from '@/components/community/JoinClubButton'
 import { useAuth } from '@/lib/auth-context'
 import { can } from '@/lib/permissions'
 import { getDisciplineColor } from '@/lib/discipline-colors'
@@ -60,12 +61,17 @@ export function CommunityGroup() {
 
       <div className="relative">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 mb-6 font-sans text-[0.8125rem]">
-        <Link to="/dashboard/community" className="text-dark-muted hover:text-white/85 transition-colors">
-          Community
-        </Link>
-        <ChevronRight size={13} strokeWidth={2} className="text-white/30" />
-        <span className="text-dark-text font-medium">{discipline}</span>
+      <div className="flex items-center justify-between gap-3 mb-6">
+        <div className="flex items-center gap-1.5 font-sans text-[0.8125rem]">
+          <Link to="/dashboard/community" className="text-dark-muted hover:text-white/85 transition-colors">
+            Community
+          </Link>
+          <ChevronRight size={13} strokeWidth={2} className="text-white/30" />
+          <span className="text-dark-text font-medium">{discipline}</span>
+        </div>
+        {/* club_memberships write RLS requires app.is_builder() — preview
+            users can browse this page but were never able to join. */}
+        {user?.status === 'builder' && <JoinClubButton discipline={discipline} />}
       </div>
 
       {/* Tabs */}

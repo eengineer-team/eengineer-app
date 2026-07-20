@@ -11,10 +11,11 @@ import * as api from '@/lib/api/community'
 
 // `discipline` scopes the feed to one group's members (Community hub → group
 // space); omit for a global "Networking" view. Introductions are posted
-// content, not a connect/status row — kept as a separate model from
-// NetworkProfile (see community-data.ts) so this can't get tangled with the
-// Members connect-request flow. Supabase-backed: one `introductions` row per
-// Builder (unique profile_id) — posting again edits it in place.
+// content, not a connect/status row — kept as a separate model from the
+// BuilderProfile-backed Members tab (see Network.tsx) so this can't get
+// tangled with the Members connect-request flow. Supabase-backed: one
+// `introductions` row per Builder (unique profile_id) — posting again edits
+// it in place.
 export function Networking({ discipline }: { discipline?: Discipline } = {}) {
   const [intros, setIntros] = React.useState<Introduction[]>([])
   const [draft, setDraft] = React.useState('')
