@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Bell, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getAllDeadlines, type DeadlineItem } from '@/lib/deadlines'
+import { useCompetitions } from '@/lib/competitions-context'
+import { useOpportunities } from '@/lib/opportunities-context'
 import { getDisciplineColor } from '@/lib/discipline-colors'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { cn } from '@/lib/utils'
@@ -49,7 +51,9 @@ export function CalendarMonthView({ month, onBack, onChangeMonth }: CalendarMont
   const isViewingCurrentMonth = isSameMonth(month, currentMonthStart)
   const isBeforeCurrentMonth = month < currentMonthStart
 
-  const allDeadlines = getAllDeadlines()
+  const { competitions } = useCompetitions()
+  const { opportunities } = useOpportunities()
+  const allDeadlines = getAllDeadlines(competitions, opportunities)
   const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate()
   const firstWeekday = new Date(month.getFullYear(), month.getMonth(), 1).getDay()
 

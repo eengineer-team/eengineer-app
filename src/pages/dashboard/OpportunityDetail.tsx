@@ -1,6 +1,7 @@
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowUpRight, Building2, Clock, MapPin } from 'lucide-react'
-import { getOpportunity } from '@/lib/opportunities-data'
+import { opportunityDisciplineLabel } from '@/lib/api/opportunities'
+import { useOpportunities } from '@/lib/opportunities-context'
 import { Chip } from '@/components/ui/chip'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { Button } from '@/components/ui/button'
@@ -13,11 +14,16 @@ import { cn } from '@/lib/utils'
 // Opportunity carries both (a Competition only has Requirements).
 export function OpportunityDetail() {
   const { id } = useParams<{ id: string }>()
+  const { getOpportunity, loading } = useOpportunities()
   const opportunity = id ? getOpportunity(id) : undefined
 
-  if (!opportunity) return <Navigate to="/dashboard/opportunities" replace />
+  // Don't redirect until the first fetch has settled — opportunities load
+  // asynchronously, so on the very first render every id looks absent (see
+  // opportunities-context.tsx).
+  if (!opportunity) return loading ? null : <Navigate to="/dashboard/opportunities" replace />
 
-  const color = getDisciplineColor(opportunity.discipline)
+  const disciplineLabel = opportunityDisciplineLabel(opportunity.discipline)
+  const color = getDisciplineColor(disciplineLabel)
 
   return (
     <div className="flex-1 w-full px-8 py-8 max-w-[720px] mx-auto">
@@ -30,16 +36,18 @@ export function OpportunityDetail() {
       </Link>
 
       <div className={cn('relative overflow-hidden bg-dark-surface border border-white/10 border-t-2 rounded-lg mb-6', color.border)}>
-        <div className="relative h-44 w-full overflow-hidden">
-          <img
-            src={opportunity.image}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-dark-surface via-dark-surface/40 to-transparent" />
-        </div>
+        {opportunity.image && (
+          <div className="relative h-44 w-full overflow-hidden">
+            <img
+              src={opportunity.image}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-dark-surface via-dark-surface/40 to-transparent" />
+          </div>
+        )}
 
-        <div className="relative p-6 -mt-2">
+        <div className={cn('relative p-6', opportunity.image && '-mt-2')}>
           <div className="flex items-start justify-between gap-4 mb-3">
             <div className="min-w-0">
               <h1 className="font-display text-[1.5rem] font-bold text-dark-text leading-tight">
@@ -50,8 +58,8 @@ export function OpportunityDetail() {
                 {opportunity.org}
               </p>
             </div>
-            <Chip theme="dashboard" discipline={opportunity.discipline} className="flex-shrink-0">
-              {opportunity.discipline}
+            <Chip theme="dashboard" discipline={disciplineLabel} className="flex-shrink-0">
+              {disciplineLabel}
             </Chip>
           </div>
 
@@ -62,7 +70,7 @@ export function OpportunityDetail() {
             </span>
             <span className="flex items-center gap-1.5 font-sans text-[12px] text-gold-dark">
               <Clock size={13} strokeWidth={1.8} />
-              {opportunity.deadline}
+              {opportunity.deadlineLabel}
             </span>
           </div>
 

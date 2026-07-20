@@ -7,6 +7,8 @@ import { ProjectsProvider } from '@/lib/projects-context'
 import { CurrentActivityProvider } from '@/lib/current-activity-context'
 import { WebinarsProvider } from '@/lib/webinars-context'
 import { ClubsProvider } from '@/lib/clubs-context'
+import { CompetitionsProvider } from '@/lib/competitions-context'
+import { OpportunitiesProvider } from '@/lib/opportunities-context'
 import { Welcome } from '@/pages/Welcome'
 import { Auth } from '@/pages/Auth'
 import { Onboarding } from '@/pages/Onboarding'
@@ -54,6 +56,8 @@ export default function App() {
           <CurrentActivityProvider>
           <WebinarsProvider>
           <ClubsProvider>
+          <CompetitionsProvider>
+          <OpportunitiesProvider>
           <BrowserRouter>
             <Routes>
               <Route path="/"     element={<Welcome />} />
@@ -136,6 +140,8 @@ export default function App() {
               <Route path="/privacy" element={<Privacy />} />
             </Routes>
           </BrowserRouter>
+          </OpportunitiesProvider>
+          </CompetitionsProvider>
           </ClubsProvider>
           </WebinarsProvider>
           </CurrentActivityProvider>

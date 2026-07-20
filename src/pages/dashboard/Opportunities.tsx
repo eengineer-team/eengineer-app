@@ -1,13 +1,15 @@
 import * as React from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { DISCIPLINES, type Discipline } from '@/lib/community-data'
-import { SEED_OPPORTUNITIES, rankByDiscipline, isMatch } from '@/lib/opportunities-data'
+import { rankByDiscipline, isMatch } from '@/lib/api/opportunities'
+import { useOpportunities } from '@/lib/opportunities-context'
 import { OpportunityCard } from '@/components/opportunities/OpportunityCard'
 
 const DISCIPLINE_KEY = 'ee_opportunities_discipline'
 
 export function Opportunities() {
   const { user } = useAuth()
+  const { opportunities, loading } = useOpportunities()
   const isBuilder = user?.status === 'builder'
 
   // Personalization is Builder-only — Google-preview always sees the full,
@@ -24,7 +26,7 @@ export function Opportunities() {
     else localStorage.removeItem(DISCIPLINE_KEY)
   }
 
-  const listings = isBuilder ? rankByDiscipline(SEED_OPPORTUNITIES, discipline) : SEED_OPPORTUNITIES
+  const listings = isBuilder ? rankByDiscipline(opportunities, discipline) : opportunities
 
   return (
     <div className="flex-1 w-full px-8 py-8 max-w-[720px] mx-auto">
@@ -63,11 +65,15 @@ export function Opportunities() {
         </div>
       )}
 
-      <div className="flex flex-col gap-4">
-        {listings.map((op) => (
-          <OpportunityCard key={op.id} opportunity={op} matched={isBuilder && isMatch(op, discipline)} />
-        ))}
-      </div>
+      {!loading && listings.length === 0 ? (
+        <p className="font-sans text-[0.8125rem] text-dark-muted">No opportunities posted yet.</p>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {listings.map((op) => (
+            <OpportunityCard key={op.id} opportunity={op} matched={isBuilder && isMatch(op, discipline)} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -1,5 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { getAllDeadlines } from '@/lib/deadlines'
+import { useCompetitions } from '@/lib/competitions-context'
+import { useOpportunities } from '@/lib/opportunities-context'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { cn } from '@/lib/utils'
 
@@ -22,7 +24,9 @@ interface CalendarYearViewProps {
 export function CalendarYearView({ year, onYearChange, onSelectMonth }: CalendarYearViewProps) {
   const now = new Date()
   const isCurrentYear = year === now.getFullYear()
-  const deadlines = getAllDeadlines()
+  const { competitions } = useCompetitions()
+  const { opportunities } = useOpportunities()
+  const deadlines = getAllDeadlines(competitions, opportunities)
 
   const countsByMonth = new Array(12).fill(0)
   for (const item of deadlines) {

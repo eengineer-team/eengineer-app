@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { MapPin, Clock, Sparkles, ArrowUpRight } from 'lucide-react'
-import type { Opportunity } from '@/lib/opportunities-data'
+import { opportunityDisciplineLabel, type Opportunity } from '@/lib/api/opportunities'
 import { Chip } from '@/components/ui/chip'
 import { Button } from '@/components/ui/button'
 import { getDisciplineColor } from '@/lib/discipline-colors'
@@ -13,7 +13,8 @@ import { cn } from '@/lib/utils'
 // partner badge. The card itself just teases the listing and hands off via
 // "Explore" instead of jumping straight to an external apply link.
 export function OpportunityCard({ opportunity, matched }: { opportunity: Opportunity; matched: boolean }) {
-  const color = getDisciplineColor(opportunity.discipline)
+  const disciplineLabel = opportunityDisciplineLabel(opportunity.discipline)
+  const color = getDisciplineColor(disciplineLabel)
 
   return (
     <div
@@ -41,7 +42,7 @@ export function OpportunityCard({ opportunity, matched }: { opportunity: Opportu
               Matched for you
             </Chip>
           )}
-          <Chip theme="dashboard" discipline={opportunity.discipline}>{opportunity.discipline}</Chip>
+          <Chip theme="dashboard" discipline={disciplineLabel}>{disciplineLabel}</Chip>
         </div>
       </div>
 
@@ -52,7 +53,7 @@ export function OpportunityCard({ opportunity, matched }: { opportunity: Opportu
         </span>
         <span className="flex items-center gap-1.5 font-sans text-[12px] text-dark-muted">
           <Clock size={13} strokeWidth={1.8} />
-          {opportunity.deadline}
+          {opportunity.deadlineLabel}
         </span>
       </div>
 

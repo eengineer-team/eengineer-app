@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Bell } from 'lucide-react'
-import { SEED_COMPETITIONS } from '@/lib/calendar-data'
+import { useCompetitions } from '@/lib/competitions-context'
 import { getDisciplineColor } from '@/lib/discipline-colors'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { cn } from '@/lib/utils'
@@ -39,6 +39,7 @@ export function CompetitionCalendar() {
   const today = startOfDay(now)
   const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1)
   const [viewMonth, setViewMonth] = useState(currentMonthStart)
+  const { competitions } = useCompetitions()
 
   const isViewingCurrentMonth = isSameDay(viewMonth, currentMonthStart)
   const daysInMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 0).getDate()
@@ -46,7 +47,7 @@ export function CompetitionCalendar() {
 
   // day -> the first deadline (id + discipline, for the dot color and link) that lands on it.
   const deadlinesByDay = new Map<number, { id: string; discipline: string }>()
-  for (const comp of SEED_COMPETITIONS) {
+  for (const comp of competitions) {
     if (comp.deadline.getFullYear() === viewMonth.getFullYear() && comp.deadline.getMonth() === viewMonth.getMonth()) {
       if (!deadlinesByDay.has(comp.deadline.getDate())) {
         deadlinesByDay.set(comp.deadline.getDate(), { id: comp.id, discipline: comp.discipline })
@@ -64,7 +65,7 @@ export function CompetitionCalendar() {
     }
   }
 
-  const upcoming = [...SEED_COMPETITIONS].sort((a, b) => a.deadline.getTime() - b.deadline.getTime())
+  const upcoming = [...competitions].sort((a, b) => a.deadline.getTime() - b.deadline.getTime())
 
   function goToPrevMonth() {
     const prev = new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1)

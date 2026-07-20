@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { ArrowLeft, MapPin, Calendar as CalendarIcon, Building2, Check } from 'lucide-react'
-import { getCompetition, type Competition } from '@/lib/calendar-data'
+import { type Competition } from '@/lib/api/competitions'
+import { useCompetitions } from '@/lib/competitions-context'
 import { Chip } from '@/components/ui/chip'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -20,15 +21,18 @@ function formatDate(d: Date): string {
 
 // Data source is edugrants (founder integrating, see docs/ai-agent-build-
 // instructions.md Шаг 10) — this page renders a Competition object and
-// doesn't care whether it came from SEED_COMPETITIONS or a real API call,
-// so swapping the data source later doesn't touch this component.
+// doesn't care whether it came from Supabase or another API call, so
+// swapping the data source later doesn't touch this component.
 export function CompetitionDetail({ competition: competitionProp }: { competition?: Competition } = {}) {
   const { id } = useParams<{ id: string }>()
   const [registered, setRegistered] = React.useState(false)
+  const { getCompetition, loading } = useCompetitions()
 
   const competition = competitionProp ?? (id ? getCompetition(id) : undefined)
 
-  if (!competition) return <Navigate to="/dashboard/calendar" replace />
+  // Don't redirect until the first fetch has settled — see the same guard in
+  // OpportunityDetail.tsx / opportunities-context.tsx.
+  if (!competition) return loading ? null : <Navigate to="/dashboard/calendar" replace />
 
   const color = getDisciplineColor(competition.discipline)
 

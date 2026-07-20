@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/lib/auth-context'
 import { can } from '@/lib/permissions'
 import { useMessages } from '@/lib/messages-context'
-import { SEED_COMPETITIONS } from '@/lib/calendar-data'
+import { useCompetitions } from '@/lib/competitions-context'
 
 function IconBadge({
   icon: Icon,
@@ -34,6 +34,7 @@ export function DashboardHeader({ name, onMenuClick }: { name: string; onMenuCli
   const navigate = useNavigate()
   const { user } = useAuth()
   const { unreadTotal } = useMessages()
+  const { competitions } = useCompetitions()
   // Google preview can't reach Messages or Calendar (see permissions.ts) — hide
   // both badges for it instead of showing a count that just bounces to /auth.
   const canSeeBadges = can(user, 'messages:view')
@@ -41,7 +42,7 @@ export function DashboardHeader({ name, onMenuClick }: { name: string; onMenuCli
   // Calendar (see CompetitionCalendar's Daily Reminders) rather than an
   // invented, never-clearing number — there's no separate notifications
   // system in the app yet, so this is the one real source of "things to know."
-  const reminderCount = SEED_COMPETITIONS.length
+  const reminderCount = competitions.length
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between px-4 md:px-8 py-5 border-b border-white/8 bg-dark-100/90 backdrop-blur-sm">
