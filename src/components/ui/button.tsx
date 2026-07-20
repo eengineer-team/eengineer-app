@@ -20,6 +20,8 @@ const buttonVariants = cva(
         // leading check, NOT grey/disabled-looking. Same action, two states:
         // don't render a separate disabled-style element for "done".
         done:    'bg-transparent border border-gold-dark text-gold-dark hover:bg-gold-dark/10',
+        // Destructive confirm (delete) — distinct red CTA, never the default accent.
+        danger:  'bg-red-500/15 border border-red-500/40 text-red-400 hover:bg-red-500/25',
       },
       size: {
         sm:   'px-4 py-2 min-h-[40px] text-sm rounded',

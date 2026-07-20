@@ -57,7 +57,7 @@ export function ProfilePreviewPopover({
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-display text-[0.9375rem] font-bold text-dark-text leading-tight">{profile.name}</span>
-            <span className="inline-flex items-center rounded px-1 py-0.5 bg-gold-dark/15 border border-gold-dark/30 text-gold-dark font-sans text-[9px] font-semibold uppercase tracking-wide">
+            <span className="inline-flex items-center rounded px-1 py-0.5 bg-gold-dark/15 border border-gold-dark/30 text-gold-dark font-sans text-[12px] font-semibold uppercase tracking-wide">
               Builder
             </span>
           </div>
@@ -74,7 +74,7 @@ export function ProfilePreviewPopover({
               href={profile.githubUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 font-sans text-[11px] text-dark-muted hover:text-dark-text transition-colors"
+              className="inline-flex items-center gap-1.5 font-sans text-[13px] text-dark-muted hover:text-dark-text transition-colors"
             >
               <Code2 size={12} strokeWidth={1.8} />
               GitHub
@@ -85,7 +85,7 @@ export function ProfilePreviewPopover({
               href={profile.linkedinUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 font-sans text-[11px] text-dark-muted hover:text-dark-text transition-colors"
+              className="inline-flex items-center gap-1.5 font-sans text-[13px] text-dark-muted hover:text-dark-text transition-colors"
             >
               <LinkIcon size={12} strokeWidth={1.8} />
               LinkedIn
@@ -96,7 +96,7 @@ export function ProfilePreviewPopover({
 
       <div className="flex items-center gap-1.5 text-dark-muted mb-4">
         <Users size={11} strokeWidth={1.8} />
-        <span className="font-sans text-[11px]">{profile.mutuals} mutual connections</span>
+        <span className="font-sans text-[13px]">{profile.mutuals} mutual connections</span>
       </div>
 
       <div className="flex items-center gap-2 pt-3 border-t border-white/8">
@@ -107,18 +107,30 @@ export function ProfilePreviewPopover({
           View full profile
         </Link>
         {profile.connectStatus === 'connected' ? (
-          // Already connected — the relevant action is messaging, not
-          // re-displaying "Connected" as a dead-end achievement badge here.
-          <Link
-            to="/dashboard/messages"
-            className={cn(
-              buttonVariants({ variant: 'accent', size: 'sm' }),
-              connectMorph && 'animate-pop-in motion-reduce:animate-none'
-            )}
-          >
-            <MessageSquare size={13} strokeWidth={2} />
-            Message
-          </Link>
+          profile.allowDMs === false ? (
+            // Turned off in their Settings — show that instead of a link
+            // that would otherwise pretend messaging still works.
+            <span
+              className="flex items-center gap-1.5 font-sans text-[12px] text-dark-muted/70 px-3 py-2"
+              title={`${profile.name} has turned off direct messages`}
+            >
+              <MessageSquare size={13} strokeWidth={2} />
+              DMs off
+            </span>
+          ) : (
+            // Already connected — the relevant action is messaging, not
+            // re-displaying "Connected" as a dead-end achievement badge here.
+            <Link
+              to="/dashboard/messages"
+              className={cn(
+                buttonVariants({ variant: 'accent', size: 'sm' }),
+                connectMorph && 'animate-pop-in motion-reduce:animate-none'
+              )}
+            >
+              <MessageSquare size={13} strokeWidth={2} />
+              Message
+            </Link>
+          )
         ) : (
           <Button
             variant={profile.connectStatus === 'requested' ? 'shell' : 'accent'}

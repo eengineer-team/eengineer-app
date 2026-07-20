@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useTheme } from 'next-themes'
-import { Sun, Moon, Monitor, Bell, Mail, Plus, Briefcase, X, Upload } from 'lucide-react'
+import { Sun, Moon, Monitor, Bell, Mail, Plus, Briefcase, X, Upload, Link as LinkIcon } from 'lucide-react'
 import { useProfiles } from '@/lib/profiles-context'
 import { useAuth } from '@/lib/auth-context'
 import { ME_ID, BACKGROUND_PRESETS, BACKGROUND_IMAGES } from '@/lib/profile-data'
@@ -83,6 +83,8 @@ export function SettingsPage() {
     setBio,
     setInterests,
     setOpenToWork,
+    setAllowDMs,
+    loading: profilesLoading,
   } = useProfiles()
   const { updateName } = useAuth()
 
@@ -124,8 +126,12 @@ export function SettingsPage() {
 
   if (!profile) {
     return (
-      <div className="flex-1 px-8 py-8 max-w-[720px]">
-        <p className="font-sans text-[0.8125rem] text-dark-muted">Couldn't load your profile.</p>
+      <div className="flex-1 w-full px-8 py-8 max-w-[720px] mx-auto">
+        {/* Don't announce failure while the fetch is still in flight — that
+            error message used to flash on every load of this page. */}
+        <p className="font-sans text-[0.8125rem] text-dark-muted">
+          {profilesLoading ? 'Loading your profile…' : "Couldn't load your profile."}
+        </p>
       </div>
     )
   }
@@ -180,7 +186,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="flex-1 px-8 py-8 max-w-[720px]">
+    <div className="flex-1 w-full px-8 py-8 max-w-[720px] mx-auto">
       <h1 className="font-display text-xl font-semibold text-dark-text mb-1">Settings</h1>
       <p className="font-sans text-[0.8125rem] text-dark-muted mb-8">
         Your profile, appearance, and notification preferences.
@@ -260,11 +266,11 @@ export function SettingsPage() {
                   >
                     Edit
                   </button>
-                  <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 bg-gold-dark/15 border border-gold-dark/30 text-gold-dark font-sans text-[10px] font-semibold uppercase tracking-wide">
+                  <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 bg-gold-dark/15 border border-gold-dark/30 text-gold-dark font-sans text-[12px] font-semibold uppercase tracking-wide">
                     Builder
                   </span>
                   {profile.openToWork && (
-                    <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-sans text-[10px] font-semibold uppercase tracking-wide">
+                    <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-sans text-[12px] font-semibold uppercase tracking-wide">
                       <Briefcase size={10} strokeWidth={2} />
                       Open to work
                     </span>
@@ -319,7 +325,7 @@ export function SettingsPage() {
               {profile.backgroundImageUrl && (
                 <button
                   onClick={() => setBackgroundImage(undefined)}
-                  className="font-sans text-[11px] text-dark-muted hover:text-white/80 transition-colors ml-1"
+                  className="font-sans text-[13px] text-dark-muted hover:text-white/80 transition-colors ml-1"
                 >
                   Remove
                 </button>
@@ -330,6 +336,11 @@ export function SettingsPage() {
           <div className="relative flex items-center gap-3 mt-3 pt-3 border-t border-white/8">
             <LabelCaps>Open to work</LabelCaps>
             <Toggle checked={profile.openToWork} onChange={setOpenToWork} />
+          </div>
+
+          <div className="relative flex items-center gap-3 mt-3 pt-3 border-t border-white/8">
+            <LabelCaps>Allow direct messages</LabelCaps>
+            <Toggle checked={profile.allowDMs ?? true} onChange={setAllowDMs} />
           </div>
         </div>
 
@@ -503,7 +514,7 @@ export function SettingsPage() {
                       <button
                         key={s.name}
                         onClick={() => toggleProjectSkill(s.name)}
-                        className={`font-sans text-[11px] rounded-sm px-2.5 py-1 border transition-colors duration-150 ${
+                        className={`font-sans text-[13px] rounded-sm px-2.5 py-1 border transition-colors duration-150 ${
                           projectSkills.includes(s.name)
                             ? 'bg-gold-dark/15 border-gold-dark/40 text-gold-dark'
                             : 'border-white/10 text-dark-muted hover:text-white/85 hover:border-white/20'
@@ -615,7 +626,7 @@ export function SettingsPage() {
                 <div key={exp.id} className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
                   <div className="flex items-start justify-between gap-3 mb-1">
                     <h3 className="font-sans text-[0.9375rem] font-semibold text-dark-text">{exp.role}</h3>
-                    <span className="font-sans text-[11px] text-dark-muted flex-shrink-0">{exp.duration}</span>
+                    <span className="font-sans text-[13px] text-dark-muted flex-shrink-0">{exp.duration}</span>
                   </div>
                   <p className="font-sans text-[12px] text-dark-muted mb-1.5">{exp.organization}</p>
                   {exp.description && (
@@ -644,6 +655,17 @@ export function SettingsPage() {
                     </span>
                   </div>
                   <p className="font-sans text-[0.8125rem] leading-snug text-white/65 italic">"{e.reason}"</p>
+                  {e.evidenceUrl && (
+                    <a
+                      href={e.evidenceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 inline-flex items-center gap-1.5 font-sans text-[12px] text-gold-dark underline underline-offset-2 decoration-current/40 hover:decoration-current"
+                    >
+                      <LinkIcon size={12} strokeWidth={1.8} />
+                      View evidence
+                    </a>
+                  )}
                 </div>
               ))}
             </div>
@@ -676,7 +698,7 @@ export function SettingsPage() {
                   <Icon size={16} strokeWidth={1.8} />
                   {opt.label}
                   {!opt.available && (
-                    <span className="absolute top-1.5 right-1.5 font-sans text-[9px] font-semibold tracking-wide uppercase text-dark-muted/60">
+                    <span className="absolute top-1.5 right-1.5 font-sans text-[12px] font-semibold tracking-wide uppercase text-dark-muted/60">
                       Soon
                     </span>
                   )}
@@ -684,7 +706,7 @@ export function SettingsPage() {
               )
             })}
           </div>
-          <p className="font-sans text-[11px] text-dark-muted leading-snug mt-3">
+          <p className="font-sans text-[13px] text-dark-muted leading-snug mt-3">
             Dark only for now — the dashboard hasn't gotten a light-mode pass yet, so Light and
             System are disabled here rather than pretending to switch.
           </p>
@@ -699,7 +721,7 @@ export function SettingsPage() {
               <Mail size={16} strokeWidth={1.8} className="text-dark-muted flex-shrink-0" />
               <div>
                 <div className="font-sans text-[0.8125rem] font-medium text-dark-text">Email digest</div>
-                <div className="font-sans text-[11px] text-dark-muted">
+                <div className="font-sans text-[13px] text-dark-muted">
                   Weekly summary of activity in your joined communities.
                 </div>
               </div>
@@ -714,7 +736,7 @@ export function SettingsPage() {
               <Bell size={16} strokeWidth={1.8} className="text-dark-muted flex-shrink-0" />
               <div>
                 <div className="font-sans text-[0.8125rem] font-medium text-dark-text">Mention alerts</div>
-                <div className="font-sans text-[11px] text-dark-muted">
+                <div className="font-sans text-[13px] text-dark-muted">
                   Notify me when someone replies to my questions or messages me.
                 </div>
               </div>

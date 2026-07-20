@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { useParams, Link, Navigate } from 'react-router-dom'
+import { useParams, useNavigate, Link, Navigate } from 'react-router-dom'
 import {
   ArrowLeft, Plus, X, Check, Users, Camera, Link as LinkIcon,
-  MessageSquareText, UserPlus,
+  MessageSquareText, UserPlus, Trash2,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { useProfiles } from '@/lib/profiles-context'
@@ -13,6 +13,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Chip } from '@/components/ui/chip'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { cn } from '@/lib/utils'
 import { ProjectFeedbackDialog } from '@/components/projects/ProjectFeedbackDialog'
 
@@ -52,7 +53,9 @@ export function ProjectDetail() {
     toggleJoinRequest,
     toggleFollow,
     addFeedback,
+    deleteProject,
   } = useProjects()
+  const navigate = useNavigate()
 
   const project = id ? getProject(id) : undefined
 
@@ -76,6 +79,9 @@ export function ProjectDetail() {
   const [teamRole, setTeamRole] = React.useState('')
 
   const [showFeedback, setShowFeedback] = React.useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false)
+  const [deleting, setDeleting] = React.useState(false)
+  const [deleteError, setDeleteError] = React.useState<string | null>(null)
 
   const thumbInputRef = React.useRef<HTMLInputElement>(null)
   const coverInputRef = React.useRef<HTMLInputElement>(null)
@@ -131,17 +137,67 @@ export function ProjectDetail() {
     setShowTeamForm(false)
   }
 
+  function handleDeleteProject() {
+    if (deleting || !project) return
+    setDeleting(true)
+    setDeleteError(null)
+    deleteProject(project.id)
+      .then(() => navigate('/dashboard/projects'))
+      .catch((err) => {
+        setDeleting(false)
+        setShowDeleteConfirm(false)
+        setDeleteError(err instanceof Error ? `Couldn't delete: ${err.message}` : "Couldn't delete this project.")
+      })
+  }
+
   const hasName = !!project.name.trim()
+  const deleteWarningParts = [
+    project.team.length > 0 && `${project.team.length} team member${project.team.length === 1 ? '' : 's'}`,
+    project.supportingMaterials.length > 0 && `${project.supportingMaterials.length} supporting material${project.supportingMaterials.length === 1 ? '' : 's'}`,
+    project.feedback.length > 0 && `${project.feedback.length} piece${project.feedback.length === 1 ? '' : 's'} of feedback`,
+  ].filter(Boolean) as string[]
+  const deleteDescription =
+    deleteWarningParts.length > 0
+      ? `This permanently deletes "${project.name || 'this project'}" and everything on it — including ${deleteWarningParts.join(', ')}. This cannot be undone.`
+      : `This permanently deletes "${project.name || 'this project'}". This cannot be undone.`
 
   return (
-    <div className="flex-1 px-4 md:px-8 py-6 md:py-8 max-w-[720px]">
-      <Link
-        to="/dashboard/projects"
-        className="inline-flex items-center gap-1.5 font-sans text-[0.8125rem] text-dark-muted hover:text-white/85 transition-colors mb-6"
-      >
-        <ArrowLeft size={13} strokeWidth={2} />
-        All projects
-      </Link>
+    <div className="flex-1 w-full px-4 md:px-8 py-6 md:py-8 max-w-[720px] mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <Link
+          to="/dashboard/projects"
+          className="inline-flex items-center gap-1.5 font-sans text-[0.8125rem] text-dark-muted hover:text-white/85 transition-colors"
+        >
+          <ArrowLeft size={13} strokeWidth={2} />
+          All projects
+        </Link>
+        {isOwn && (
+          <div className="relative">
+            <button
+              onClick={() => setShowDeleteConfirm((v) => !v)}
+              aria-label="Delete project"
+              className="flex items-center gap-1.5 font-sans text-[12px] text-dark-muted hover:text-red-400 transition-colors"
+            >
+              <Trash2 size={12} strokeWidth={1.8} />
+              Delete project
+            </button>
+            {showDeleteConfirm && (
+              <ConfirmDialog
+                title="Delete this project?"
+                description={deleteDescription}
+                confirmLabel={deleting ? 'Deleting…' : 'Delete project'}
+                onConfirm={handleDeleteProject}
+                onClose={() => setShowDeleteConfirm(false)}
+              />
+            )}
+          </div>
+        )}
+      </div>
+      {deleteError && (
+        <p className="font-sans text-[0.8125rem] text-red-400 mb-4" role="alert">
+          {deleteError}
+        </p>
+      )}
 
       {/* Cover + thumbnail header */}
       <div className="rounded-lg border border-white/8 overflow-hidden mb-6">
@@ -153,7 +209,7 @@ export function ProjectDetail() {
             <>
               <button
                 onClick={() => coverInputRef.current?.click()}
-                className="absolute top-3 right-3 flex items-center gap-1.5 bg-dark-900/70 backdrop-blur-sm px-2.5 py-1.5 rounded font-sans text-[11px] text-dark-text hover:bg-dark-900/90 transition-colors"
+                className="absolute top-3 right-3 flex items-center gap-1.5 bg-dark-900/70 backdrop-blur-sm px-2.5 py-1.5 rounded font-sans text-[13px] text-dark-text hover:bg-dark-900/90 transition-colors"
               >
                 <Camera size={12} strokeWidth={1.8} />
                 {project.coverUrl ? 'Change cover' : 'Add cover'}
@@ -365,7 +421,7 @@ export function ProjectDetail() {
                 key={k}
                 onClick={() => setKind(k)}
                 className={cn(
-                  'font-sans text-[11px] rounded-sm px-2.5 py-1 border transition-colors duration-150',
+                  'font-sans text-[13px] rounded-sm px-2.5 py-1 border transition-colors duration-150',
                   project.kind === k
                     ? 'bg-gold-dark/15 border-gold-dark/40 text-gold-dark'
                     : 'border-white/10 text-dark-muted hover:text-white/85 hover:border-white/20'
@@ -379,7 +435,7 @@ export function ProjectDetail() {
 
         {isOwn && showStatForm && (
           <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4 mb-3">
-            <p className="font-sans text-[11px] text-dark-muted mb-2">{PROJECT_KIND_STAT_HINT[project.kind]}</p>
+            <p className="font-sans text-[13px] text-dark-muted mb-2">{PROJECT_KIND_STAT_HINT[project.kind]}</p>
             <div className="flex gap-2 mb-3">
               <input
                 value={statLabel}
@@ -421,7 +477,7 @@ export function ProjectDetail() {
                   </button>
                 )}
                 <div className="font-sans text-[1.0625rem] font-bold text-dark-text leading-none mb-1">{stat.value}</div>
-                <div className="font-sans text-[11px] text-dark-muted">{stat.label}</div>
+                <div className="font-sans text-[13px] text-dark-muted">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -566,7 +622,7 @@ export function ProjectDetail() {
                   <Avatar name={member.name} theme="dashboard" size="sm" />
                   <div className="min-w-0">
                     <div className="font-sans text-[0.8125rem] font-medium text-dark-text truncate">{member.name}</div>
-                    <div className="font-sans text-[11px] text-dark-muted truncate">{member.role}</div>
+                    <div className="font-sans text-[13px] text-dark-muted truncate">{member.role}</div>
                   </div>
                 </div>
                 {isOwn && (

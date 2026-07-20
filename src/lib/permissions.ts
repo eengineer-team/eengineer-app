@@ -25,6 +25,9 @@ export type Action =
   | 'profiles:view'
   | 'calendar:view'
   | 'messages:view'
+  | 'moderation:queue:view' // community-lead/admin/super-admin — mirrors reports SELECT RLS
+  | 'moderation:content:remove' // community-lead/admin/super-admin — mirrors intro/disc staff DELETE + reports UPDATE RLS
+  | 'moderation:users:view' // admin/super-admin only — mirrors user_roles SELECT RLS
   | 'roles:assign' // Super Admin only — never self-assign, never requestable via UI
 
 // Everything a verified Builder can do, regardless of any extra role on top.
@@ -51,9 +54,22 @@ const BUILDER_ACTIONS: Action[] = [
 
 const ROLE_ACTIONS: Record<Role, Action[]> = {
   builder: BUILDER_ACTIONS,
-  'community-lead': [...BUILDER_ACTIONS, 'community:webinars:manage'],
-  admin: [...BUILDER_ACTIONS, 'community:webinars:manage'],
-  'super-admin': [...BUILDER_ACTIONS, 'community:webinars:manage', 'roles:assign'],
+  'community-lead': [...BUILDER_ACTIONS, 'community:webinars:manage', 'moderation:queue:view', 'moderation:content:remove'],
+  admin: [
+    ...BUILDER_ACTIONS,
+    'community:webinars:manage',
+    'moderation:queue:view',
+    'moderation:content:remove',
+    'moderation:users:view',
+  ],
+  'super-admin': [
+    ...BUILDER_ACTIONS,
+    'community:webinars:manage',
+    'moderation:queue:view',
+    'moderation:content:remove',
+    'moderation:users:view',
+    'roles:assign',
+  ],
 }
 
 // Google-preview is a stateless pseudo-status, not a role: no persistent

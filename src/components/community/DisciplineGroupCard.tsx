@@ -41,16 +41,16 @@ export function DisciplineGroupCard({ group }: { group: CommunityGroupMeta }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-dark-muted">
               <Users size={12} strokeWidth={1.8} />
-              <span className="font-sans text-[11px]">{group.memberCount} members</span>
+              <span className="font-sans text-[13px]">{group.memberCount} members</span>
             </div>
 
             {group.recentActivityCount > 0 ? (
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
-                <span className="font-sans text-[11px] text-dark-muted">{group.recentActivityCount} new this week</span>
+                <span className="font-sans text-[13px] text-dark-muted">{group.recentActivityCount} new this week</span>
               </div>
             ) : (
-              <span className="font-sans text-[11px] text-dark-muted">Quiet this week</span>
+              <span className="font-sans text-[13px] text-dark-muted">Quiet this week</span>
             )}
           </div>
         </div>

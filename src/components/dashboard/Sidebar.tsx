@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle, Settings, LogOut, X, PanelLeftClose, PanelLeftOpen, Rocket } from 'lucide-react'
+import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle, Settings, LogOut, X, PanelLeftClose, PanelLeftOpen, Rocket, ShieldCheck } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '@/lib/auth-context'
 import { can, type Action } from '@/lib/permissions'
@@ -31,6 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard/profiles', label: 'Profiles', icon: UserCircle, action: 'profiles:view' },
   { to: '/dashboard/calendar', label: 'Calendar', icon: CalendarDays, action: 'calendar:view' },
   { to: '/dashboard/messages', label: 'Messages', icon: MessageSquare, action: 'messages:view' },
+  { to: '/dashboard/admin', label: 'Admin', icon: ShieldCheck, action: 'moderation:queue:view' },
 ]
 
 const COLLAPSE_STORAGE_KEY = 'eengineer:sidebar-collapsed'

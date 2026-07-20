@@ -57,7 +57,7 @@ export function StartHere() {
           >
             <step.icon size={16} strokeWidth={1.8} className="text-gold-dark" />
             <span className="font-sans text-[0.8125rem] font-semibold text-dark-text">{step.title}</span>
-            <span className="font-sans text-[11px] text-dark-muted leading-snug">{step.description}</span>
+            <span className="font-sans text-[13px] text-dark-muted leading-snug">{step.description}</span>
           </Link>
         ))}
       </div>

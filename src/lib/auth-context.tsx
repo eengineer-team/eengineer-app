@@ -1,109 +1,129 @@
 import * as React from 'react'
+import type { Session } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 
 export type OAuthProvider = 'github' | 'linkedin' | 'google'
-
-// Builder is the default role for anyone verified via GitHub/LinkedIn OAuth.
-// Community Lead / Admin / Super Admin are assigned later (Step 11 — no
-// self-assign, no request-via-UI); until that admin flow exists, every mock
-// sign-in lands as a plain Builder. See src/lib/permissions.ts for what each
-// role can do.
 export type Role = 'builder' | 'community-lead' | 'admin' | 'super-admin'
 
+// Same shape the rest of the app already consumes — only the source changed
+// (was a localStorage mock, now the real Supabase session + JWT claims injected
+// by the custom access-token hook: user_status / user_role / user_verified).
 export type AuthUser =
   | { provider: 'github' | 'linkedin'; status: 'builder'; name: string; role: Role }
   | { provider: 'google'; status: 'preview' }
 
 interface AuthContextValue {
   user: AuthUser | null
-  signInWithProvider: (provider: OAuthProvider) => void
-  updateName: (name: string) => void
-  signOut: () => void
+  loading: boolean
+  signInWithProvider: (provider: OAuthProvider, redirectPath?: string) => void
+  updateName: (name: string) => Promise<void>
+  signOut: () => Promise<void>
 }
 
 const AuthContext = React.createContext<AuthContextValue | null>(null)
 
-const SESSION_KEY = 'ee_session'
-
-// Every localStorage key written by usePersistentState (profiles-context,
-// projects-context, messages-context, Webinars, QAFeed, DashboardHome's RSVP)
-// — cleared on sign-out so the next person to sign in doesn't inherit the
-// previous user's mock data.
-const PERSISTED_STATE_KEYS = [
-  'ee:profiles',
-  'ee:projects',
-  'ee:messages',
-  'ee:messages:activeId',
-  'ee:webinars',
-  'ee:qa-feed',
-  'ee:dashboard-webinar-rsvp',
-  'ee:start-here-dismissed',
-]
-
-// Greeting uses first name only. Falls back to "Builder" if the profile name
-// is ever empty — never renders the raw provider label.
 export function firstNameOf(fullName: string | undefined): string {
   const first = fullName?.trim().split(/\s+/)[0]
   return first || 'Builder'
 }
 
+// The custom claims live in the access-token JWT (added by
+// public.custom_access_token_hook). Decode the payload to read them client-side.
+function decodeClaims(token?: string): Record<string, unknown> | null {
+  if (!token) return null
+  try {
+    const payload = token.split('.')[1]
+    return JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
+  } catch {
+    return null
+  }
+}
+
+function deriveUser(session: Session | null): AuthUser | null {
+  if (!session) return null
+  const claims = decodeClaims(session.access_token) ?? {}
+  const provider = (session.user.app_metadata?.provider as string | undefined) ?? ''
+  // Fall back to the provider if the hook hasn't populated claims yet (e.g. the
+  // dashboard hook isn't enabled) so the UI still reflects a logged-in session.
+  const status =
+    (claims.user_status as string | undefined) ??
+    (provider === 'github' || provider.startsWith('linkedin') ? 'builder' : 'preview')
+
+  if (status === 'builder') {
+    const meta = (session.user.user_metadata ?? {}) as Record<string, string>
+    const name = meta.name || meta.full_name || meta.user_name || ''
+    const role = ((claims.user_role as Role | undefined) ?? 'builder') as Role
+    return {
+      provider: provider.startsWith('linkedin') ? 'linkedin' : 'github',
+      status: 'builder',
+      name,
+      role,
+    }
+  }
+  return { provider: 'google', status: 'preview' }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = React.useState<AuthUser | null>(() => {
-    const raw = localStorage.getItem(SESSION_KEY)
-    if (!raw) return null
-    try {
-      const parsed = JSON.parse(raw) as AuthUser
-      // Google preview is stateless by spec — never restored from storage,
-      // even if something stale is somehow present.
-      return parsed.status === 'builder' ? { ...parsed, role: parsed.role ?? 'builder' } : null
-    } catch {
-      return null
-    }
-  })
+  const [user, setUser] = React.useState<AuthUser | null>(null)
+  // Locally-set name (onboarding) takes precedence over the JWT-derived name
+  // until the profiles domain reads display_name from the DB on load.
+  const [nameOverride, setNameOverride] = React.useState<string | null>(null)
+  const [loading, setLoading] = React.useState(true)
 
-  const signInWithProvider = React.useCallback((provider: OAuthProvider) => {
-    if (provider === 'google') {
-      // Stateless preview: held only in memory, never persisted.
-      setUser({ provider: 'google', status: 'preview' })
-      return
-    }
-    // A real OAuth handshake would return the account's actual name here.
-    // Mocked until a backend token exchange exists (see PROGRESS.md open
-    // question #4) — so a brand-new sign-in has no name yet; it's collected
-    // in Onboarding instead of faked. A returning session for the same
-    // provider keeps whatever name it already had rather than blanking it.
-    const raw = localStorage.getItem(SESSION_KEY)
-    let existingName = ''
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw) as AuthUser
-        if (parsed.status === 'builder' && parsed.provider === provider) existingName = parsed.name
-      } catch {
-        // ignore corrupt storage — falls back to blank name
-      }
-    }
-    const builder: AuthUser = { provider, status: 'builder', name: existingName, role: 'builder' }
-    localStorage.setItem(SESSION_KEY, JSON.stringify(builder))
-    setUser(builder)
-  }, [])
-
-  const updateName = React.useCallback((name: string) => {
-    setUser((prev) => {
-      if (!prev || prev.status !== 'builder') return prev
-      const updated: AuthUser = { ...prev, name }
-      localStorage.setItem(SESSION_KEY, JSON.stringify(updated))
-      return updated
+  React.useEffect(() => {
+    let active = true
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return
+      setUser(deriveUser(data.session))
+      setLoading(false)
     })
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(deriveUser(session))
+      setNameOverride(null)
+      setLoading(false)
+    })
+    return () => {
+      active = false
+      sub.subscription.unsubscribe()
+    }
   }, [])
 
-  const signOut = React.useCallback(() => {
-    localStorage.removeItem(SESSION_KEY)
-    for (const key of PERSISTED_STATE_KEYS) localStorage.removeItem(key)
-    setUser(null)
+  const signInWithProvider = React.useCallback(
+    (provider: OAuthProvider, redirectPath = '/dashboard') => {
+      // LinkedIn is the OIDC provider in Supabase.
+      const p = provider === 'linkedin' ? 'linkedin_oidc' : provider
+      void supabase.auth.signInWithOAuth({
+        provider: p as OAuthProvider,
+        options: { redirectTo: `${window.location.origin}${redirectPath}` },
+      })
+    },
+    []
+  )
+
+  const updateName = React.useCallback(async (name: string) => {
+    setNameOverride(name)
+    const { data } = await supabase.auth.getSession()
+    const uid = data.session?.user?.id
+    if (uid) {
+      await supabase.from('profiles').update({ display_name: name }).eq('id', uid)
+    }
   }, [])
+
+  const signOut = React.useCallback(async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+    setNameOverride(null)
+  }, [])
+
+  const effectiveUser = React.useMemo<AuthUser | null>(() => {
+    if (!user) return null
+    if (user.status === 'builder' && nameOverride !== null) return { ...user, name: nameOverride }
+    return user
+  }, [user, nameOverride])
 
   const value = React.useMemo(
-    () => ({ user, signInWithProvider, updateName, signOut }),
-    [user, signInWithProvider, updateName, signOut]
+    () => ({ user: effectiveUser, loading, signInWithProvider, updateName, signOut }),
+    [effectiveUser, loading, signInWithProvider, updateName, signOut]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

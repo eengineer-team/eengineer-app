@@ -4,7 +4,7 @@ import { PeerActivity } from '@/components/dashboard/PeerActivity'
 
 export function CommunityHub() {
   return (
-    <div className="flex-1 px-8 py-8 max-w-[1180px]">
+    <div className="flex-1 w-full px-8 py-8 max-w-[1180px] mx-auto">
       <div className="flex flex-col lg:flex-row gap-10">
         <div className="flex-1 min-w-0">
           <h1 className="font-display text-xl font-semibold text-dark-text mb-1">Community</h1>

@@ -1,26 +1,33 @@
 import * as React from 'react'
 import { X } from 'lucide-react'
+import { MIN_ENDORSEMENT_REASON_LENGTH } from '@/lib/profile-data'
 import { Button } from '@/components/ui/button'
 import { LabelCaps } from '@/components/ui/label-caps'
 
 // Same "no overlay dimming" modal pattern as community/NewQuestionDialog.tsx —
 // consistent behavior for every custom dialog in the app. Reason is
-// mandatory: an endorsement without one isn't allowed to submit, per spec.
+// mandatory and must clear a minimum length — "very good" isn't evidence of
+// anything, per founder feedback. Evidence link is optional (not everything
+// worth endorsing has a public URL) but front-and-center when offered.
 export function EndorseDialog({
   targetName,
   onSubmit,
   onClose,
 }: {
   targetName: string
-  onSubmit: (reason: string) => void
+  onSubmit: (reason: string, evidenceUrl?: string) => void
   onClose: () => void
 }) {
   const [reason, setReason] = React.useState('')
+  const [evidenceUrl, setEvidenceUrl] = React.useState('')
+
+  const trimmedReason = reason.trim()
+  const tooShort = trimmedReason.length > 0 && trimmedReason.length < MIN_ENDORSEMENT_REASON_LENGTH
+  const canSubmit = trimmedReason.length >= MIN_ENDORSEMENT_REASON_LENGTH
 
   function handleSubmit() {
-    const trimmed = reason.trim()
-    if (!trimmed) return
-    onSubmit(trimmed)
+    if (!canSubmit) return
+    onSubmit(trimmedReason, evidenceUrl.trim() || undefined)
   }
 
   return (
@@ -37,22 +44,38 @@ export function EndorseDialog({
         </button>
       </div>
 
-      <label className="font-sans text-[11px] text-dark-muted block mb-2">
-        Why? (visible to {targetName.split(' ')[0]} — required)
+      <label className="font-sans text-[13px] text-dark-muted block mb-2">
+        Why? (visible to {targetName.split(' ')[0]} — required, be specific)
       </label>
       <textarea
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         rows={3}
-        className="w-full bg-white/5 border border-white/10 rounded px-3 py-2.5 font-sans text-[0.8125rem] text-dark-text placeholder:text-dark-muted focus:outline-none focus:border-white/25 resize-none mb-4"
+        className="w-full bg-white/5 border border-white/10 rounded px-3 py-2.5 font-sans text-[0.8125rem] text-dark-text placeholder:text-dark-muted focus:outline-none focus:border-white/25 resize-none"
         placeholder="e.g. Paired with them on X — they clearly know Y because..."
+      />
+      <p className={`font-sans text-[13px] mt-1 mb-4 ${tooShort ? 'text-red-400' : 'text-dark-muted'}`}>
+        {tooShort
+          ? `A one-liner like "very good" isn't proof — say what you saw them do (${MIN_ENDORSEMENT_REASON_LENGTH - trimmedReason.length} more characters needed).`
+          : `Endorsements need real detail, not just praise — ${MIN_ENDORSEMENT_REASON_LENGTH} character minimum.`}
+      </p>
+
+      <label className="font-sans text-[13px] text-dark-muted block mb-2">
+        Evidence link (optional) — a PR, doc, demo, or post that backs this up
+      </label>
+      <input
+        value={evidenceUrl}
+        onChange={(e) => setEvidenceUrl(e.target.value)}
+        type="url"
+        placeholder="https://…"
+        className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 font-sans text-[0.8125rem] text-dark-text placeholder:text-dark-muted focus:outline-none focus:border-white/25 mb-4"
       />
 
       <div className="flex justify-end gap-2">
         <Button variant="shell" size="sm" onClick={onClose}>
           Cancel
         </Button>
-        <Button variant="accent" size="sm" onClick={handleSubmit} disabled={!reason.trim()}>
+        <Button variant="accent" size="sm" onClick={handleSubmit} disabled={!canSubmit}>
           Endorse
         </Button>
       </div>

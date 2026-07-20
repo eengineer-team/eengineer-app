@@ -1,10 +1,11 @@
 import * as React from 'react'
-import { Paperclip, FileText, X } from 'lucide-react'
+import { Paperclip, FileText, X, Trash2 } from 'lucide-react'
 import type { Discipline, Introduction } from '@/lib/community-data'
 import { readFileAsAttachment, type Attachment } from '@/lib/attachments'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
 import { LabelCaps } from '@/components/ui/label-caps'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { supabase } from '@/lib/supabase'
 import * as api from '@/lib/api/community'
 
@@ -19,6 +20,8 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
   const [draft, setDraft] = React.useState('')
   const [pendingAttachment, setPendingAttachment] = React.useState<Attachment | null>(null)
   const [editing, setEditing] = React.useState(false)
+  const [deleteError, setDeleteError] = React.useState<string | null>(null)
+  const [confirmingDelete, setConfirmingDelete] = React.useState(false)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const uidRef = React.useRef<string | null>(null)
 
@@ -33,7 +36,10 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
 
   React.useEffect(() => {
     void refresh()
-    const { data: sub } = supabase.auth.onAuthStateChange(() => void refresh())
+    // Deferred — see the note in clubs-context.tsx.
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      setTimeout(() => void refresh(), 0)
+    })
     return () => sub.subscription.unsubscribe()
   }, [refresh])
 
@@ -67,6 +73,18 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
     readFileAsAttachment(file).then(setPendingAttachment)
   }
 
+  function handleDelete() {
+    if (!mine) return
+    setDeleteError(null)
+    setConfirmingDelete(false)
+    const previous = intros
+    setIntros((prev) => prev.filter((i) => i.id !== mine.id))
+    api.deleteIntroduction(mine.id).catch((err) => {
+      setIntros(previous)
+      setDeleteError(err instanceof Error ? `Couldn't delete: ${err.message}` : "Couldn't delete your introduction.")
+    })
+  }
+
   function renderAttachment(attachment: Attachment) {
     if (attachment.kind === 'image') {
       return <img src={attachment.url} alt="" className="max-w-full max-h-64 rounded object-cover mt-2" />
@@ -90,6 +108,11 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
     <div className="flex flex-col gap-8">
       <div>
         <LabelCaps className="block mb-3">Your introduction</LabelCaps>
+        {deleteError && (
+          <p className="font-sans text-[0.8125rem] text-red-400 mb-3" role="alert">
+            {deleteError}
+          </p>
+        )}
         {mine && !editing ? (
           <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
             <div className="flex items-start justify-between gap-4">
@@ -97,16 +120,35 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
                 <p className="font-sans text-[0.875rem] text-dark-text leading-snug">{mine.text}</p>
                 {mine.attachment && renderAttachment(mine.attachment)}
               </div>
-              <button
-                onClick={() => {
-                  setDraft(mine.text)
-                  setPendingAttachment(mine.attachment ?? null)
-                  setEditing(true)
-                }}
-                className="flex-shrink-0 font-sans text-[12px] text-dark-muted hover:text-white/80 transition-colors"
-              >
-                Edit
-              </button>
+              <div className="flex-shrink-0 flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setDraft(mine.text)
+                    setPendingAttachment(mine.attachment ?? null)
+                    setEditing(true)
+                  }}
+                  className="font-sans text-[12px] text-dark-muted hover:text-white/80 transition-colors"
+                >
+                  Edit
+                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setConfirmingDelete((v) => !v)}
+                    aria-label="Delete your introduction"
+                    className="text-dark-muted hover:text-red-400 transition-colors"
+                  >
+                    <Trash2 size={12} strokeWidth={1.8} />
+                  </button>
+                  {confirmingDelete && (
+                    <ConfirmDialog
+                      title="Delete your introduction?"
+                      description="This cannot be undone."
+                      onConfirm={handleDelete}
+                      onClose={() => setConfirmingDelete(false)}
+                    />
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         ) : (

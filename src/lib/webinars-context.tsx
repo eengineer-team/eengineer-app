@@ -32,7 +32,11 @@ export function WebinarsProvider({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     void refresh()
-    const { data: sub } = supabase.auth.onAuthStateChange(() => void refresh())
+    // Deferred — see the note in clubs-context.tsx: calling an auth method
+    // inline inside this callback deadlocks supabase-js's internal lock.
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      setTimeout(() => void refresh(), 0)
+    })
     return () => sub.subscription.unsubscribe()
   }, [refresh])
 

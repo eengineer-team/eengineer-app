@@ -7,6 +7,7 @@ import { ME_ID } from '@/lib/profile-data'
 import { DISCIPLINES, type Discipline } from '@/lib/community-data'
 import { Button } from '@/components/ui/button'
 import { Wordmark } from '@/components/ui/wordmark'
+import { AppLoader } from '@/components/AppLoader'
 import { Avatar } from '@/components/ui/avatar'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { cn } from '@/lib/utils'
@@ -21,10 +22,33 @@ import { cn } from '@/lib/utils'
 // spec this is a mock/demo product with no real backend yet, so forcing
 // completion would just create a dead end for anyone who doesn't want to
 // fill it in right now.
+// Whole-years age as of today from a "YYYY-MM-DD" birthdate string.
+function ageFromBirthdate(birthdate: string): number | null {
+  const parsed = new Date(birthdate)
+  if (Number.isNaN(parsed.getTime())) return null
+  const now = new Date()
+  let age = now.getFullYear() - parsed.getFullYear()
+  const hasHadBirthdayThisYear =
+    now.getMonth() > parsed.getMonth() ||
+    (now.getMonth() === parsed.getMonth() && now.getDate() >= parsed.getDate())
+  if (!hasHadBirthdayThisYear) age -= 1
+  return age
+}
+
 export function Onboarding() {
-  const { user, updateName } = useAuth()
+  const { user, loading, updateName } = useAuth()
   const navigate = useNavigate()
-  const { getProfile, setAvatar, setDiscipline, setBio, setInterests, setOpenToWork, addExperience } = useProfiles()
+  const {
+    getProfile,
+    setAvatar,
+    setDiscipline,
+    setBio,
+    setInterests,
+    setOpenToWork,
+    addExperience,
+    setBirthdate,
+    setGuardianConsent,
+  } = useProfiles()
   const profile = getProfile(ME_ID)
 
   const [name, setName] = React.useState(user?.status === 'builder' ? user.name : '')
@@ -39,8 +63,23 @@ export function Onboarding() {
   const [duration, setDuration] = React.useState('')
   const [expDescription, setExpDescription] = React.useState('')
 
+  // Age gate — the one required field on this page (everything else stays
+  // skippable per the founder's original "no dead ends" spec). Most Builders
+  // signing up are, obviously, under 18, so this isn't an edge case: it's
+  // the mainline path, and it has to actually block continuing rather than
+  // being a checkbox someone can click past without reading.
+  const [birthdate, setBirthdateDraft] = React.useState('')
+  const [guardianEmail, setGuardianEmailDraft] = React.useState('')
+  const [guardianConsentChecked, setGuardianConsentChecked] = React.useState(false)
+
+  const age = birthdate ? ageFromBirthdate(birthdate) : null
+  const isMinor = age !== null && age < 18
+  const hasValidBirthdate = birthdate.trim() !== '' && age !== null
+  const canProceed = hasValidBirthdate && (!isMinor || (guardianConsentChecked && guardianEmail.trim() !== ''))
+
   // Only a freshly-signed-in Builder should land here — anyone else (no
   // session, or a stateless Google preview) has no ME profile to write into.
+  if (loading) return <AppLoader />
   if (!user || user.status !== 'builder') return <Navigate to="/auth" replace />
 
   function addInterest() {
@@ -65,7 +104,17 @@ export function Onboarding() {
     reader.readAsDataURL(file)
   }
 
+  // Shared by both "Save and continue" and "Skip for now" — the age gate
+  // isn't part of "everything else", so it's recorded regardless of which
+  // button was used to leave this page.
+  function recordAgeGate() {
+    setBirthdate(birthdate)
+    if (isMinor) setGuardianConsent(guardianEmail)
+  }
+
   function finish() {
+    if (!canProceed) return
+    recordAgeGate()
     updateName(name.trim())
     if (avatarPreview) setAvatar(avatarPreview)
     setDiscipline(discipline)
@@ -98,11 +147,55 @@ export function Onboarding() {
           Set up your profile
         </h1>
         <p className="font-sans text-[0.875rem] leading-[1.6] text-corn-800 mb-8">
-          Takes about a minute. Everything here is optional and can be changed later from your
-          profile page — skip it if you'd rather jump straight in.
+          Takes about a minute. Everything below is optional and can be changed later from your
+          profile page, except your date of birth (required, once, right now) — skip the rest if
+          you'd rather jump straight in.
         </p>
 
         <div className="flex flex-col gap-7">
+          {/* Date of birth — required, gates everything below it */}
+          <div>
+            <LabelCaps theme="welcome" className="block mb-2.5">Date of birth (required)</LabelCaps>
+            <input
+              type="date"
+              value={birthdate}
+              onChange={(e) => setBirthdateDraft(e.target.value)}
+              max={new Date().toISOString().slice(0, 10)}
+              className={inputClass}
+            />
+            {birthdate.trim() !== '' && age === null && (
+              <p className="font-sans text-[12px] text-red-600 mt-1.5">That doesn't look like a valid date.</p>
+            )}
+
+            {isMinor && (
+              <div className="mt-4 bg-corn-900/5 border border-corn-900/15 rounded-lg p-4">
+                <p className="font-sans text-[0.8125rem] leading-[1.55] text-[#2A2118] mb-3">
+                  Since you're under 18, we need a parent or legal guardian's email confirming they're
+                  aware of and okay with you using eengineer, before you can continue.
+                </p>
+                <input
+                  value={guardianEmail}
+                  onChange={(e) => setGuardianEmailDraft(e.target.value)}
+                  type="email"
+                  placeholder="Parent/guardian email"
+                  className={cn(inputClass, 'mb-3')}
+                />
+                <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={guardianConsentChecked}
+                    onChange={(e) => setGuardianConsentChecked(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 flex-shrink-0 accent-corn-700"
+                  />
+                  <span className="font-sans text-[0.8125rem] leading-[1.5] text-[#2A2118]">
+                    I confirm my parent or legal guardian is aware of and has given permission for me
+                    to create and use this account.
+                  </span>
+                </label>
+              </div>
+            )}
+          </div>
+
           {/* Name */}
           <div>
             <LabelCaps theme="welcome" className="block mb-2.5">Name</LabelCaps>
@@ -264,11 +357,20 @@ export function Onboarding() {
           </label>
         </div>
 
-        <div className="flex items-center gap-3 mt-10">
+        {!canProceed && (
+          <p className="font-sans text-[12px] text-corn-800/80 mt-6">
+            {!hasValidBirthdate
+              ? 'Enter your date of birth to continue.'
+              : "Enter a parent/guardian email and check the box above to continue."}
+          </p>
+        )}
+
+        <div className="flex items-center gap-3 mt-4">
           <Button
             variant="primary"
             size="lg"
             onClick={finish}
+            disabled={!canProceed}
             className="gap-2 font-sans text-[0.8125rem] font-semibold tracking-[0.05em] uppercase"
           >
             Save and continue
@@ -277,7 +379,10 @@ export function Onboarding() {
           <Button
             variant="ghost"
             size="lg"
+            disabled={!canProceed}
             onClick={() => {
+              if (!canProceed) return
+              recordAgeGate()
               if (name.trim()) updateName(name.trim())
               navigate('/dashboard')
             }}

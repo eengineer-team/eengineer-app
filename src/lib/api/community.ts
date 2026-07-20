@@ -13,8 +13,12 @@ import { getGroupMeta } from '@/lib/community-groups'
 // boundary — every write below relies on it, never re-checks it.
 
 export async function currentUid(): Promise<string | null> {
-  const { data } = await supabase.auth.getUser()
-  return data.user?.id ?? null
+  // getSession() reads the cached session locally; getUser() used to be here
+  // and hit GET /auth/v1/user over the network on every single refresh, which
+  // put ~40 auth round-trips into a 20-second window once several contexts
+  // were refreshing together.
+  const { data } = await supabase.auth.getSession()
+  return data.session?.user?.id ?? null
 }
 
 // Coarse relative-time label shared by every live feed here (questions,
@@ -45,11 +49,20 @@ function attachmentFromRow(row: {
 
 // ── Q&A: questions + question_votes + question_comments ─────────────────────
 
+// The FK names are mandatory here, not stylistic. question_votes and
+// question_comments each hold an FK to questions AND an FK to profiles, so
+// PostgREST treats them as junction tables and sees three different ways to
+// reach profiles from questions (direct via author_id, plus a many-to-many
+// through each of those). That's an ambiguous embed — PGRST201 — and the whole
+// query 300s. Naming the constraint pins the one relationship we mean.
 const QUESTION_SELECT = `
   id, discipline, author_id, text, reported, created_at,
-  profiles ( display_name ),
+  profiles!questions_author_id_fkey ( display_name ),
   question_votes ( user_id, vote ),
-  question_comments ( id, author_id, text, created_at, profiles ( display_name ) )
+  question_comments (
+    id, author_id, text, created_at,
+    profiles!question_comments_author_id_fkey ( display_name )
+  )
 `
 
 type QuestionRow = {
@@ -80,6 +93,7 @@ export async function fetchQuestions(): Promise<Question[]> {
     const myVote = uid ? r.question_votes.find((v) => v.user_id === uid)?.vote ?? null : null
     return {
       id: r.id,
+      authorId: uid && r.author_id === uid ? ME_ID : r.author_id,
       category: r.discipline,
       text: r.text,
       author: r.profiles?.display_name ?? 'A Builder',
@@ -93,12 +107,23 @@ export async function fetchQuestions(): Promise<Question[]> {
         .sort((a, b) => a.created_at.localeCompare(b.created_at))
         .map((c): Comment => ({
           id: c.id,
+          authorId: uid && c.author_id === uid ? ME_ID : c.author_id,
           author: c.profiles?.display_name ?? 'A Builder',
           text: c.text,
           time: formatRelativeTime(c.created_at),
         })),
     }
   })
+}
+
+export async function deleteQuestion(id: string): Promise<void> {
+  const { error } = await supabase.from('questions').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteQuestionComment(id: string): Promise<void> {
+  const { error } = await supabase.from('question_comments').delete().eq('id', id)
+  if (error) throw error
 }
 
 export async function postQuestion(uid: string, discipline: Discipline, text: string): Promise<void> {
@@ -234,6 +259,11 @@ export async function upsertIntroduction(uid: string, discipline: Discipline, te
   if (error) throw error
 }
 
+export async function deleteIntroduction(id: string): Promise<void> {
+  const { error } = await supabase.from('introductions').delete().eq('id', id)
+  if (error) throw error
+}
+
 // ── Discussion: per-discipline chronological post feed ─────────────────────
 
 const DISCUSSION_SELECT = `
@@ -277,5 +307,10 @@ export async function postDiscussionPost(uid: string, discipline: Discipline, te
     attachment_url: attachment?.url ?? null,
     attachment_name: attachment?.name ?? null,
   })
+  if (error) throw error
+}
+
+export async function deleteDiscussionPost(id: string): Promise<void> {
+  const { error } = await supabase.from('discussion_posts').delete().eq('id', id)
   if (error) throw error
 }

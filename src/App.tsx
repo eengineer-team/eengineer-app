@@ -31,6 +31,11 @@ import { SettingsPage } from '@/pages/dashboard/Settings'
 import { Terms } from '@/pages/legal/Terms'
 import { Privacy } from '@/pages/legal/Privacy'
 import { RequireAction } from '@/components/dashboard/RequireAction'
+import { AdminLayout } from '@/pages/dashboard/admin/AdminLayout'
+import { AdminReports } from '@/pages/dashboard/admin/AdminReports'
+import { AdminContent } from '@/pages/dashboard/admin/AdminContent'
+import { AdminUsers } from '@/pages/dashboard/admin/AdminUsers'
+import { AdminRoles } from '@/pages/dashboard/admin/AdminRoles'
 import './index.css'
 
 export default function App() {
@@ -110,6 +115,22 @@ export default function App() {
                     feature lives at /projects/mine, keep any stale link working. */}
                 <Route path="projects/new" element={<Navigate to="/dashboard/projects/mine" replace />} />
                 <Route path="settings" element={<SettingsPage />} />
+                <Route
+                  path="admin"
+                  element={<RequireAction action="moderation:queue:view"><AdminLayout /></RequireAction>}
+                >
+                  <Route index element={<Navigate to="reports" replace />} />
+                  <Route path="reports" element={<AdminReports />} />
+                  <Route
+                    path="content"
+                    element={<RequireAction action="moderation:content:remove"><AdminContent /></RequireAction>}
+                  />
+                  <Route
+                    path="users"
+                    element={<RequireAction action="moderation:users:view"><AdminUsers /></RequireAction>}
+                  />
+                  <Route path="roles" element={<RequireAction action="roles:assign"><AdminRoles /></RequireAction>} />
+                </Route>
               </Route>
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />

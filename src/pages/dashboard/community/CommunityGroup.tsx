@@ -48,7 +48,7 @@ export function CommunityGroup() {
   const Icon = getDisciplineIcon(discipline)
 
   return (
-    <div className="relative flex-1 px-8 py-8 max-w-[720px] overflow-hidden">
+    <div className="relative flex-1 w-full px-8 py-8 max-w-[720px] mx-auto overflow-hidden">
       {/* Faded discipline icon — same idea as the hub card banners, so a
           group's background reads as "which discipline" (via color + icon)
           even before you read any text. */}

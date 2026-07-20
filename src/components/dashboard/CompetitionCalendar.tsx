@@ -105,7 +105,7 @@ export function CompetitionCalendar() {
 
         <div className="grid grid-cols-7 gap-y-1.5 mb-1">
           {WEEKDAYS.map((wd) => (
-            <span key={wd} className="font-sans text-[10px] text-white/70 text-center">
+            <span key={wd} className="font-sans text-[12px] text-white/70 text-center">
               {wd}
             </span>
           ))}
@@ -121,8 +121,8 @@ export function CompetitionCalendar() {
                 <span
                   className={
                     isToday
-                      ? 'w-5 h-5 flex items-center justify-center rounded bg-white text-dark-200 font-sans text-[11px] font-semibold'
-                      : 'w-5 h-5 flex items-center justify-center font-sans text-[11px] text-white/70'
+                      ? 'w-5 h-5 flex items-center justify-center rounded bg-white text-dark-200 font-sans text-[13px] font-semibold'
+                      : 'w-5 h-5 flex items-center justify-center font-sans text-[13px] text-white/70'
                   }
                 >
                   {day}
@@ -159,11 +159,11 @@ export function CompetitionCalendar() {
                 <div className="font-sans text-[0.8125rem] font-medium text-dark-text leading-snug">
                   {comp.name}
                 </div>
-                <div className="font-sans text-[11px] text-dark-muted">
+                <div className="font-sans text-[13px] text-dark-muted">
                   {comp.location} · {comp.discipline}
                 </div>
               </div>
-              <span className="font-sans text-[10px] font-medium text-corn-500 bg-corn-500/10 rounded px-1.5 py-0.5 whitespace-nowrap">
+              <span className="font-sans text-[12px] font-medium text-corn-500 bg-corn-500/10 rounded px-1.5 py-0.5 whitespace-nowrap">
                 {formatHoursLeft(hoursLeft(comp.deadline, now))}
               </span>
             </Link>
@@ -180,7 +180,7 @@ export function CompetitionCalendar() {
             return (
               <div key={comp.id} className="flex items-start gap-2">
                 <Bell size={12} strokeWidth={1.8} className="text-dark-muted mt-0.5 flex-shrink-0" />
-                <span className="font-sans text-[11px] text-white/60 leading-snug">
+                <span className="font-sans text-[13px] text-white/60 leading-snug">
                   <span className="text-dark-text font-medium">{comp.name}</span> deadline {label}.
                 </span>
               </div>

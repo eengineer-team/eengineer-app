@@ -530,6 +530,57 @@ export type Database = {
           },
         ]
       }
+      moderation_actions: {
+        Row: {
+          action: string
+          content_snapshot: string | null
+          created_at: string
+          id: string
+          moderator_id: string
+          reason: string
+          target_author_id: string | null
+          target_id: string | null
+          target_type: string
+        }
+        Insert: {
+          action: string
+          content_snapshot?: string | null
+          created_at?: string
+          id?: string
+          moderator_id: string
+          reason: string
+          target_author_id?: string | null
+          target_id?: string | null
+          target_type: string
+        }
+        Update: {
+          action?: string
+          content_snapshot?: string | null
+          created_at?: string
+          id?: string
+          moderator_id?: string
+          reason?: string
+          target_author_id?: string | null
+          target_id?: string | null
+          target_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moderation_actions_moderator_id_fkey"
+            columns: ["moderator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moderation_actions_target_author_id_fkey"
+            columns: ["target_author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opportunities: {
         Row: {
           apply_url: string | null
@@ -1208,6 +1259,9 @@ export type Database = {
           id: string
           reason: string
           reporter_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
           target_id: string
           target_type: string
         }
@@ -1216,6 +1270,9 @@ export type Database = {
           id?: string
           reason?: string
           reporter_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
           target_id: string
           target_type: string
         }
@@ -1224,6 +1281,9 @@ export type Database = {
           id?: string
           reason?: string
           reporter_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
           target_id?: string
           target_type?: string
         }
@@ -1231,6 +1291,13 @@ export type Database = {
           {
             foreignKeyName: "reports_reporter_id_fkey"
             columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_resolved_by_fkey"
+            columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

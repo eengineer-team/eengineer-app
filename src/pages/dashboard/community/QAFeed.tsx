@@ -15,6 +15,8 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
   const [questions, setQuestions] = React.useState<Question[]>([])
   const [draft, setDraft] = React.useState('')
   const [duplicate, setDuplicate] = React.useState<Question | null>(null)
+  const [postError, setPostError] = React.useState<string | null>(null)
+  const [deleteError, setDeleteError] = React.useState<string | null>(null)
   const uidRef = React.useRef<string | null>(null)
   const visible = discipline ? questions.filter((q) => q.category === discipline) : questions
 
@@ -23,22 +25,68 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
     try {
       setQuestions(await api.fetchQuestions())
     } catch (err) {
-      console.error('Failed to load the Q&A feed', err)
+      // Supabase/PostgREST rejects with a plain object, which console.error
+      // renders as a useless bare "Object" — stringify so the code and hint
+      // are actually readable.
+      console.error('Failed to load the Q&A feed:', JSON.stringify(err, null, 2))
     }
   }, [])
 
   React.useEffect(() => {
+    let cancelled = false
+    let channel: ReturnType<typeof supabase.channel> | null = null
+
+    // Realtime evaluates the RLS policy on every row using whatever token the
+    // websocket currently holds. Every Q&A policy requires app.is_builder(),
+    // which reads user_status off the JWT — so if we subscribe before the
+    // session is restored, the socket is still on the anon key, the channel
+    // reports SUBSCRIBED, and then silently delivers nothing forever. Waiting
+    // for the session (and pushing the token onto the socket) is what makes
+    // the subscription actually receive rows.
+    async function connect() {
+      const { data } = await supabase.auth.getSession()
+      if (cancelled) return
+      if (data.session) await supabase.realtime.setAuth(data.session.access_token)
+      if (cancelled) return
+
+      channel = supabase
+        .channel(`qa-feed-${discipline ?? 'all'}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'questions' }, () => void refresh())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'question_votes' }, () => void refresh())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'question_comments' }, () => void refresh())
+        // A failing channel used to be completely invisible: .subscribe() was
+        // called with no callback, so a transport error looked identical to a
+        // working feed with no new posts.
+        .subscribe((status, err) => {
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+            console.error(`Q&A realtime channel ${status}`, err ?? '')
+          }
+        })
+    }
+
     void refresh()
-    const authSub = supabase.auth.onAuthStateChange(() => void refresh())
-    const channel = supabase
-      .channel(`qa-feed-${discipline ?? 'all'}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'questions' }, () => void refresh())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'question_votes' }, () => void refresh())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'question_comments' }, () => void refresh())
-      .subscribe()
+    void connect()
+
+    // Signing in issues a new JWT, and the old socket is still bound to the
+    // previous one — tear down and reconnect so RLS is re-evaluated with it.
+    // Everything here is deferred out of the callback: both refresh() and
+    // connect() call auth methods, and supabase-js holds a lock while it
+    // dispatches this event — calling in deadlocks the client.
+    const authSub = supabase.auth.onAuthStateChange((event) => {
+      setTimeout(() => {
+        void refresh()
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+          if (channel) void supabase.removeChannel(channel)
+          channel = null
+          void connect()
+        }
+      }, 0)
+    })
+
     return () => {
+      cancelled = true
       authSub.data.subscription.unsubscribe()
-      void supabase.removeChannel(channel)
+      if (channel) void supabase.removeChannel(channel)
     }
   }, [refresh, discipline])
 
@@ -88,6 +136,30 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
     })
   }
 
+  // Optimistic removal, restored (with a visible error, not a swallowed one)
+  // if the delete actually fails server-side.
+  function handleDeleteQuestion(id: string) {
+    setDeleteError(null)
+    const previous = questions
+    setQuestions((prev) => prev.filter((q) => q.id !== id))
+    api.deleteQuestion(id).catch((err) => {
+      setQuestions(previous)
+      setDeleteError(err instanceof Error ? `Couldn't delete: ${err.message}` : "Couldn't delete that message.")
+    })
+  }
+
+  function handleDeleteComment(id: string) {
+    setDeleteError(null)
+    const previous = questions
+    setQuestions((prev) =>
+      prev.map((q) => ({ ...q, comments: q.comments.filter((c) => c.id !== id) }))
+    )
+    api.deleteQuestionComment(id).catch((err) => {
+      setQuestions(previous)
+      setDeleteError(err instanceof Error ? `Couldn't delete: ${err.message}` : "Couldn't delete that reply.")
+    })
+  }
+
   function findDuplicate(text: string): Question | null {
     let best: Question | null = null
     let bestScore = 0
@@ -104,8 +176,14 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
   function send() {
     const text = draft.trim()
     if (!text) return
+    setPostError(null)
     const uid = uidRef.current
-    if (!uid) return
+    // Used to `return` silently here, so pressing Send before the session
+    // resolved looked exactly like a dead button.
+    if (!uid) {
+      setPostError('Still signing you in — try again in a moment.')
+      return
+    }
 
     if (!duplicate) {
       const found = findDuplicate(text)
@@ -117,14 +195,22 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
 
     setDraft('')
     setDuplicate(null)
-    api.postQuestion(uid, discipline ?? 'Other', text).catch((err) => {
+    api.postQuestion(uid, discipline ?? 'Other', text).catch((err: unknown) => {
       console.error('Post failed', err)
+      // Put the draft back rather than silently eating what they typed.
+      setDraft(text)
+      setPostError(err instanceof Error ? `Couldn't post: ${err.message}` : "Couldn't post your message.")
       void refresh()
     })
   }
 
   return (
     <div className="flex flex-col">
+      {deleteError && (
+        <p className="font-sans text-[0.8125rem] text-red-400 pt-2" role="alert">
+          {deleteError}
+        </p>
+      )}
       <div className="flex-1 flex flex-col gap-0.5 pt-2 pb-4 min-h-[200px]">
         {visible.length === 0 ? (
           <p className="font-sans text-[0.8125rem] text-dark-muted">
@@ -139,6 +225,8 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
               onVote={handleVote}
               onReport={handleReport}
               onComment={handleComment}
+              onDeleteQuestion={handleDeleteQuestion}
+              onDeleteComment={handleDeleteComment}
             />
           ))
         )}
@@ -148,6 +236,11 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
           (Google-preview) viewers, same as the old "Ask a question" gate. */}
       {!readOnly && (
         <div className="pt-3 border-t border-white/8">
+          {postError && (
+            <p className="font-sans text-[0.8125rem] text-red-400 mb-3" role="alert">
+              {postError}
+            </p>
+          )}
           {duplicate && (
             <div className="flex gap-2.5 bg-corn-700/10 border border-corn-700/30 rounded p-3 mb-3">
               <AlertTriangle size={14} strokeWidth={1.8} className="text-corn-500 flex-shrink-0 mt-0.5" />

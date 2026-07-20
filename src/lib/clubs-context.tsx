@@ -33,7 +33,12 @@ export function ClubsProvider({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     void refresh()
-    const { data: sub } = supabase.auth.onAuthStateChange(() => void refresh())
+    // Deferred with setTimeout: supabase-js holds an internal lock while it
+    // dispatches this callback, and refresh() calls an auth method, so running
+    // it inline deadlocks the client and later requests never leave the browser.
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      setTimeout(() => void refresh(), 0)
+    })
     return () => sub.subscription.unsubscribe()
   }, [refresh])
 

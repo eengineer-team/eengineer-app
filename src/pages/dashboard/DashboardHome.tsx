@@ -7,7 +7,7 @@ import { CompetitionCalendar } from '@/components/dashboard/CompetitionCalendar'
 import { Button } from '@/components/ui/button'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { DrawCheck } from '@/components/dashboard/DrawCheck'
-import { formatWebinarDate } from '@/lib/community-data'
+import { formatWebinarDate, type Webinar } from '@/lib/community-data'
 import { useWebinars } from '@/lib/webinars-context'
 import { useProfiles } from '@/lib/profiles-context'
 import { ME_ID } from '@/lib/profile-data'
@@ -18,12 +18,17 @@ export function DashboardHome() {
   // so registering here or there stays in sync instead of tracking two
   // independent RSVP states.
   const { webinars, toggleRegistration } = useWebinars()
-  const nextWebinar = webinars[0]
+  // Webinars now load asynchronously from Supabase, so the first render always
+  // has an empty list — this is undefined until the fetch resolves. Typed
+  // explicitly because tsconfig has noUncheckedIndexedAccess off and would
+  // otherwise claim webinars[0] is always a Webinar.
+  const nextWebinar: Webinar | undefined = webinars[0]
   // Same click-scoped confirmation as Webinars.tsx's WebinarCard — only
   // plays for the moment right after this click registers, never on mount.
   const [justRegistered, setJustRegistered] = React.useState(false)
 
   function handleRegister() {
+    if (!nextWebinar) return
     if (!nextWebinar.registered) {
       setJustRegistered(true)
       window.setTimeout(() => setJustRegistered(false), 220)
@@ -36,7 +41,7 @@ export function DashboardHome() {
   const isEmpty = !!me && me.skills.length === 0 && me.projects.length === 0 && me.experience.length === 0
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row gap-8 md:gap-10 px-4 md:px-8 py-6 md:py-8">
+    <div className="flex-1 w-full max-w-[1180px] mx-auto flex flex-col md:flex-row gap-8 md:gap-10 px-4 md:px-8 py-6 md:py-8">
       {/* Left column */}
       <div className="flex-1 min-w-0 md:max-w-[560px] flex flex-col gap-8">
         {isEmpty && <StartHere />}
@@ -55,34 +60,46 @@ export function DashboardHome() {
             <LabelCaps>Next webinar</LabelCaps>
             <CalendarDays size={12} strokeWidth={1.8} className="text-dark-muted" />
           </div>
-          <div className="font-sans text-[0.875rem] font-semibold text-dark-text leading-snug mb-1">
-            {nextWebinar.title}
-          </div>
-          <div className="font-sans text-[11px] text-dark-muted mb-3">
-            {nextWebinar.discipline} · {formatWebinarDate(nextWebinar.startsAt)}
-          </div>
-          <div className="h-px bg-white/8 mb-3" />
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-dark-muted">
-              <Users size={11} strokeWidth={1.8} />
-              <span
-                className={cn(
-                  'font-sans text-[11px] inline-block',
-                  justRegistered && 'animate-pop-in motion-reduce:animate-none'
-                )}
-              >
-                {nextWebinar.attending} attending
-              </span>
+          {nextWebinar ? (
+            <>
+              <div className="font-sans text-[0.875rem] font-semibold text-dark-text leading-snug mb-1">
+                {nextWebinar.title}
+              </div>
+              <div className="font-sans text-[13px] text-dark-muted mb-3">
+                {nextWebinar.discipline} · {formatWebinarDate(nextWebinar.startsAt)}
+              </div>
+              <div className="h-px bg-white/8 mb-3" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-dark-muted">
+                  <Users size={11} strokeWidth={1.8} />
+                  <span
+                    className={cn(
+                      'font-sans text-[13px] inline-block',
+                      justRegistered && 'animate-pop-in motion-reduce:animate-none'
+                    )}
+                  >
+                    {nextWebinar.attending} attending
+                  </span>
+                </div>
+                <Button
+                  variant={nextWebinar.registered ? 'done' : 'accent'}
+                  size="sm"
+                  onClick={handleRegister}
+                >
+                  {nextWebinar.registered && <DrawCheck animate={justRegistered} />}
+                  {nextWebinar.registered ? 'Registered' : 'Register'}
+                </Button>
+              </div>
+            </>
+          ) : (
+            // Honest empty state rather than a skeleton: an empty webinars
+            // table and a still-loading fetch look the same from here, and
+            // claiming "loading" for a list that may genuinely be empty is
+            // the kind of small lie the rest of the app avoids.
+            <div className="font-sans text-[13px] text-dark-muted">
+              No upcoming webinars scheduled.
             </div>
-            <Button
-              variant={nextWebinar.registered ? 'done' : 'accent'}
-              size="sm"
-              onClick={handleRegister}
-            >
-              {nextWebinar.registered && <DrawCheck animate={justRegistered} />}
-              {nextWebinar.registered ? 'Registered' : 'Register'}
-            </Button>
-          </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,9 +1,10 @@
 import * as React from 'react'
-import { Paperclip, FileText, X } from 'lucide-react'
+import { Paperclip, FileText, X, Trash2 } from 'lucide-react'
 import type { Discipline, Post } from '@/lib/community-data'
 import { readFileAsAttachment, type Attachment } from '@/lib/attachments'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { supabase } from '@/lib/supabase'
 import * as api from '@/lib/api/community'
 
@@ -18,6 +19,8 @@ export function Discussion({ discipline }: { discipline?: Discipline } = {}) {
   const [posts, setPosts] = React.useState<Post[]>([])
   const [draft, setDraft] = React.useState('')
   const [pendingAttachment, setPendingAttachment] = React.useState<Attachment | null>(null)
+  const [deleteError, setDeleteError] = React.useState<string | null>(null)
+  const [confirmingDelete, setConfirmingDelete] = React.useState<string | null>(null)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const uidRef = React.useRef<string | null>(null)
 
@@ -32,7 +35,10 @@ export function Discussion({ discipline }: { discipline?: Discipline } = {}) {
 
   React.useEffect(() => {
     void refresh()
-    const { data: sub } = supabase.auth.onAuthStateChange(() => void refresh())
+    // Deferred — see the note in clubs-context.tsx.
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      setTimeout(() => void refresh(), 0)
+    })
     return () => sub.subscription.unsubscribe()
   }, [refresh])
 
@@ -61,6 +67,17 @@ export function Discussion({ discipline }: { discipline?: Discipline } = {}) {
     e.target.value = ''
     if (!file) return
     readFileAsAttachment(file).then(setPendingAttachment)
+  }
+
+  function handleDelete(id: string) {
+    setDeleteError(null)
+    setConfirmingDelete(null)
+    const previous = posts
+    setPosts((prev) => prev.filter((p) => p.id !== id))
+    api.deleteDiscussionPost(id).catch((err) => {
+      setPosts(previous)
+      setDeleteError(err instanceof Error ? `Couldn't delete: ${err.message}` : "Couldn't delete that post.")
+    })
   }
 
   function renderAttachment(attachment: Attachment) {
@@ -131,6 +148,11 @@ export function Discussion({ discipline }: { discipline?: Discipline } = {}) {
       </div>
 
       <div>
+        {deleteError && (
+          <p className="font-sans text-[0.8125rem] text-red-400 mb-3" role="alert">
+            {deleteError}
+          </p>
+        )}
         {ordered.length === 0 ? (
           <p className="font-sans text-[0.8125rem] text-dark-muted">
             {discipline ? `No discussion in ${discipline} yet.` : 'No discussion yet.'}
@@ -143,7 +165,28 @@ export function Discussion({ discipline }: { discipline?: Discipline } = {}) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <div className="font-sans text-[0.875rem] font-semibold text-dark-text">{p.name}</div>
-                    <span className="font-sans text-[12px] text-dark-muted flex-shrink-0">{p.time}</span>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="font-sans text-[12px] text-dark-muted">{p.time}</span>
+                      {p.authorId === 'me' && (
+                        <div className="relative">
+                          <button
+                            onClick={() => setConfirmingDelete((v) => (v === p.id ? null : p.id))}
+                            aria-label="Delete this post"
+                            className="text-dark-muted hover:text-red-400 transition-colors"
+                          >
+                            <Trash2 size={12} strokeWidth={1.8} />
+                          </button>
+                          {confirmingDelete === p.id && (
+                            <ConfirmDialog
+                              title="Delete this post?"
+                              description="This cannot be undone."
+                              onConfirm={() => handleDelete(p.id)}
+                              onClose={() => setConfirmingDelete(null)}
+                            />
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <p className="font-sans text-[0.8125rem] text-dark-text leading-snug">{p.text}</p>
                   {p.attachment && renderAttachment(p.attachment)}
