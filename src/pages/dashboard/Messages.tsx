@@ -9,7 +9,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { ProfilePreviewPopover } from '@/components/profile/ProfilePreviewPopover'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { cn, errorDetail } from '@/lib/utils'
+import { cn, errorDetail, errorMessage } from '@/lib/utils'
 
 // Bare-minimum URL sniff -- good enough to tell "this looks like a link" from
 // plain text without pulling in a validation library.
