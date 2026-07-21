@@ -1,9 +1,10 @@
-import { Bell, MessageSquare, Menu } from 'lucide-react'
+import { CalendarClock, MessageSquare, Menu } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/lib/auth-context'
 import { can } from '@/lib/permissions'
 import { useMessages } from '@/lib/messages-context'
 import { useCompetitions } from '@/lib/competitions-context'
+import { NotificationsBell } from '@/components/dashboard/NotificationsBell'
 
 function IconBadge({
   icon: Icon,
@@ -11,7 +12,7 @@ function IconBadge({
   label,
   onClick,
 }: {
-  icon: typeof Bell
+  icon: typeof CalendarClock
   count: number
   label: string
   onClick: () => void
@@ -38,10 +39,9 @@ export function DashboardHeader({ name, onMenuClick }: { name: string; onMenuCli
   // Google preview can't reach Messages or Calendar (see permissions.ts) — hide
   // both badges for it instead of showing a count that just bounces to /auth.
   const canSeeBadges = can(user, 'messages:view')
-  // "Notifications" bell doubles as the real deadline-reminder feed from the
-  // Calendar (see CompetitionCalendar's Daily Reminders) rather than an
-  // invented, never-clearing number — there's no separate notifications
-  // system in the app yet, so this is the one real source of "things to know."
+  // Deadline-reminder count from the Calendar (see CompetitionCalendar's Daily
+  // Reminders). Separate from NotificationsBell, which is the real per-user
+  // notifications feed (currently: new webinars in your discipline).
   const reminderCount = competitions.length
 
   return (
@@ -69,11 +69,12 @@ export function DashboardHeader({ name, onMenuClick }: { name: string; onMenuCli
               onClick={() => navigate('/dashboard/messages')}
             />
             <IconBadge
-              icon={Bell}
+              icon={CalendarClock}
               count={reminderCount}
               label="Upcoming deadlines"
               onClick={() => navigate('/dashboard/calendar')}
             />
+            <NotificationsBell />
           </>
         )}
       </div>
