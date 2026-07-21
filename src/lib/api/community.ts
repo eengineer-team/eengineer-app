@@ -188,8 +188,16 @@ type WebinarRow = { id: string; discipline: Discipline; title: string; speaker: 
 
 export async function fetchWebinars(): Promise<Webinar[]> {
   const uid = await currentUid()
+  // Only ever show what's still upcoming -- without this, a past webinar
+  // stays "next" forever once its date passes (it's still the earliest row
+  // by starts_at), which is exactly what showed a Jul 17 webinar as "Next
+  // webinar" with an active Register button days after it already happened.
   const [{ data: webinars, error }, { data: rsvps, error: rsvpError }] = await Promise.all([
-    supabase.from('webinars').select('id, discipline, title, speaker, starts_at').order('starts_at', { ascending: true }),
+    supabase
+      .from('webinars')
+      .select('id, discipline, title, speaker, starts_at')
+      .gte('starts_at', new Date().toISOString())
+      .order('starts_at', { ascending: true }),
     supabase.from('webinar_rsvps').select('webinar_id, user_id'),
   ])
   if (error) throw error
