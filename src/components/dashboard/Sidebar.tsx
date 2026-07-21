@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle, Settings, LogOut, X, PanelLeftClose, PanelLeftOpen, Rocket, ShieldCheck } from 'lucide-react'
+import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, MessageSquareHeart, HelpCircle, Settings, LogOut, X, PanelLeftClose, PanelLeftOpen, Rocket, ShieldCheck } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '@/lib/auth-context'
 import { can, type Action } from '@/lib/permissions'
 import { Tooltip } from '@/components/ui/tooltip'
 import { Wordmark } from '@/components/ui/wordmark'
+import { FeedbackDialog } from '@/components/dashboard/FeedbackDialog'
+import * as feedbackApi from '@/lib/api/feedback'
+import { errorMessage } from '@/lib/utils'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -50,10 +53,31 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const { user, signOut } = useAuth()
   const items = NAV_ITEMS.filter((item) => can(user, item.action))
   const [collapsed, setCollapsed] = useState(readStoredCollapsed)
+  const [showFeedback, setShowFeedback] = useState(false)
+  const [submittingFeedback, setSubmittingFeedback] = useState(false)
+  const [feedbackError, setFeedbackError] = useState<string | null>(null)
+  const [feedbackSent, setFeedbackSent] = useState(false)
 
   useEffect(() => {
     window.localStorage.setItem(COLLAPSE_STORAGE_KEY, String(collapsed))
   }, [collapsed])
+
+  async function handleSubmitFeedback(rating: number, message: string) {
+    const uid = await feedbackApi.currentUid()
+    if (!uid) return
+    setSubmittingFeedback(true)
+    setFeedbackError(null)
+    try {
+      await feedbackApi.submitFeedback(uid, rating, message)
+      setShowFeedback(false)
+      setFeedbackSent(true)
+      setTimeout(() => setFeedbackSent(false), 3000)
+    } catch (err) {
+      setFeedbackError(errorMessage(err, "Couldn't send feedback — try again in a moment."))
+    } finally {
+      setSubmittingFeedback(false)
+    }
+  }
 
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
     cn(
@@ -127,6 +151,39 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             })}
           </nav>
         </div>
+
+        {/* Feedback — always visible (not tucked into the Settings dropdown),
+            distinct gold-accent treatment so it's obviously findable rather
+            than blending into the routed nav items above it. Opens a dialog,
+            not a route: there's nothing to navigate to. */}
+        <div className="pb-2">
+          <Tooltip label="Give feedback" disabled={!collapsed} className="md:block">
+            <button
+              onClick={() => {
+                setFeedbackError(null)
+                setShowFeedback(true)
+              }}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded font-sans text-[0.875rem] font-medium text-gold-dark border border-gold-dark/30 hover:bg-gold-dark/10 transition-colors duration-150 w-full',
+                collapsed && 'md:justify-center md:px-0',
+              )}
+            >
+              <MessageSquareHeart size={19} strokeWidth={1.8} className="flex-shrink-0" />
+              <span className={collapsed ? 'md:hidden' : ''}>
+                {feedbackSent ? 'Thanks!' : 'Feedback'}
+              </span>
+            </button>
+          </Tooltip>
+        </div>
+
+        {showFeedback && (
+          <FeedbackDialog
+            submitting={submittingFeedback}
+            error={feedbackError}
+            onSubmit={(rating, message) => void handleSubmitFeedback(rating, message)}
+            onClose={() => setShowFeedback(false)}
+          />
+        )}
 
         {/* Footer — single Settings entry. Folds in what used to be the top-right
             header menu (Help, Sign out) so there's one Settings surface instead
