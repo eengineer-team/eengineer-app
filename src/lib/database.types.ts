@@ -1627,7 +1627,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      community_group_stats: {
+        Row: {
+          discipline:
+            | "Aerospace"
+            | "Mechanical"
+            | "Electrical"
+            | "Software"
+            | "Civil"
+            | "Chemical"
+            | "Biomedical"
+            | "Materials"
+            | "Environmental"
+            | "Other"
+          member_count: number
+          recent_activity_count: number
+        }
+        Relationships: []
+      }
     }
     Functions: {
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }

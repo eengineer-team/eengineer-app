@@ -3,7 +3,6 @@ import { ME_ID } from '@/lib/profile-data'
 import type { Attachment } from '@/lib/attachments'
 import type { Comment, Discipline, Introduction, Post, Question, Webinar } from '@/lib/community-data'
 import type { JoinedClub } from '@/lib/clubs-data'
-import { getGroupMeta } from '@/lib/community-groups'
 
 // Supabase-backed replacement for the Community domain 3 surfaces (Q&A,
 // clubs, webinars/RSVP, networking intros, discussion feed). Each fetch
@@ -169,12 +168,81 @@ export async function commentQuestion(uid: string, questionId: string, text: str
 export async function fetchJoinedClubs(uid: string): Promise<JoinedClub[]> {
   const { data, error } = await supabase.from('club_memberships').select('discipline').eq('profile_id', uid)
   if (error) throw error
-  return (data ?? []).map((r) => ({ name: r.discipline, members: getGroupMeta(r.discipline).memberCount }))
+  return (data ?? []).map((r) => ({ name: r.discipline }))
 }
 
 export async function joinClub(uid: string, discipline: Discipline): Promise<void> {
   const { error } = await supabase.from('club_memberships').insert({ profile_id: uid, discipline })
   if (error) throw error
+}
+
+// ── Community hub stats ──────────────────────────────────────────────────
+//
+// Replaces the hardcoded per-discipline numbers that used to live in
+// community-groups.ts (e.g. "412 members", "6 new this week" -- literal
+// fake seed values, off by 100-200x from the real numbers). member_count/
+// recent_activity_count come from the community_group_stats view (see
+// migration 20260721190000), which is security_invoker so it's still
+// subject to the underlying tables' RLS.
+
+export interface CommunityGroupStats {
+  memberCount: number
+  recentActivityCount: number
+}
+
+type StatsRow = { discipline: Discipline; member_count: number; recent_activity_count: number }
+
+export async function fetchCommunityGroupStats(): Promise<Record<Discipline, CommunityGroupStats>> {
+  const { data, error } = await supabase.from('community_group_stats').select('discipline, member_count, recent_activity_count')
+  if (error) throw error
+  const result = {} as Record<Discipline, CommunityGroupStats>
+  for (const row of (data ?? []) as unknown as StatsRow[]) {
+    result[row.discipline] = { memberCount: row.member_count, recentActivityCount: row.recent_activity_count }
+  }
+  return result
+}
+
+export interface LatestGroupMessage {
+  author: string
+  text: string
+  time: string
+}
+
+// Generic `profiles ( display_name )` is safe here (no `!constraint` hint
+// needed) -- discussion_posts has no junction table into profiles, unlike
+// questions (see the PGRST201 fix in api/admin.ts's resolveTargetContent).
+const LATEST_MESSAGES_SELECT = `discipline, text, created_at, profiles ( display_name )`
+
+type LatestMessageRow = {
+  discipline: Discipline
+  text: string
+  created_at: string
+  profiles: { display_name: string } | null
+}
+
+// "Latest message" preview in the JoinedClubs sidebar widget used to be
+// invented (fake author names, fake quotes) -- this pulls the real most
+// recent Discussion post per discipline. Fetches a bounded recent window
+// or all disciplines) ordered by created_at desc and keeps only the first
+// (most recent) row per discipline client-side, since PostgREST has no
+// DISTINCT ON.
+export async function fetchLatestGroupMessages(): Promise<Partial<Record<Discipline, LatestGroupMessage>>> {
+  const { data, error } = await supabase
+    .from('discussion_posts')
+    .select(LATEST_MESSAGES_SELECT)
+    .order('created_at', { ascending: false })
+    .limit(200)
+  if (error) throw error
+  const result: Partial<Record<Discipline, LatestGroupMessage>> = {}
+  for (const row of (data ?? []) as unknown as LatestMessageRow[]) {
+    if (result[row.discipline]) continue
+    result[row.discipline] = {
+      author: row.profiles?.display_name ?? 'A Builder',
+      text: row.text,
+      time: formatRelativeTime(row.created_at),
+    }
+  }
+  return result
 }
 
 export async function leaveClub(uid: string, discipline: Discipline): Promise<void> {

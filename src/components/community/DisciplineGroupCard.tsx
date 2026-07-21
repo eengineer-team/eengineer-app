@@ -7,6 +7,7 @@ import { getDisciplineIcon } from '@/lib/discipline-icons'
 import { Card } from '@/components/ui/card'
 import { JoinClubButton } from '@/components/community/JoinClubButton'
 import { useAuth } from '@/lib/auth-context'
+import { useCommunityStats } from '@/lib/community-stats-context'
 import { cn } from '@/lib/utils'
 
 // Banner is a solid discipline-color field with a specifically-chosen icon
@@ -17,6 +18,8 @@ import { cn } from '@/lib/utils'
 // enough) without an Unsplash dependency or per-discipline image licensing.
 export function DisciplineGroupCard({ group }: { group: CommunityGroupMeta }) {
   const { user } = useAuth()
+  const { getStats } = useCommunityStats()
+  const stats = getStats(group.discipline)
   const color = getDisciplineColor(group.discipline)
   const Icon = getDisciplineIcon(group.discipline)
 
@@ -44,13 +47,13 @@ export function DisciplineGroupCard({ group }: { group: CommunityGroupMeta }) {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-1.5 text-dark-muted">
               <Users size={12} strokeWidth={1.8} />
-              <span className="font-sans text-[13px]">{group.memberCount} members</span>
+              <span className="font-sans text-[13px]">{stats.memberCount} members</span>
             </div>
 
-            {group.recentActivityCount > 0 ? (
+            {stats.recentActivityCount > 0 ? (
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
-                <span className="font-sans text-[13px] text-dark-muted">{group.recentActivityCount} new this week</span>
+                <span className="font-sans text-[13px] text-dark-muted">{stats.recentActivityCount} new this week</span>
               </div>
             ) : (
               <span className="font-sans text-[13px] text-dark-muted">Quiet this week</span>

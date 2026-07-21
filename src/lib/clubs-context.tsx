@@ -1,7 +1,6 @@
 import * as React from 'react'
 import type { Discipline } from '@/lib/community-data'
 import type { JoinedClub } from '@/lib/clubs-data'
-import { getGroupMeta } from '@/lib/community-groups'
 import { supabase } from '@/lib/supabase'
 import * as api from '@/lib/api/community'
 
@@ -63,7 +62,7 @@ export function ClubsProvider({ children }: { children: React.ReactNode }) {
       if (!uid) return
       const previous = joinedClubs
       setJoinedClubs((prev) =>
-        prev.some((c) => c.name === discipline) ? prev : [...prev, { name: discipline, members: getGroupMeta(discipline).memberCount }]
+        prev.some((c) => c.name === discipline) ? prev : [...prev, { name: discipline }]
       )
       try {
         await api.joinClub(uid, discipline)

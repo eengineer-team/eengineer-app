@@ -2,7 +2,7 @@ import * as React from 'react'
 import { MessageCircle, Bell } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useJoinedClubs } from '@/lib/clubs-context'
-import { getGroupMeta } from '@/lib/community-groups'
+import { useCommunityStats } from '@/lib/community-stats-context'
 import { disciplineSlug } from '@/lib/community-data'
 import { LabelCaps } from '@/components/ui/label-caps'
 
@@ -13,6 +13,7 @@ import { LabelCaps } from '@/components/ui/label-caps'
 export function JoinedClubs() {
   const [expanded, setExpanded] = React.useState<string | null>(null)
   const { joinedClubs } = useJoinedClubs()
+  const { getLatestMessage } = useCommunityStats()
 
   return (
     <div>
@@ -28,12 +29,12 @@ export function JoinedClubs() {
       ) : (
       <div className="flex flex-col gap-2">
         {joinedClubs.map((club) => {
-          const meta = getGroupMeta(club.name)
+          const latestMessage = getLatestMessage(club.name)
           const isOpen = expanded === club.name
           // Only a real unread message count lights this up — general
-          // discipline activity (meta.recentActivityCount, e.g. new Q&A
-          // posts) isn't a message and shouldn't trigger a "new message"
-          // indicator on a club you've already read.
+          // discipline activity (recentActivityCount, e.g. new Q&A posts)
+          // isn't a message and shouldn't trigger a "new message" indicator
+          // on a club you've already read.
           const hasNotification = !!club.unreadCount
 
           return (
@@ -63,17 +64,25 @@ export function JoinedClubs() {
               {isOpen && (
                 <div className="px-4 pb-3 pt-0.5 -mt-1">
                   <div className="rounded-md bg-white/[0.03] border border-white/8 px-3 py-2.5">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="font-sans text-[0.75rem] font-medium text-white/80">
-                        {meta.latestMessage.author}
-                      </span>
-                      <span className="font-sans text-[12px] text-dark-muted flex-shrink-0">
-                        {meta.latestMessage.time}
-                      </span>
-                    </div>
-                    <p className="font-sans text-[0.75rem] text-dark-muted leading-snug line-clamp-2 mb-2">
-                      {meta.latestMessage.text}
-                    </p>
+                    {latestMessage ? (
+                      <>
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="font-sans text-[0.75rem] font-medium text-white/80">
+                            {latestMessage.author}
+                          </span>
+                          <span className="font-sans text-[12px] text-dark-muted flex-shrink-0">
+                            {latestMessage.time}
+                          </span>
+                        </div>
+                        <p className="font-sans text-[0.75rem] text-dark-muted leading-snug line-clamp-2 mb-2">
+                          {latestMessage.text}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="font-sans text-[0.75rem] text-dark-muted leading-snug mb-2">
+                        No messages yet in this group.
+                      </p>
+                    )}
                     <Link
                       to={`/dashboard/community/${disciplineSlug(club.name)}`}
                       className="font-sans text-[13px] font-medium text-gold-dark hover:brightness-110 transition-all"

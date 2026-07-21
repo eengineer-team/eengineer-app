@@ -10,6 +10,7 @@ import { ClubsProvider } from '@/lib/clubs-context'
 import { CompetitionsProvider } from '@/lib/competitions-context'
 import { OpportunitiesProvider } from '@/lib/opportunities-context'
 import { NotificationsProvider } from '@/lib/notifications-context'
+import { CommunityStatsProvider } from '@/lib/community-stats-context'
 import { Welcome } from '@/pages/Welcome'
 import { Waitlist } from '@/pages/Waitlist'
 import { Auth } from '@/pages/Auth'
@@ -61,6 +62,7 @@ export default function App() {
           <CompetitionsProvider>
           <OpportunitiesProvider>
           <NotificationsProvider>
+          <CommunityStatsProvider>
           <BrowserRouter>
             <Routes>
               {/* "/" is the waitlist interstitial (2026-07 launch decision) --
@@ -148,6 +150,7 @@ export default function App() {
               <Route path="/privacy" element={<Privacy />} />
             </Routes>
           </BrowserRouter>
+          </CommunityStatsProvider>
           </NotificationsProvider>
           </OpportunitiesProvider>
           </CompetitionsProvider>
