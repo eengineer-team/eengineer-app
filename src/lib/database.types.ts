@@ -117,6 +117,7 @@ export type Database = {
           location: string
           name: string
           organizer: string
+          organizer_email: string | null
           remote: boolean
           requirements: string[]
         }
@@ -128,6 +129,7 @@ export type Database = {
           location?: string
           name: string
           organizer?: string
+          organizer_email?: string | null
           remote?: boolean
           requirements?: string[]
         }
@@ -139,10 +141,56 @@ export type Database = {
           location?: string
           name?: string
           organizer?: string
+          organizer_email?: string | null
           remote?: boolean
           requirements?: string[]
         }
         Relationships: []
+      }
+      competition_registrations: {
+        Row: {
+          competition_id: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          profile_id: string
+          team_school: string
+        }
+        Insert: {
+          competition_id: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          profile_id: string
+          team_school: string
+        }
+        Update: {
+          competition_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          profile_id?: string
+          team_school?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competition_registrations_competition_id_fkey"
+            columns: ["competition_id"]
+            isOneToOne: false
+            referencedRelation: "competitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competition_registrations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       connections: {
         Row: {

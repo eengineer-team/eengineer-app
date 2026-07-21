@@ -20,6 +20,9 @@ export interface Competition {
   description: string
   requirements: string[]
   deadline: Date
+  // Whether the signed-in Builder has a real registration row -- not a
+  // local toggle. Preview/signed-out sessions always see false.
+  registered: boolean
 }
 
 type CompetitionRow = {
@@ -34,7 +37,7 @@ type CompetitionRow = {
   deadline: string
 }
 
-function mapCompetition(r: CompetitionRow): Competition {
+function mapCompetition(r: CompetitionRow, registeredIds: Set<string>): Competition {
   return {
     id: r.id,
     name: r.name,
@@ -45,11 +48,65 @@ function mapCompetition(r: CompetitionRow): Competition {
     description: r.description,
     requirements: r.requirements,
     deadline: new Date(r.deadline),
+    registered: registeredIds.has(r.id),
   }
 }
 
+export async function currentUid(): Promise<string | null> {
+  const { data } = await supabase.auth.getSession()
+  return data.session?.user?.id ?? null
+}
+
 export async function fetchCompetitions(): Promise<Competition[]> {
-  const { data, error } = await supabase.from('competitions').select('*').order('deadline', { ascending: true })
+  const uid = await currentUid()
+  const [{ data, error }, myRegs] = await Promise.all([
+    supabase.from('competitions').select('id, name, location, remote, discipline, organizer, description, requirements, deadline').order('deadline', { ascending: true }),
+    uid
+      ? supabase.from('competition_registrations').select('competition_id').eq('profile_id', uid)
+      : Promise.resolve({ data: [] as { competition_id: string }[], error: null }),
+  ])
   if (error) throw error
-  return ((data ?? []) as unknown as CompetitionRow[]).map(mapCompetition)
+  if (myRegs.error) throw myRegs.error
+  const registeredIds = new Set((myRegs.data ?? []).map((r) => r.competition_id))
+  return ((data ?? []) as unknown as CompetitionRow[]).map((r) => mapCompetition(r, registeredIds))
+}
+
+export interface CompetitionRegistration {
+  name: string
+  email: string
+  teamSchool: string
+}
+
+// Real registration: writes a row, then best-effort pings an Edge Function
+// to notify the organizer (see supabase/functions/notify-competition-
+// registration) -- that step is fire-and-forget and never blocks or fails
+// the registration itself, since it depends on an email provider that may
+// not be configured yet, and organizer_email may simply be null for a given
+// competition.
+export async function registerForCompetition(
+  uid: string,
+  competitionId: string,
+  reg: CompetitionRegistration
+): Promise<void> {
+  const { error } = await supabase.from('competition_registrations').insert({
+    competition_id: competitionId,
+    profile_id: uid,
+    name: reg.name,
+    email: reg.email,
+    team_school: reg.teamSchool,
+  })
+  if (error) throw error
+
+  supabase.functions
+    .invoke('notify-competition-registration', { body: { competitionId, ...reg } })
+    .catch((err) => console.error('Organizer notification failed (registration itself still succeeded)', err))
+}
+
+export async function unregisterFromCompetition(uid: string, competitionId: string): Promise<void> {
+  const { error } = await supabase
+    .from('competition_registrations')
+    .delete()
+    .eq('competition_id', competitionId)
+    .eq('profile_id', uid)
+  if (error) throw error
 }

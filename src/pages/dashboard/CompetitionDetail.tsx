@@ -1,14 +1,18 @@
 import * as React from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import { ArrowLeft, MapPin, Calendar as CalendarIcon, Building2, Check } from 'lucide-react'
-import { type Competition } from '@/lib/api/competitions'
+import { type Competition, type CompetitionRegistration } from '@/lib/api/competitions'
 import { useCompetitions } from '@/lib/competitions-context'
+import { useAuth } from '@/lib/auth-context'
+import { supabase } from '@/lib/supabase'
 import { Chip } from '@/components/ui/chip'
 import { LabelCaps } from '@/components/ui/label-caps'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { CompetitionRegisterDialog } from '@/components/competitions/CompetitionRegisterDialog'
 import { getDisciplineColor } from '@/lib/discipline-colors'
 import { DisciplineMotif } from '@/components/community/DisciplineMotif'
-import { cn } from '@/lib/utils'
+import { cn, errorMessage } from '@/lib/utils'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -25,10 +29,51 @@ function formatDate(d: Date): string {
 // swapping the data source later doesn't touch this component.
 export function CompetitionDetail({ competition: competitionProp }: { competition?: Competition } = {}) {
   const { id } = useParams<{ id: string }>()
-  const [registered, setRegistered] = React.useState(false)
-  const { getCompetition, loading } = useCompetitions()
+  const { getCompetition, loading, register, unregister } = useCompetitions()
+  const { user } = useAuth()
+
+  const [showRegisterDialog, setShowRegisterDialog] = React.useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = React.useState(false)
+  const [prefill, setPrefill] = React.useState({ name: '', email: '' })
+  const [submitting, setSubmitting] = React.useState(false)
+  const [formError, setFormError] = React.useState<string | null>(null)
 
   const competition = competitionProp ?? (id ? getCompetition(id) : undefined)
+
+  async function openRegisterDialog() {
+    const { data } = await supabase.auth.getSession()
+    setPrefill({
+      name: user?.status === 'builder' ? user.name : '',
+      email: data.session?.user?.email ?? '',
+    })
+    setFormError(null)
+    setShowRegisterDialog(true)
+  }
+
+  async function handleSubmit(reg: CompetitionRegistration) {
+    if (!competition) return
+    setSubmitting(true)
+    setFormError(null)
+    try {
+      await register(competition.id, reg)
+      setShowRegisterDialog(false)
+    } catch (err) {
+      setFormError(errorMessage(err, "Couldn't register — try again in a moment."))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleCancelRegistration() {
+    if (!competition) return
+    try {
+      await unregister(competition.id)
+    } catch (err) {
+      console.error('Failed to cancel registration', err)
+    } finally {
+      setShowCancelConfirm(false)
+    }
+  }
 
   // Don't redirect until the first fetch has settled — see the same guard in
   // OpportunityDetail.tsx / opportunities-context.tsx.
@@ -77,17 +122,44 @@ export function CompetitionDetail({ competition: competitionProp }: { competitio
           </span>
         </div>
 
-        {registered ? (
-          <span className={cn(buttonVariants({ variant: 'done', size: 'md' }), 'pointer-events-none')}>
-            <Check size={15} strokeWidth={2.2} />
-            Registered
-          </span>
-        ) : (
-          <Button variant="accent" size="md" onClick={() => setRegistered(true)}>
-            Register / Apply
-          </Button>
-        )}
+        <div className="relative inline-block">
+          {competition.registered ? (
+            <Button
+              variant="done"
+              size="md"
+              onClick={() => setShowCancelConfirm(true)}
+            >
+              <Check size={15} strokeWidth={2.2} />
+              Registered
+            </Button>
+          ) : (
+            <Button variant="accent" size="md" onClick={() => void openRegisterDialog()}>
+              Register / Apply
+            </Button>
+          )}
+          {showCancelConfirm && (
+            <ConfirmDialog
+              title="Cancel registration"
+              description={`This removes your registration for ${competition.name}. You can register again later.`}
+              confirmLabel="Cancel registration"
+              onConfirm={() => void handleCancelRegistration()}
+              onClose={() => setShowCancelConfirm(false)}
+            />
+          )}
+        </div>
       </div>
+
+      {showRegisterDialog && (
+        <CompetitionRegisterDialog
+          competitionName={competition.name}
+          defaultName={prefill.name}
+          defaultEmail={prefill.email}
+          submitting={submitting}
+          error={formError}
+          onSubmit={(reg) => void handleSubmit(reg)}
+          onClose={() => setShowRegisterDialog(false)}
+        />
+      )}
 
       <section className="mb-6">
         <LabelCaps className="block mb-2">Overview</LabelCaps>
