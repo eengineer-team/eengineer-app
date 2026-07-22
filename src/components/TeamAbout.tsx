@@ -21,14 +21,6 @@ const TEAM: TeamMember[] = [
     chips: ['Founder'],
   },
   {
-    name: 'Jalen',
-    photo: '/team/jalen.jpg',
-    github: null,
-    linkedin: null,
-    bio: 'They call me Jalen, and I come from 2009. I excel in swimming, ping pong and cs games. Attempted academic tests so far is IELTS and SAT with an according 7 and 1530 (1540 with a superscore). I am average above speed typer with a 100 wpm. My major is machine learning and the owner of couple of related projects in this field.',
-    chips: ['Machine Learning', 'ML projects'],
-  },
-  {
     name: 'Jakhongir',
     photo: '/team/jakhongir.jpg',
     github: null,
@@ -112,8 +104,7 @@ export function TeamAbout() {
           pass, 07.2026) — the bios behind the toggle are the most alive text
           on the site, and a fully collapsed section hid that entirely. */}
       <p className="font-sans text-[0.9375rem] leading-[1.6] text-[#2A2118] max-w-[560px] mb-5">
-        Built by four students from Uzbekistan — Navoi, Khiva, and one guy who
-        introduces himself as "coming from 2009."
+        Built by three students from Uzbekistan — Navoi and Khiva.
       </p>
       <button
         onClick={() => setOpen((v) => !v)}
