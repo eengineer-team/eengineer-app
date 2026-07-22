@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { createPortal } from 'react-dom'
 import { Star, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LabelCaps } from '@/components/ui/label-caps'
@@ -34,8 +35,14 @@ export function FeedbackDialog({
   const canSubmit = rating > 0 && message.trim().length > 0 && !submitting
   const displayRating = hoverRating || rating
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+  // Portal straight to <body>. The trigger lives in DashboardHeader, which
+  // has `backdrop-blur-sm` (a CSS filter) -- per spec, an element with a
+  // filter/backdrop-filter becomes the containing block for any `position:
+  // fixed` descendant, so without the portal this dialog was positioning
+  // itself relative to the ~76px-tall header bar instead of the viewport,
+  // which is why it rendered mostly off-screen on every screen size.
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         className="fixed inset-0 bg-black/50"
         onClick={submitting ? undefined : onClose}
@@ -43,7 +50,7 @@ export function FeedbackDialog({
       />
       <form
         onSubmit={handleSubmit}
-        className="relative z-10 w-full max-w-[420px] bg-dark-100 border border-white/12 rounded-lg shadow-[0_12px_40px_rgba(0,0,0,0.5)] p-5"
+        className="relative z-10 w-full max-w-[420px] max-h-full overflow-y-auto bg-dark-100 border border-white/12 rounded-lg shadow-[0_12px_40px_rgba(0,0,0,0.5)] p-5"
       >
         <div className="flex items-center justify-between mb-1">
           <LabelCaps>Share feedback</LabelCaps>
@@ -112,6 +119,7 @@ export function FeedbackDialog({
           </Button>
         </div>
       </form>
-    </div>
+    </div>,
+    document.body
   )
 }
