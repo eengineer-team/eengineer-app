@@ -41,6 +41,11 @@ import { AdminReports } from '@/pages/dashboard/admin/AdminReports'
 import { AdminContent } from '@/pages/dashboard/admin/AdminContent'
 import { AdminUsers } from '@/pages/dashboard/admin/AdminUsers'
 import { AdminRoles } from '@/pages/dashboard/admin/AdminRoles'
+import { InternalLogin } from '@/pages/internal/InternalLogin'
+import { InternalLayout } from '@/pages/internal/InternalLayout'
+import { InternalWaitlist } from '@/pages/internal/InternalWaitlist'
+import { InternalFeedback } from '@/pages/internal/InternalFeedback'
+import { InternalCompetitions } from '@/pages/internal/InternalCompetitions'
 import './index.css'
 
 export default function App() {
@@ -148,6 +153,19 @@ export default function App() {
               </Route>
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
+
+              {/* Hidden internal admin panel -- not linked from any nav, own
+                  email+password login (separate from GitHub/LinkedIn auth
+                  above), own layout/theme. Real authorization is RLS via
+                  app.is_internal_admin(), not this routing -- see
+                  supabase/migrations/20260723120000_internal_admins.sql. */}
+              <Route path="/internal/login" element={<InternalLogin />} />
+              <Route path="/internal" element={<InternalLayout />}>
+                <Route index element={<Navigate to="waitlist" replace />} />
+                <Route path="waitlist" element={<InternalWaitlist />} />
+                <Route path="feedback" element={<InternalFeedback />} />
+                <Route path="competitions" element={<InternalCompetitions />} />
+              </Route>
             </Routes>
           </BrowserRouter>
           </CommunityStatsProvider>

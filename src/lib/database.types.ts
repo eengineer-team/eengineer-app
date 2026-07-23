@@ -1680,6 +1680,7 @@ export type Database = {
     }
     Functions: {
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      am_i_internal_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
