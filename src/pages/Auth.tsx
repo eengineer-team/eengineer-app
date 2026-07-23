@@ -15,16 +15,29 @@ export function Auth() {
   const { user, loading, signInWithProvider } = useAuth()
   const [loadingProvider, setLoadingProvider] = React.useState<OAuthProvider | null>(null)
 
-  // Already signed in? Don't sit on the auth screen — send forward. (Fixes the
-  // post-OAuth loop: the redirect lands here before the async session resolves.)
+  // Already signed in as a real Builder? Don't sit on the auth screen — send
+  // forward. (Fixes the post-OAuth loop: the redirect lands here before the
+  // async session resolves.)
+  //
+  // A lingering `preview` (Google) session is deliberately NOT included here.
+  // This page is reached by pressing "Sign up" from the landing page, and a
+  // stale preview session from earlier browsing used to hijack that: the
+  // moment /auth mounted it saw `user` truthy and bounced straight to
+  // /dashboard/community before the GitHub/Google chooser ever rendered --
+  // "Hello, Preview" instead of a sign-up screen, with no way to pick GitHub.
+  // Preview users need to see this page so they can upgrade via GitHub.
   if (loading) return <AppLoader />
-  if (user) {
-    return <Navigate to={user.status === 'preview' ? '/dashboard/community' : '/dashboard'} replace />
+  if (user && user.status !== 'preview') {
+    return <Navigate to="/dashboard" replace />
   }
 
-  // Set when a Google-preview session got redirected here off a Builder-only
-  // route (see the `upgrade` nav state in App.tsx / Sidebar.tsx).
-  const upgradePrompt = Boolean((location.state as { upgrade?: boolean } | null)?.upgrade)
+  // Shown either when a Google-preview session got redirected here off a
+  // Builder-only route (see the `upgrade` nav state in App.tsx / Sidebar.tsx),
+  // or when a preview session is just sitting on this page directly (e.g.
+  // pressed "Sign up" while already in preview) -- same message either way:
+  // you're not signed out, you're previewing, GitHub gets you full access.
+  const upgradePrompt =
+    Boolean((location.state as { upgrade?: boolean } | null)?.upgrade) || user?.status === 'preview'
 
   // Real Supabase OAuth: signInWithProvider redirects the browser to the
   // provider and back to `redirectPath`, where detectSessionInUrl completes the
