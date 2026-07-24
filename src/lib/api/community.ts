@@ -252,19 +252,32 @@ export async function leaveClub(uid: string, discipline: Discipline): Promise<vo
 
 // ── Webinars + RSVPs ─────────────────────────────────────────────────────────
 
-type WebinarRow = { id: string; discipline: Discipline; title: string; speaker: string; starts_at: string }
+type WebinarRow = {
+  id: string
+  discipline: Discipline
+  title: string
+  speaker: string
+  starts_at: string
+  meeting_url: string | null
+  duration_minutes: number
+}
 
 export async function fetchWebinars(): Promise<Webinar[]> {
   const uid = await currentUid()
-  // Only ever show what's still upcoming -- without this, a past webinar
-  // stays "next" forever once its date passes (it's still the earliest row
-  // by starts_at), which is exactly what showed a Jul 17 webinar as "Next
-  // webinar" with an active Register button days after it already happened.
+  // Fetch from a generous look-back (4h) rather than strictly starts_at >=
+  // now -- a webinar that started 10 minutes ago and is still "live" (see
+  // isWebinarLive/durationMinutes) needs to stay visible with a Join
+  // button, not vanish the instant its start time passes. The old strict
+  // >= now filter is what previously showed a days-old webinar as "next"
+  // forever once past -- this replaces that bug fix with a version that
+  // also keeps genuinely-live webinars around, then drops truly-ended ones
+  // client-side below.
+  const lookback = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
   const [{ data: webinars, error }, { data: rsvps, error: rsvpError }] = await Promise.all([
     supabase
       .from('webinars')
-      .select('id, discipline, title, speaker, starts_at')
-      .gte('starts_at', new Date().toISOString())
+      .select('id, discipline, title, speaker, starts_at, meeting_url, duration_minutes')
+      .gte('starts_at', lookback)
       .order('starts_at', { ascending: true }),
     supabase.from('webinar_rsvps').select('webinar_id, user_id'),
   ])
@@ -272,15 +285,20 @@ export async function fetchWebinars(): Promise<Webinar[]> {
   if (rsvpError) throw rsvpError
 
   const rsvpRows = rsvps ?? []
-  return ((webinars ?? []) as WebinarRow[]).map((w): Webinar => ({
-    id: w.id,
-    discipline: w.discipline,
-    title: w.title,
-    speaker: w.speaker,
-    startsAt: w.starts_at,
-    attending: rsvpRows.filter((r) => r.webinar_id === w.id).length,
-    registered: uid ? rsvpRows.some((r) => r.webinar_id === w.id && r.user_id === uid) : false,
-  }))
+  const now = Date.now()
+  return ((webinars ?? []) as WebinarRow[])
+    .map((w): Webinar => ({
+      id: w.id,
+      discipline: w.discipline,
+      title: w.title,
+      speaker: w.speaker,
+      startsAt: w.starts_at,
+      meetingUrl: w.meeting_url,
+      durationMinutes: w.duration_minutes,
+      attending: rsvpRows.filter((r) => r.webinar_id === w.id).length,
+      registered: uid ? rsvpRows.some((r) => r.webinar_id === w.id && r.user_id === uid) : false,
+    }))
+    .filter((w) => now < new Date(w.startsAt).getTime() + w.durationMinutes * 60_000)
 }
 
 export async function toggleWebinarRegistration(uid: string, webinarId: string, currentlyRegistered: boolean): Promise<void> {

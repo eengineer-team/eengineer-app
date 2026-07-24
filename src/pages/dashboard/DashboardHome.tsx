@@ -7,7 +7,7 @@ import { CompetitionCalendar } from '@/components/dashboard/CompetitionCalendar'
 import { Button } from '@/components/ui/button'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { DrawCheck } from '@/components/dashboard/DrawCheck'
-import { formatWebinarDate, type Webinar } from '@/lib/community-data'
+import { formatWebinarDate, isWebinarLive, type Webinar } from '@/lib/community-data'
 import { useWebinars } from '@/lib/webinars-context'
 import { useProfiles } from '@/lib/profiles-context'
 import { ME_ID } from '@/lib/profile-data'
@@ -62,8 +62,16 @@ export function DashboardHome() {
           </div>
           {nextWebinar ? (
             <>
-              <div className="font-sans text-[0.875rem] font-semibold text-dark-text leading-snug mb-1">
-                {nextWebinar.title}
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-sans text-[0.875rem] font-semibold text-dark-text leading-snug">
+                  {nextWebinar.title}
+                </span>
+                {isWebinarLive(nextWebinar) && (
+                  <span className="flex items-center gap-1 flex-shrink-0 font-sans text-[11px] font-semibold uppercase tracking-wide text-red-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                    Live
+                  </span>
+                )}
               </div>
               <div className="font-sans text-[13px] text-dark-muted mb-3">
                 {nextWebinar.discipline} · {formatWebinarDate(nextWebinar.startsAt)}
@@ -81,14 +89,22 @@ export function DashboardHome() {
                     {nextWebinar.attending} attending
                   </span>
                 </div>
-                <Button
-                  variant={nextWebinar.registered ? 'done' : 'accent'}
-                  size="sm"
-                  onClick={handleRegister}
-                >
-                  {nextWebinar.registered && <DrawCheck animate={justRegistered} />}
-                  {nextWebinar.registered ? 'Registered' : 'Register'}
-                </Button>
+                {nextWebinar.registered && isWebinarLive(nextWebinar) && nextWebinar.meetingUrl ? (
+                  <Button variant="accent" size="sm" asChild>
+                    <a href={nextWebinar.meetingUrl} target="_blank" rel="noopener noreferrer">
+                      Join
+                    </a>
+                  </Button>
+                ) : (
+                  <Button
+                    variant={nextWebinar.registered ? 'done' : 'accent'}
+                    size="sm"
+                    onClick={handleRegister}
+                  >
+                    {nextWebinar.registered && <DrawCheck animate={justRegistered} />}
+                    {nextWebinar.registered ? 'Registered' : 'Register'}
+                  </Button>
+                )}
               </div>
             </>
           ) : (

@@ -1611,7 +1611,10 @@ export type Database = {
             | "Materials"
             | "Environmental"
             | "Other"
+          duration_minutes: number
           id: string
+          meeting_url: string | null
+          notified_live: boolean
           speaker: string
           starts_at: string
           title: string
@@ -1630,7 +1633,10 @@ export type Database = {
             | "Materials"
             | "Environmental"
             | "Other"
+          duration_minutes?: number
           id?: string
+          meeting_url?: string | null
+          notified_live?: boolean
           speaker?: string
           starts_at: string
           title: string
@@ -1649,7 +1655,10 @@ export type Database = {
             | "Materials"
             | "Environmental"
             | "Other"
+          duration_minutes?: number
           id?: string
+          meeting_url?: string | null
+          notified_live?: boolean
           speaker?: string
           starts_at?: string
           title?: string

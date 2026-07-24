@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Users } from 'lucide-react'
-import { formatWebinarDate, type Discipline, type Webinar } from '@/lib/community-data'
+import { formatWebinarDate, isWebinarLive, type Discipline, type Webinar } from '@/lib/community-data'
 import { Button } from '@/components/ui/button'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { DrawCheck } from '@/components/dashboard/DrawCheck'
@@ -24,8 +24,16 @@ function WebinarCard({ webinar, onToggle }: { webinar: Webinar; onToggle: (id: s
   return (
     <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4 flex items-center justify-between gap-4">
       <div className="min-w-0">
-        <div className="font-sans text-[0.9375rem] font-semibold text-dark-text leading-snug mb-1">
-          {webinar.title}
+        <div className="flex items-center gap-2 mb-1">
+          <span className="font-sans text-[0.9375rem] font-semibold text-dark-text leading-snug">
+            {webinar.title}
+          </span>
+          {isWebinarLive(webinar) && (
+            <span className="flex items-center gap-1 flex-shrink-0 font-sans text-[11px] font-semibold uppercase tracking-wide text-red-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              Live
+            </span>
+          )}
         </div>
         <div className="font-sans text-[0.8125rem] text-dark-muted mb-1.5">{webinar.speaker}</div>
         <div className="font-sans text-[13px] text-dark-muted">{formatWebinarDate(webinar.startsAt)}</div>
@@ -42,14 +50,22 @@ function WebinarCard({ webinar, onToggle }: { webinar: Webinar; onToggle: (id: s
             {webinar.attending} attending
           </span>
         </div>
-        <Button
-          variant={webinar.registered ? 'done' : 'accent'}
-          size="sm"
-          onClick={handleClick}
-        >
-          {webinar.registered && <DrawCheck animate={justRegistered} />}
-          {webinar.registered ? 'Registered' : 'Register'}
-        </Button>
+        {webinar.registered && isWebinarLive(webinar) && webinar.meetingUrl ? (
+          <Button variant="accent" size="sm" asChild>
+            <a href={webinar.meetingUrl} target="_blank" rel="noopener noreferrer">
+              Join
+            </a>
+          </Button>
+        ) : (
+          <Button
+            variant={webinar.registered ? 'done' : 'accent'}
+            size="sm"
+            onClick={handleClick}
+          >
+            {webinar.registered && <DrawCheck animate={justRegistered} />}
+            {webinar.registered ? 'Registered' : 'Register'}
+          </Button>
+        )}
       </div>
     </div>
   )

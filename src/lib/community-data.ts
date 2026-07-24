@@ -113,6 +113,20 @@ export interface Webinar {
   startsAt: string
   attending: number
   registered: boolean
+  /** External Zoom/Meet link -- null until someone sets it via SQL/the
+   *  internal panel. Not an in-browser video call (see Future of
+   *  Eengineer.net doc, item 5 -- scoped down to timer + notification +
+   *  external link rather than hosting calls ourselves). */
+  meetingUrl: string | null
+  durationMinutes: number
+}
+
+/** True from starts_at until starts_at + durationMinutes. Used to switch
+ *  the Register button to a Join link and to show a "Live now" badge. */
+export function isWebinarLive(webinar: Pick<Webinar, 'startsAt' | 'durationMinutes'>): boolean {
+  const start = new Date(webinar.startsAt).getTime()
+  const now = Date.now()
+  return now >= start && now < start + webinar.durationMinutes * 60_000
 }
 
 const WEBINAR_TIME_ZONE = 'America/New_York'
@@ -131,47 +145,6 @@ export function formatWebinarDate(startsAt: string): string {
   })
   return `${weekday}, ${monthDay} · ${time}`
 }
-
-// Monthly, grouped by discipline — Community Lead organizes/finds speakers,
-// this is schedule/announcement UI only, not a live-session tool.
-export const SEED_WEBINARS: Webinar[] = [
-  {
-    id: 'w1',
-    discipline: 'Aerospace',
-    title: 'Aerospace Propulsion Systems',
-    speaker: 'Dr. Elena Vasquez, JPL',
-    startsAt: '2026-07-17T21:00:00Z',
-    attending: 23,
-    registered: false,
-  },
-  {
-    id: 'w2',
-    discipline: 'Software',
-    title: 'Building Reliable Firmware-to-Cloud Pipelines',
-    speaker: 'Marcus Chen, Software Lead @ Anduril',
-    startsAt: '2026-07-21T22:00:00Z',
-    attending: 41,
-    registered: true,
-  },
-  {
-    id: 'w3',
-    discipline: 'Mechanical',
-    title: 'Design for Additive Manufacturing',
-    speaker: 'Rina Osei, Mechanical Engineer @ Boom Supersonic',
-    startsAt: '2026-07-23T21:30:00Z',
-    attending: 17,
-    registered: false,
-  },
-  {
-    id: 'w4',
-    discipline: 'Electrical',
-    title: 'Power Electronics for Small UAVs',
-    speaker: 'Tomás Ferreira, EE @ Skydio',
-    startsAt: '2026-08-03T22:00:00Z',
-    attending: 12,
-    registered: false,
-  },
-]
 
 export interface Introduction {
   id: string
