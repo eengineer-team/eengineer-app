@@ -12,7 +12,6 @@ import { OpportunitiesProvider } from '@/lib/opportunities-context'
 import { NotificationsProvider } from '@/lib/notifications-context'
 import { CommunityStatsProvider } from '@/lib/community-stats-context'
 import { Welcome } from '@/pages/Welcome'
-import { Waitlist } from '@/pages/Waitlist'
 import { Auth } from '@/pages/Auth'
 import { Onboarding } from '@/pages/Onboarding'
 import { Help } from '@/pages/Help'
@@ -70,11 +69,13 @@ export default function App() {
           <CommunityStatsProvider>
           <BrowserRouter>
             <Routes>
-              {/* "/" is the waitlist interstitial (2026-07 launch decision) --
-                  the real marketing landing moved to /home. Not a hard gate:
-                  the waitlist screen always links straight through to /home
-                  for anyone who already knows they want to sign up or log in. */}
-              <Route path="/"     element={<Waitlist />} />
+              {/* Waitlist interstitial (2026-07) was removed from the launch
+                  flow -- founder decision once the site was ready for the
+                  real public launch. Collected signups (waitlist_signups)
+                  are untouched; Waitlist.tsx is just unrouted, not deleted,
+                  in case it's ever needed again. "/" and "/home" both render
+                  the real marketing landing now. */}
+              <Route path="/"     element={<Welcome />} />
               <Route path="/home" element={<Welcome />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/onboarding" element={<Onboarding />} />

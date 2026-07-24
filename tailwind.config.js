@@ -114,6 +114,9 @@ export default {
         'fill-in': 'fill-in 160ms ease-out forwards',
         'accordion-down': 'accordion-down 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
         'accordion-up':   'accordion-up 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
+        // Sponsor marquee (landing page) — continuous scroll, paused on
+        // hover via the `.marquee-track` group in SponsorMarquee.tsx.
+        'marquee': 'marquee 28s linear infinite',
       },
       keyframes: {
         float: {
@@ -144,6 +147,10 @@ export default {
         'accordion-up': {
           from: { height: 'var(--radix-accordion-content-height)', opacity: '1' },
           to:   { height: '0', opacity: '0' },
+        },
+        marquee: {
+          from: { transform: 'translateX(0)' },
+          to:   { transform: 'translateX(-50%)' },
         },
       },
     },

@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { TeamAbout } from '@/components/TeamAbout'
+import { SponsorMarquee } from '@/components/SponsorMarquee'
 import { LandingFeatures } from '@/components/LandingFeatures'
 import { FeaturedProject } from '@/components/FeaturedProject'
 import { LandingCalendar } from '@/components/LandingCalendar'
@@ -175,6 +176,8 @@ export function Welcome() {
           </motion.div>
         </motion.div>
       </main>
+
+      <SponsorMarquee />
 
       <LandingFeatures />
 
