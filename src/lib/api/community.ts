@@ -260,6 +260,7 @@ type WebinarRow = {
   starts_at: string
   meeting_url: string | null
   duration_minutes: number
+  description: string | null
 }
 
 export async function fetchWebinars(): Promise<Webinar[]> {
@@ -276,7 +277,7 @@ export async function fetchWebinars(): Promise<Webinar[]> {
   const [{ data: webinars, error }, { data: rsvps, error: rsvpError }] = await Promise.all([
     supabase
       .from('webinars')
-      .select('id, discipline, title, speaker, starts_at, meeting_url, duration_minutes')
+      .select('id, discipline, title, speaker, starts_at, meeting_url, duration_minutes, description')
       .gte('starts_at', lookback)
       .order('starts_at', { ascending: true }),
     supabase.from('webinar_rsvps').select('webinar_id, user_id'),
@@ -295,6 +296,7 @@ export async function fetchWebinars(): Promise<Webinar[]> {
       startsAt: w.starts_at,
       meetingUrl: w.meeting_url,
       durationMinutes: w.duration_minutes,
+      description: w.description,
       attending: rsvpRows.filter((r) => r.webinar_id === w.id).length,
       registered: uid ? rsvpRows.some((r) => r.webinar_id === w.id && r.user_id === uid) : false,
     }))

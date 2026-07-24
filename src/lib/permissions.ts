@@ -20,6 +20,7 @@ export type Action =
   | 'community:networking:post'
   | 'community:discussion:view'
   | 'community:discussion:post'
+  | 'contests:view'
   | 'opportunities:view'
   | 'projects:view'
   | 'profiles:view'
@@ -45,6 +46,7 @@ const BUILDER_ACTIONS: Action[] = [
   'community:networking:post',
   'community:discussion:view',
   'community:discussion:post',
+  'contests:view',
   'opportunities:view',
   'projects:view',
   'profiles:view',
@@ -74,7 +76,7 @@ const ROLE_ACTIONS: Record<Role, Action[]> = {
 
 // Google-preview is a stateless pseudo-status, not a role: no persistent
 // state, no admin can ever grant it more than this fixed allowlist.
-const PREVIEW_ACTIONS: Action[] = ['community:read-overview', 'opportunities:view']
+const PREVIEW_ACTIONS: Action[] = ['community:read-overview', 'contests:view', 'opportunities:view']
 
 export function can(user: AuthUser | null, action: Action): boolean {
   if (!user) return false

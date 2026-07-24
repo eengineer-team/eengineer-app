@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle, Settings, LogOut, X, PanelLeftClose, PanelLeftOpen, Rocket, ShieldCheck } from 'lucide-react'
+import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle, Settings, LogOut, X, PanelLeftClose, PanelLeftOpen, Rocket, ShieldCheck, Trophy } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '@/lib/auth-context'
 import { can, type Action } from '@/lib/permissions'
@@ -26,6 +26,8 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard', end: true, label: 'Home', icon: Home, action: 'dashboard:home:view' },
   { to: '/dashboard/community', label: 'Community', icon: Users, action: 'community:read-overview' },
+  // Just below Community per founder spec (Future of Eengineer.net doc, item 8).
+  { to: '/dashboard/contests', label: 'Contests', icon: Trophy, action: 'contests:view' },
   { to: '/dashboard/projects', label: 'Projects', icon: Rocket, action: 'projects:view' },
   { to: '/dashboard/opportunities', label: 'Opportunities', icon: Briefcase, action: 'opportunities:view' },
   { to: '/dashboard/profiles', label: 'Profiles', icon: UserCircle, action: 'profiles:view' },

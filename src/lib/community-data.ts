@@ -119,6 +119,9 @@ export interface Webinar {
    *  external link rather than hosting calls ourselves). */
   meetingUrl: string | null
   durationMinutes: number
+  /** One-line teaser/hook -- shown on the DashboardHome card in place of a
+   *  bare title+date+Register block. Null falls back to a generic line. */
+  description: string | null
 }
 
 /** True from starts_at until starts_at + durationMinutes. Used to switch

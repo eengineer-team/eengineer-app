@@ -1464,6 +1464,186 @@ export type Database = {
           },
         ]
       }
+      contests: {
+        Row: {
+          created_at: string
+          description: string
+          discipline:
+            | "Aerospace"
+            | "Mechanical"
+            | "Electrical"
+            | "Software"
+            | "Civil"
+            | "Chemical"
+            | "Biomedical"
+            | "Materials"
+            | "Environmental"
+            | "Other"
+            | null
+          id: string
+          submission_deadline: string
+          title: string
+          voting_deadline: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          discipline?:
+            | "Aerospace"
+            | "Mechanical"
+            | "Electrical"
+            | "Software"
+            | "Civil"
+            | "Chemical"
+            | "Biomedical"
+            | "Materials"
+            | "Environmental"
+            | "Other"
+            | null
+          id?: string
+          submission_deadline: string
+          title: string
+          voting_deadline?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          discipline?:
+            | "Aerospace"
+            | "Mechanical"
+            | "Electrical"
+            | "Software"
+            | "Civil"
+            | "Chemical"
+            | "Biomedical"
+            | "Materials"
+            | "Environmental"
+            | "Other"
+            | null
+          id?: string
+          submission_deadline?: string
+          title?: string
+          voting_deadline?: string | null
+        }
+        Relationships: []
+      }
+      contest_submissions: {
+        Row: {
+          contest_id: string
+          content: string
+          created_at: string
+          elo_rating: number
+          id: string
+          image_url: string | null
+          losses: number
+          profile_id: string
+          wins: number
+        }
+        Insert: {
+          contest_id: string
+          content: string
+          created_at?: string
+          elo_rating?: number
+          id?: string
+          image_url?: string | null
+          losses?: number
+          profile_id: string
+          wins?: number
+        }
+        Update: {
+          contest_id?: string
+          content?: string
+          created_at?: string
+          elo_rating?: number
+          id?: string
+          image_url?: string | null
+          losses?: number
+          profile_id?: string
+          wins?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contest_submissions_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "contests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contest_submissions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contest_votes: {
+        Row: {
+          contest_id: string
+          created_at: string
+          id: string
+          submission_a_id: string
+          submission_b_id: string
+          voter_id: string
+          winner_id: string
+        }
+        Insert: {
+          contest_id: string
+          created_at?: string
+          id?: string
+          submission_a_id: string
+          submission_b_id: string
+          voter_id: string
+          winner_id: string
+        }
+        Update: {
+          contest_id?: string
+          created_at?: string
+          id?: string
+          submission_a_id?: string
+          submission_b_id?: string
+          voter_id?: string
+          winner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contest_votes_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "contests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contest_votes_voter_id_fkey"
+            columns: ["voter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contest_votes_submission_a_id_fkey"
+            columns: ["submission_a_id"]
+            isOneToOne: false
+            referencedRelation: "contest_submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contest_votes_submission_b_id_fkey"
+            columns: ["submission_b_id"]
+            isOneToOne: false
+            referencedRelation: "contest_submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contest_votes_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "contest_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feedback: {
         Row: {
           created_at: string
@@ -1611,6 +1791,7 @@ export type Database = {
             | "Materials"
             | "Environmental"
             | "Other"
+          description: string | null
           duration_minutes: number
           id: string
           meeting_url: string | null
@@ -1633,6 +1814,7 @@ export type Database = {
             | "Materials"
             | "Environmental"
             | "Other"
+          description?: string | null
           duration_minutes?: number
           id?: string
           meeting_url?: string | null

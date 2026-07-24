@@ -20,6 +20,8 @@ import { DashboardHome } from '@/pages/dashboard/DashboardHome'
 import { Community } from '@/pages/dashboard/Community'
 import { CommunityHub } from '@/pages/dashboard/community/CommunityHub'
 import { CommunityGroup } from '@/pages/dashboard/community/CommunityGroup'
+import { ContestsHub } from '@/pages/dashboard/contests/ContestsHub'
+import { ContestDetail } from '@/pages/dashboard/contests/ContestDetail'
 import { Opportunities } from '@/pages/dashboard/Opportunities'
 import { ProjectsHub } from '@/pages/dashboard/projects/ProjectsHub'
 import { ProjectDetail } from '@/pages/dashboard/projects/ProjectDetail'
@@ -89,6 +91,14 @@ export default function App() {
                   <Route index element={<CommunityHub />} />
                   <Route path=":discipline" element={<CommunityGroup />} />
                 </Route>
+                <Route
+                  path="contests"
+                  element={<RequireAction action="contests:view"><ContestsHub /></RequireAction>}
+                />
+                <Route
+                  path="contests/:id"
+                  element={<RequireAction action="contests:view"><ContestDetail /></RequireAction>}
+                />
                 <Route
                   path="opportunities"
                   element={<RequireAction action="opportunities:view"><Opportunities /></RequireAction>}

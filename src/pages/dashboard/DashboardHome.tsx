@@ -57,13 +57,18 @@ export function DashboardHome() {
 
         <div className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
-            <LabelCaps>Next webinar</LabelCaps>
+            {/* "Next webinar" read as a scheduling utility, not something to
+                be curious about -- relabeled as a news eyebrow per founder
+                feedback ("intrigue"), same slot, no functional change. */}
+            <LabelCaps className="text-gold-dark">Community news</LabelCaps>
             <CalendarDays size={12} strokeWidth={1.8} className="text-dark-muted" />
           </div>
           {nextWebinar ? (
             <>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-sans text-[0.875rem] font-semibold text-dark-text leading-snug">
+              <div className="flex items-center gap-2 mb-1.5">
+                {/* Headline treatment: bigger + tighter leading than the old
+                    plain title row, reads like a story headline. */}
+                <span className="font-display text-[1.0625rem] font-bold text-dark-text leading-[1.15] tracking-[-0.01em]">
                   {nextWebinar.title}
                 </span>
                 {isWebinarLive(nextWebinar) && (
@@ -73,8 +78,15 @@ export function DashboardHome() {
                   </span>
                 )}
               </div>
-              <div className="font-sans text-[13px] text-dark-muted mb-3">
-                {nextWebinar.discipline} · {formatWebinarDate(nextWebinar.startsAt)}
+              {/* Teaser/hook -- the "why should I care" line a bare title +
+                  date never gave. Falls back to a generic hook rather than
+                  hiding the row entirely when a webinar has no description
+                  set yet (most don't, since there's no create-webinar UI). */}
+              <p className="font-sans text-[13px] text-white/70 leading-snug mb-2">
+                {nextWebinar.description ?? "Details drop soon — RSVP to get the topic first."}
+              </p>
+              <div className="font-sans text-[12px] text-dark-muted mb-3">
+                — {nextWebinar.speaker} · {nextWebinar.discipline} · {formatWebinarDate(nextWebinar.startsAt)}
               </div>
               <div className="h-px bg-white/8 mb-3" />
               <div className="flex items-center justify-between">
