@@ -6,11 +6,16 @@ import { LabelCaps } from '@/components/ui/label-caps'
 // icon-button shape/hover convention (see SettingsMenu.tsx) so the two read
 // as one control group, not two unrelated widgets.
 //
-// No feedback backend exists in this project. Rather than fake a "sent to
-// our server" success state (a verifiable lie — nothing is actually stored
-// or delivered anywhere), Send opens a mailto: to the same contact address
-// already in the footer, pre-filled with what was typed. Real action: it
-// hands off to the person's own email client instead of pretending.
+// This is the SIGNED-OUT feedback affordance (landing page). There is a real
+// feedback table, but its insert policy is `profile_id = auth.uid()`, so an
+// anonymous visitor genuinely cannot write to it — opening that up to anon
+// would just invite spam. Rather than fake a "sent to our server" success
+// state, Send opens a mailto: to the contact address already in the footer,
+// pre-filled with what was typed.
+//
+// Signed-in feedback is different and does persist: see
+// components/dashboard/FeedbackDialog.tsx -> api/feedback.ts, readable at
+// /internal/feedback.
 export function FeedbackMenu({ variant = 'light' }: { variant?: 'light' | 'dark' }) {
   const [open, setOpen] = React.useState(false)
   const [text, setText] = React.useState('')

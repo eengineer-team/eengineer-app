@@ -1,9 +1,8 @@
 import type { Discipline } from '@/lib/community-data'
 
-// Step 9 — Profiles. Everything here is in-memory mock state (see
-// profiles-context.tsx) until a real backend/user-directory exists — same
-// caveat as auth-context.tsx's mock OAuth. Card shape is designed so a real
-// API can swap in without touching the UI.
+// Profiles — types and display constants only. The data itself is
+// Supabase-backed (lib/api/profiles.ts reads it, profiles-context.tsx holds
+// the snapshot); nothing in this file is a data source any more.
 
 export interface Skill {
   name: string

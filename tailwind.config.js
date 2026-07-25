@@ -97,8 +97,6 @@ export default {
         'dark-radial': 'radial-gradient(ellipse 90% 70% at 75% 0%, #1C1C24 0%, #111118 55%, #08080F 100%)',
       },
       animation: {
-        'float-slow': 'float 8s ease-in-out infinite',
-        'float-med': 'float 6s ease-in-out infinite 1s',
         'draw': 'draw 3s ease forwards',
         // Same `draw` keyframe as the hero dimension line, just sped up for
         // an inline confirmation checkmark instead of a one-time page-load
@@ -112,18 +110,13 @@ export default {
         'pop-in': 'pop-in 180ms ease-out forwards',
         'bubble-in': 'bubble-in 200ms ease-out forwards',
         'fill-in': 'fill-in 160ms ease-out forwards',
-        'accordion-down': 'accordion-down 0.22s cubic-bezier(0.4, 0, 0.2, 1)',
-        'accordion-up':   'accordion-up 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
         // Sponsor marquee (landing page) — continuous scroll, paused on
-        // hover via the `.marquee-track` group in SponsorMarquee.tsx.
+        // hover. Duration is overridden inline in SponsorMarquee.tsx: the
+        // keyframe travels a fixed -50%, so the track's repeat count has to
+        // scale the duration to keep the scroll speed constant.
         'marquee': 'marquee 28s linear infinite',
       },
       keyframes: {
-        float: {
-          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
-          '33%': { transform: 'translateY(-12px) rotate(1.5deg)' },
-          '66%': { transform: 'translateY(6px) rotate(-1deg)' },
-        },
         draw: {
           from: { strokeDashoffset: '1000' },
           to: { strokeDashoffset: '0' },
@@ -139,14 +132,6 @@ export default {
         'fill-in': {
           '0%':   { opacity: '0', transform: 'scale(0.4)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
-        },
-        'accordion-down': {
-          from: { height: '0', opacity: '0' },
-          to:   { height: 'var(--radix-accordion-content-height)', opacity: '1' },
-        },
-        'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)', opacity: '1' },
-          to:   { height: '0', opacity: '0' },
         },
         marquee: {
           from: { transform: 'translateX(0)' },

@@ -61,10 +61,11 @@ export function Welcome() {
       </header>
 
       {/* Hero — deliberately just type on cornsilk: no screenshot, no video,
-          no mock artifact. Team decision (07.2026): while the product runs on
-          seed data, any "product shot" here is a fabrication; empty is more
-          honest and reads stronger. Revisit only when there are real screens
-          with real user content to show. */}
+          no product shot. Team decision (07.2026). The original reason was
+          that the product ran on seed data so any screenshot would have been
+          a fabrication; that's no longer true, but the bare-type hero tested
+          better than a screenshot would have, so it stays by choice now
+          rather than by necessity. */}
       <main
         ref={heroRef}
         className="relative isolate flex-1 flex flex-col px-5 sm:px-10 py-10 lg:py-12 bg-graph-paper"

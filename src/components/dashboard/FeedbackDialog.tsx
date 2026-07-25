@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils'
 // Real feedback submission (rating + message), reachable from the
 // permanently-visible "Feedback" entry in the sidebar. Writes to the
 // feedback table -- see supabase/migrations/20260721200000_feedback.sql
-// and api/feedback.ts. No admin UI reads this back yet; the founder
-// reviews submissions directly via SQL, same as waitlist_signups.
+// and api/feedback.ts. Read back in the internal panel at
+// /internal/feedback (InternalFeedback.tsx), not via SQL any more.
 export function FeedbackDialog({
   submitting,
   error,

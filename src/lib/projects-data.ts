@@ -2,7 +2,8 @@
 // portfolio-style ProjectEntry[] already living on BuilderProfile (that's
 // past work; this is a live, ongoing thing you're building and recruiting
 // for). One Project per Builder — same 1:1 shape as ProfileDetail's "own
-// profile" pattern, same mock-in-memory caveat as the rest of the app.
+// profile" pattern. Types and constants only; the rows live in Supabase
+// (lib/api/projects.ts).
 
 export type ProjectKind = 'telegram' | 'website' | 'other'
 

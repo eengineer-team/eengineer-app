@@ -12,16 +12,15 @@ import { Avatar } from '@/components/ui/avatar'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { cn } from '@/lib/utils'
 
-// Step 13 — real profile-setup flow, reached from Auth.tsx right after a
-// signup-mode OAuth mock (login-mode skips straight to /dashboard, see
-// Auth.tsx). Writes directly into the shared ProfilesProvider state (see
-// App.tsx — it now wraps /onboarding too, not just /dashboard) so there's no
-// separate "draft" profile that needs merging in later.
+// Profile-setup flow, reached from Auth.tsx right after a signup-mode OAuth
+// round-trip (login-mode skips straight to /dashboard, see Auth.tsx). Writes
+// directly into the shared ProfilesProvider state (see App.tsx — it wraps
+// /onboarding too, not just /dashboard) so there's no separate "draft"
+// profile that needs merging in later.
 //
-// Everything here is skippable — nothing blocks reaching the dashboard. Per
-// spec this is a mock/demo product with no real backend yet, so forcing
-// completion would just create a dead end for anyone who doesn't want to
-// fill it in right now.
+// Everything here is skippable — nothing blocks reaching the dashboard.
+// Forcing completion would just create a dead end for anyone who doesn't
+// want to fill it in right now; the profile can be finished from Settings.
 // Hard floor for an account. eengineer is stated as a 13–18 platform, and
 // under-13 sign-ups are refused rather than routed through parental consent.
 const MINIMUM_AGE = 13
