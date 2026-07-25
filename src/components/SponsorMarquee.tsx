@@ -14,7 +14,11 @@ interface SponsorTile {
 }
 
 const SPONSORS: SponsorTile[] = [
-  { name: 'Edugrants', logo: '/edugrants-mark-dark-transparent.png', blurb: 'Edugrants — scholarship & opportunity discovery for students' },
+  // Black-ladder variant: the marquee sits on the cornsilk landing background,
+  // where the dark-mode mark's cream ladder was nearly invisible and only the
+  // gold cap read. The dashboard (OpportunityDetail) still uses the cream one
+  // -- it's on a dark surface, where that's the correct variant.
+  { name: 'Edugrants', logo: '/edugrants-mark-black-transparent.png', blurb: 'Edugrants — scholarship & opportunity discovery for students' },
   { name: 'Partner A', logo: null, blurb: 'More partners coming soon' },
   { name: 'Partner B', logo: null, blurb: 'More partners coming soon' },
   { name: 'Partner C', logo: null, blurb: 'More partners coming soon' },
