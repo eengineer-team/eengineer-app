@@ -19,10 +19,14 @@ const SPONSORS: SponsorTile[] = [
   // gold cap read. The dashboard (OpportunityDetail) still uses the cream one
   // -- it's on a dark surface, where that's the correct variant.
   { name: 'Edugrants', logo: '/edugrants-mark-black-transparent.png', blurb: 'Edugrants — scholarship & opportunity discovery for students' },
+  {
+    name: 'Pizik Lab',
+    logo: '/pizik-mark-transparent.png',
+    blurb: 'Pizik Lab — hands-on physics experiments and science outreach across Uzbekistan',
+  },
   { name: 'Partner A', logo: null, blurb: 'More partners coming soon' },
   { name: 'Partner B', logo: null, blurb: 'More partners coming soon' },
   { name: 'Partner C', logo: null, blurb: 'More partners coming soon' },
-  { name: 'Partner D', logo: null, blurb: 'More partners coming soon' },
 ]
 
 function Tile({ sponsor }: { sponsor: SponsorTile }) {
