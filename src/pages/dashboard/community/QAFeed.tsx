@@ -218,7 +218,9 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
       <div className="flex-1 flex flex-col gap-0.5 pt-2 pb-4 min-h-[200px]">
         {visible.length === 0 ? (
           <p className="font-sans text-[0.8125rem] text-dark-muted">
-            {discipline ? `No messages yet in ${discipline} — be the first to post.` : 'No messages yet.'}
+            {discipline
+              ? `No one has asked anything in ${discipline} yet. Ask the thing you got stuck on this week.`
+              : 'No questions asked yet.'}
           </p>
         ) : (
           visible.map((q) => (

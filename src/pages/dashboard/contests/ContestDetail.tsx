@@ -157,15 +157,17 @@ function VoteSection({ contest }: { contest: Contest }) {
     return (
       <p className="font-sans text-[0.8125rem] text-dark-muted">
         {contest.submissionCount < 2
-          ? "Not enough entries yet to compare — check back once more people submit."
-          : "You've compared every pair so far. Check back once more entries come in."}
+          ? 'Voting needs at least two entries to compare. Only one came in for this one.'
+          : "You've been through every pairing. Nothing left to rank until more entries land."}
       </p>
     )
   }
 
   return (
     <div>
-      <p className="font-sans text-[0.75rem] text-dark-muted mb-3">Which entry is stronger? No names shown — vote on the work.</p>
+      <p className="font-sans text-[0.75rem] text-dark-muted mb-3">
+        Two entries, no names. Pick the one you'd rather have built.
+      </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {pair.map((s, i) => (
           <button
@@ -201,7 +203,14 @@ function LeaderboardSection({ contestId }: { contestId: string }) {
   if (error) return <p className="font-sans text-[0.8125rem] text-red-400">{error}</p>
   if (!rows) return <p className="font-sans text-[0.8125rem] text-dark-muted">Loading…</p>
   if (rows.length === 0) {
-    return <p className="font-sans text-[0.8125rem] text-dark-muted">No entries visible yet.</p>
+    // Not a generic "nothing here" — before the deadline this is the blind-
+    // submission rule doing its job, and saying so is more useful than
+    // implying the contest is dead.
+    return (
+      <p className="font-sans text-[0.8125rem] text-dark-muted">
+        Entries stay hidden until the submission deadline passes.
+      </p>
+    )
   }
 
   return (

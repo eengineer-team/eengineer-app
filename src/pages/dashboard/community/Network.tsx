@@ -6,6 +6,7 @@ import { useProfiles } from '@/lib/profiles-context'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
 import { LabelCaps } from '@/components/ui/label-caps'
+import { ReputationBadge } from '@/components/profile/ReputationBadge'
 import { cn } from '@/lib/utils'
 
 function ProfileCard({ profile, onConnect }: { profile: BuilderProfile; onConnect: (id: string) => void }) {
@@ -17,8 +18,15 @@ function ProfileCard({ profile, onConnect }: { profile: BuilderProfile; onConnec
       <Avatar name={profile.name} src={profile.avatarUrl} size="md" theme="dashboard" />
 
       <div className="flex-1 min-w-0">
-        <div className="font-sans text-[0.875rem] font-semibold text-dark-text leading-tight">
-          {profile.name}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-sans text-[0.875rem] font-semibold text-dark-text leading-tight">
+            {profile.name}
+          </span>
+          {/* Only above the floor tier: showing "Builder 0" next to every new
+              member turns the members list into a ranking of who's newest. */}
+          {profile.reputationTier !== 'Builder' && (
+            <ReputationBadge tier={profile.reputationTier} points={profile.reputationPoints} size="sm" />
+          )}
         </div>
         <div className="font-sans text-[0.75rem] text-dark-muted mt-0.5">{profile.discipline}</div>
         <div className="flex items-center gap-1.5 text-dark-muted mt-1">
@@ -68,7 +76,9 @@ export function Network({ discipline }: { discipline?: Discipline } = {}) {
         <LabelCaps className="block mb-3">{discipline ? 'Members' : 'My Network'}</LabelCaps>
         {scoped.length === 0 ? (
           <p className="font-sans text-[0.8125rem] text-dark-muted">
-            {discipline ? `No members in ${discipline} yet.` : 'No connections yet.'}
+            {discipline
+              ? `No one has joined ${discipline} yet.`
+              : "You haven't connected with anyone yet. Open a discipline group to see who's there."}
           </p>
         ) : (
           <div className="flex flex-col gap-3">

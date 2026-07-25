@@ -33,7 +33,9 @@ export function PeerActivity({ className = '' }: { className?: string }) {
 
       {latestProjects.length === 0 ? (
         <p className="font-sans text-[0.8125rem] text-dark-muted">
-          Nothing posted yet in your joined communities.
+          {joinedClubs.length === 0
+            ? 'Join a discipline group and the projects posted there show up here.'
+            : "No one in your groups has posted a project yet. Post yours and it'll be the first thing they see."}
         </p>
       ) : (
         <div className="flex flex-col gap-3">

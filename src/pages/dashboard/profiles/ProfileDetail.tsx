@@ -12,6 +12,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { cn, errorMessage } from '@/lib/utils'
 import { SkillBar } from '@/components/profile/SkillBar'
 import { EndorseDialog } from '@/components/profile/EndorseDialog'
+import { ReputationBadge } from '@/components/profile/ReputationBadge'
 import { useMorphOnChange } from '@/lib/use-morph-on-change'
 
 function displayName(user: ReturnType<typeof useAuth>['user'], name: string) {
@@ -111,9 +112,10 @@ export function ProfileDetail() {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <h1 className="font-display text-[1.25rem] font-bold text-dark-text leading-tight">{name}</h1>
-              <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 bg-gold-dark/15 border border-gold-dark/30 text-gold-dark font-sans text-[12px] font-semibold uppercase tracking-wide">
-                Builder
-              </span>
+              {/* Replaces a hardcoded "Builder" chip that said the same thing
+                  about everyone. The tier still reads "Builder" at the floor,
+                  so nothing is lost — it just becomes earned above that. */}
+              <ReputationBadge tier={profile.reputationTier} points={profile.reputationPoints} />
               {profile.openToWork && (
                 <span className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-sans text-[12px] font-semibold uppercase tracking-wide">
                   <Briefcase size={10} strokeWidth={2} />

@@ -125,6 +125,11 @@ export interface BuilderProfile {
   /** Set during onboarding (Step 13) — surfaced as a badge on the profile. */
   openToWork: boolean
   interests: string[]
+  /** Contribution points, summed from the reputation_events ledger by the
+   *  profile_reputation view. Read-only here — the client can never write
+   *  it (no INSERT policy on the ledger at all; only DB triggers award). */
+  reputationPoints: number
+  reputationTier: ReputationTier
   /** Privacy toggle (Settings) — undefined/true means DMs are open, same as
    *  every existing seeded profile before this field existed. Only ever
    *  false when the Builder explicitly turns it off. Enforced wherever a
@@ -145,4 +150,34 @@ export interface BuilderProfile {
 // Fixed id for whoever is currently signed in — the only profile the
 // session can edit. Real name comes from auth-context at render time.
 export const ME_ID = 'me'
+
+// Contribution tiers. Thresholds and the point values behind them live in
+// supabase/migrations/20260725120000_reputation.sql — this is only the
+// display side. "Builder" is the floor everyone starts at rather than a
+// zero-state badge, so a new member is never labelled as having done nothing.
+export type ReputationTier = 'Builder' | 'Contributor' | 'Mentor' | 'Core'
+
+export const TIER_ORDER: ReputationTier[] = ['Builder', 'Contributor', 'Mentor', 'Core']
+
+// Must stay in sync with the CASE in the profile_reputation view
+// (supabase/migrations/20260725120000_reputation.sql, rescaled in
+// reputation_tier_thresholds). Calibrated against the real point
+// distribution rather than round numbers — at 25/100/300 every existing
+// member sat at the floor tier and the badge said nothing.
+export const TIER_THRESHOLDS: Record<ReputationTier, number> = {
+  Builder: 0,
+  Contributor: 12,
+  Mentor: 40,
+  Core: 120,
+}
+
+/** Points still needed for the next tier, or null once at the top. */
+export function nextTier(points: number): { tier: ReputationTier; remaining: number } | null {
+  for (const tier of TIER_ORDER) {
+    if (points < TIER_THRESHOLDS[tier]) {
+      return { tier, remaining: TIER_THRESHOLDS[tier] - points }
+    }
+  }
+  return null
+}
 

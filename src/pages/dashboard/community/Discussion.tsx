@@ -157,7 +157,9 @@ export function Discussion({ discipline }: { discipline?: Discipline } = {}) {
         )}
         {ordered.length === 0 ? (
           <p className="font-sans text-[0.8125rem] text-dark-muted">
-            {discipline ? `No discussion in ${discipline} yet.` : 'No discussion yet.'}
+            {discipline
+              ? `Nobody's started a thread in ${discipline}. Post first and it sits at the top.`
+              : 'No threads running. Say something and it starts one.'}
           </p>
         ) : (
           <div className="flex flex-col gap-3">

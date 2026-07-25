@@ -125,7 +125,7 @@ export function DashboardHome() {
             // claiming "loading" for a list that may genuinely be empty is
             // the kind of small lie the rest of the app avoids.
             <div className="font-sans text-[13px] text-dark-muted">
-              No upcoming webinars scheduled.
+              Nothing scheduled this week. The next session shows up here first.
             </div>
           )}
         </div>

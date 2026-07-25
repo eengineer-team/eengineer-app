@@ -1,6 +1,13 @@
 import { supabase } from '@/lib/supabase'
 import type { Database } from '@/lib/database.types'
-import { ME_ID, MIN_ENDORSEMENT_REASON_LENGTH, type BuilderProfile, type ProjectEntry, type ExperienceEntry } from '@/lib/profile-data'
+import {
+  ME_ID,
+  MIN_ENDORSEMENT_REASON_LENGTH,
+  type BuilderProfile,
+  type ProjectEntry,
+  type ExperienceEntry,
+  type ReputationTier,
+} from '@/lib/profile-data'
 import type { Discipline } from '@/lib/community-data'
 
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
@@ -48,7 +55,7 @@ export async function currentUid(): Promise<string | null> {
 export async function fetchProfiles(): Promise<BuilderProfile[]> {
   const uid = await currentUid()
 
-  const [{ data: rows, error }, { data: connRows }, { data: privateRow }] = await Promise.all([
+  const [{ data: rows, error }, { data: connRows }, { data: privateRow }, { data: repRows }] = await Promise.all([
     supabase.from('profiles').select(PROFILE_SELECT),
     uid
       ? supabase.from('connections').select('requester_id, addressee_id, status').eq('status', 'connected')
@@ -56,11 +63,21 @@ export async function fetchProfiles(): Promise<BuilderProfile[]> {
     uid
       ? supabase.from('profile_private').select('birthdate, guardian_consent_email').eq('id', uid).maybeSingle()
       : Promise.resolve({ data: null }),
+    // profile_reputation is a view over the reputation_events ledger — one
+    // row per profile, so this is a flat lookup rather than a per-profile
+    // aggregate query.
+    supabase.from('profile_reputation').select('profile_id, points, tier'),
   ])
   if (error) throw error
   const profileRows = (rows ?? []) as unknown as ProfileRow[]
 
   const nameById = new Map(profileRows.map((r) => [r.id, r.display_name]))
+  const repById = new Map(
+    ((repRows ?? []) as { profile_id: string; points: number; tier: string }[]).map((r) => [
+      r.profile_id,
+      { points: r.points, tier: r.tier as ReputationTier },
+    ]),
+  )
 
   const connected = new Map<string, Set<string>>()
   for (const c of connRows ?? []) {
@@ -127,6 +144,8 @@ export async function fetchProfiles(): Promise<BuilderProfile[]> {
       connectStatus,
       openToWork: row.open_to_work,
       interests: row.interests,
+      reputationPoints: repById.get(row.id)?.points ?? 0,
+      reputationTier: repById.get(row.id)?.tier ?? 'Builder',
       allowDMs: row.allow_dms,
       birthdate: isMe ? privateRow?.birthdate ?? undefined : undefined,
       guardianConsentEmail: isMe ? privateRow?.guardian_consent_email ?? undefined : undefined,

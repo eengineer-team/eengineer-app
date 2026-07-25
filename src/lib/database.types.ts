@@ -1868,6 +1868,22 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_reputation: {
+        Row: {
+          profile_id: string
+          points: number
+          tier: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_reputation_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }

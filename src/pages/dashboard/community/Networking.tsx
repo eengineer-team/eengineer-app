@@ -220,7 +220,9 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
         <LabelCaps className="block mb-3">Introductions</LabelCaps>
         {others.length === 0 ? (
           <p className="font-sans text-[0.8125rem] text-dark-muted">
-            {discipline ? `No introductions in ${discipline} yet.` : 'No introductions yet.'}
+            {discipline
+              ? `No one in ${discipline} has introduced themselves yet. Yours would be the first people read.`
+              : 'No introductions posted yet.'}
           </p>
         ) : (
           <div className="flex flex-col gap-3">

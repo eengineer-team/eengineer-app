@@ -65,8 +65,13 @@ export function Opportunities() {
         </div>
       )}
 
+      {/* rankByDiscipline only re-sorts, it never filters — so an empty list
+          here always means the feed itself is empty, never that the chosen
+          discipline had no matches. Wording says exactly that. */}
       {!loading && listings.length === 0 ? (
-        <p className="font-sans text-[0.8125rem] text-dark-muted">No opportunities posted yet.</p>
+        <p className="font-sans text-[0.8125rem] text-dark-muted">
+          No open scholarships or internships right now. New ones land here as they come in.
+        </p>
       ) : (
         <div className="flex flex-col gap-4">
           {listings.map((op) => (

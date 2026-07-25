@@ -48,7 +48,14 @@ export function ProfilesList() {
                     {name}
                     {p.id === ME_ID && <span className="text-dark-muted font-normal"> (you)</span>}
                   </div>
-                  <LabelCaps className="mt-0.5">Builder</LabelCaps>
+                  {/* Was a static "Builder" caps label on every card. Now the
+                      earned tier, so the row actually distinguishes people. */}
+                  <LabelCaps className="mt-0.5">
+                    {p.reputationTier}
+                    {p.reputationPoints > 0 && (
+                      <span className="text-dark-muted"> · {p.reputationPoints}</span>
+                    )}
+                  </LabelCaps>
                 </div>
               </div>
 

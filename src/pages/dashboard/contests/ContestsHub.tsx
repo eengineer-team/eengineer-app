@@ -69,9 +69,9 @@ export function ContestsHub() {
         <Trophy size={18} strokeWidth={1.8} className="text-gold-dark" />
         <h1 className="font-display text-xl font-semibold text-dark-text">Contests</h1>
       </div>
-      <p className="font-sans text-[0.8125rem] text-dark-muted mb-6">
-        Deadline-based design challenges, all disciplines. Submit before the deadline, then the community votes
-        on entries head-to-head to rank them.
+      <p className="font-sans text-[0.8125rem] text-dark-muted mb-6 max-w-[560px]">
+        Build something against a deadline. When it closes, entries go head-to-head with no names attached —
+        so what gets ranked is the work, not who posted it.
       </p>
 
       {error && <p className="font-sans text-[0.8125rem] text-red-400">{error}</p>}
@@ -79,7 +79,9 @@ export function ContestsHub() {
       {!error && !contests && <p className="font-sans text-[0.8125rem] text-dark-muted">Loading…</p>}
 
       {contests && contests.length === 0 && (
-        <p className="font-sans text-[0.8125rem] text-dark-muted">No contests yet — check back soon.</p>
+        <p className="font-sans text-[0.8125rem] text-dark-muted">
+          Nothing running right now. The next contest gets announced here before anywhere else.
+        </p>
       )}
 
       {contests && contests.length > 0 && (
