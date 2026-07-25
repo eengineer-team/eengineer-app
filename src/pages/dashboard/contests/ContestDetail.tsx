@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card'
 import { Chip } from '@/components/ui/chip'
 import { Button } from '@/components/ui/button'
 import { LabelCaps } from '@/components/ui/label-caps'
-import { errorMessage } from '@/lib/utils'
+import { cn, errorMessage } from '@/lib/utils'
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -96,63 +96,96 @@ function SubmitSection({ contest, onSubmitted }: { contest: Contest; onSubmitted
 
 // Blind pairwise voting -- content/imageUrl only, never the author's name,
 // so votes reflect the work and not who made it.
+type VotePool = { pair: [ContestSubmission, ContestSubmission] | null; exhausted: boolean }
+
+// Minimum time the picked/receding state stays on screen. Without it the
+// whole thing resolves in whatever the round-trip takes -- on a fast
+// connection that's ~80ms, which reads as the pair blinking rather than as
+// a choice being registered.
+const PICK_HOLD_MS = 240
+
 function VoteSection({ contest }: { contest: Contest }) {
   const [pair, setPair] = React.useState<[ContestSubmission, ContestSubmission] | null>(null)
-  const [loading, setLoading] = React.useState(true)
+  // Separate from `voting`: only the very first fetch may replace the whole
+  // section with a loading line. Every later one keeps the current pair on
+  // screen until the next is ready, so the section never collapses to text
+  // mid-interaction.
+  const [firstLoad, setFirstLoad] = React.useState(true)
   const [voting, setVoting] = React.useState(false)
+  const [picked, setPicked] = React.useState<string | null>(null)
+  // Bumped per resolved vote and used as the grid's key, so the incoming
+  // pair remounts and re-runs its entry animation.
+  const [round, setRound] = React.useState(0)
   const [error, setError] = React.useState<string | null>(null)
   const [exhausted, setExhausted] = React.useState(false)
 
-  const loadPair = React.useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const uid = await contestsApi.currentUid()
-      if (!uid) throw new Error('Sign in to vote.')
-      const { candidates, votedPairs } = await contestsApi.fetchVotingPool(contest.id, uid)
-      const unseen: [ContestSubmission, ContestSubmission][] = []
-      for (let i = 0; i < candidates.length; i++) {
-        for (let j = i + 1; j < candidates.length; j++) {
-          const key = [candidates[i].id, candidates[j].id].sort().join('|')
-          if (!votedPairs.has(key)) unseen.push([candidates[i], candidates[j]])
-        }
+  // Returns the next pool rather than writing state, so the caller decides
+  // WHEN to commit it. Committing inside here is what would let a fast
+  // network swap the cards out from under the pick animation.
+  const computePool = React.useCallback(async (): Promise<VotePool> => {
+    const uid = await contestsApi.currentUid()
+    if (!uid) throw new Error('Sign in to vote.')
+    const { candidates, votedPairs } = await contestsApi.fetchVotingPool(contest.id, uid)
+    const unseen: [ContestSubmission, ContestSubmission][] = []
+    for (let i = 0; i < candidates.length; i++) {
+      for (let j = i + 1; j < candidates.length; j++) {
+        const key = [candidates[i].id, candidates[j].id].sort().join('|')
+        if (!votedPairs.has(key)) unseen.push([candidates[i], candidates[j]])
       }
-      if (unseen.length === 0) {
-        setExhausted(true)
-        setPair(null)
-      } else {
-        setExhausted(false)
-        setPair(unseen[Math.floor(Math.random() * unseen.length)])
-      }
-    } catch (err) {
-      setError(errorMessage(err, 'Failed to load entries to compare.'))
-    } finally {
-      setLoading(false)
     }
+    if (unseen.length === 0) return { pair: null, exhausted: true }
+    return { pair: unseen[Math.floor(Math.random() * unseen.length)], exhausted: false }
   }, [contest.id])
 
   React.useEffect(() => {
-    void loadPair()
-  }, [loadPair])
+    let cancelled = false
+    computePool()
+      .then((pool) => {
+        if (cancelled) return
+        setPair(pool.pair)
+        setExhausted(pool.exhausted)
+      })
+      .catch((err) => {
+        if (!cancelled) setError(errorMessage(err, 'Failed to load entries to compare.'))
+      })
+      .finally(() => {
+        if (!cancelled) setFirstLoad(false)
+      })
+    return () => { cancelled = true }
+  }, [computePool])
 
   async function handleVote(winnerId: string) {
-    if (!pair) return
+    if (!pair || voting) return
     setVoting(true)
+    setPicked(winnerId)
     setError(null)
     try {
       const uid = await contestsApi.currentUid()
       if (!uid) throw new Error('Sign in to vote.')
-      await contestsApi.castVote(contest.id, uid, pair[0].id, pair[1].id, winnerId)
-      await loadPair()
+      // Vote and prefetch the next pair, but don't commit until the hold has
+      // also elapsed -- both settle before anything on screen changes.
+      const [pool] = await Promise.all([
+        contestsApi
+          .castVote(contest.id, uid, pair[0].id, pair[1].id, winnerId)
+          .then(() => computePool()),
+        new Promise((resolve) => setTimeout(resolve, PICK_HOLD_MS)),
+      ])
+      setPair(pool.pair)
+      setExhausted(pool.exhausted)
+      setRound((r) => r + 1)
     } catch (err) {
       setError(errorMessage(err, "Couldn't record that vote."))
     } finally {
       setVoting(false)
+      setPicked(null)
     }
   }
 
-  if (loading) return <p className="font-sans text-[0.8125rem] text-dark-muted">Loading entries…</p>
-  if (error) return <p className="font-sans text-[0.8125rem] text-red-400">{error}</p>
+  if (firstLoad) return <p className="font-sans text-[0.8125rem] text-dark-muted">Loading entries…</p>
+  // Only surrender the whole section when there's nothing to fall back to.
+  // A failed vote used to replace the pair with an error line, so a dropped
+  // request cost you the comparison you were in the middle of reading.
+  if (error && !pair) return <p className="font-sans text-[0.8125rem] text-red-400">{error}</p>
   if (exhausted || !pair) {
     return (
       <p className="font-sans text-[0.8125rem] text-dark-muted">
@@ -168,22 +201,56 @@ function VoteSection({ contest }: { contest: Contest }) {
       <p className="font-sans text-[0.75rem] text-dark-muted mb-3">
         Two entries, no names. Pick the one you'd rather have built.
       </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {pair.map((s, i) => (
-          <button
-            key={s.id}
-            type="button"
-            disabled={voting}
-            onClick={() => void handleVote(s.id)}
-            className="text-left border border-white/10 rounded-lg p-4 hover:border-gold-dark/50 hover:bg-white/[0.03] transition-colors duration-150 disabled:opacity-50"
-          >
-            <LabelCaps className="block mb-2">Entry {i === 0 ? 'A' : 'B'}</LabelCaps>
-            <p className="font-sans text-[0.8125rem] text-dark-text whitespace-pre-wrap line-clamp-6">{s.content}</p>
-            {s.imageUrl && (
-              <span className="inline-block mt-2 font-sans text-[12px] text-gold-dark">has attachment</span>
-            )}
-          </button>
-        ))}
+      {error && (
+        <p className="font-sans text-[0.8125rem] text-red-400 mb-3 animate-pop-in motion-reduce:animate-none" role="alert">
+          {error} Your pick wasn't recorded — try again.
+        </p>
+      )}
+      <div key={round} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {pair.map((s, i) => {
+          const isPicked = picked === s.id
+          const isRejected = voting && !isPicked
+          return (
+            // Entry animation lives on the wrapper and the interaction
+            // transition on the button, so the two never drive transform/
+            // opacity at the same time and fight each other.
+            <div
+              key={s.id}
+              style={{ animationDelay: `${i * 60}ms` }}
+              className="opacity-0 animate-bubble-in motion-reduce:animate-none motion-reduce:opacity-100"
+            >
+              <button
+                type="button"
+                disabled={voting}
+                onClick={() => void handleVote(s.id)}
+                className={cn(
+                  'w-full h-full text-left border rounded-lg p-4',
+                  'transition-[transform,opacity,border-color,background-color] duration-200 ease-out',
+                  'motion-reduce:transition-none',
+                  isPicked
+                    ? 'scale-[1.02] border-gold-dark/70 bg-gold-dark/[0.07]'
+                    : isRejected
+                      ? 'scale-[0.97] opacity-35 border-white/10'
+                      : 'border-white/10 hover:border-gold-dark/50 hover:bg-white/[0.03]',
+                )}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <LabelCaps>Entry {i === 0 ? 'A' : 'B'}</LabelCaps>
+                  {isPicked && (
+                    <span className="flex items-center gap-1 font-sans text-[11px] font-semibold text-gold-dark animate-pop-in motion-reduce:animate-none">
+                      <Check size={11} strokeWidth={2.6} />
+                      Picked
+                    </span>
+                  )}
+                </div>
+                <p className="font-sans text-[0.8125rem] text-dark-text whitespace-pre-wrap line-clamp-6">{s.content}</p>
+                {s.imageUrl && (
+                  <span className="inline-block mt-2 font-sans text-[12px] text-gold-dark">has attachment</span>
+                )}
+              </button>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
