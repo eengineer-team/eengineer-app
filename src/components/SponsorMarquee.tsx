@@ -55,8 +55,30 @@ function Tile({ sponsor }: { sponsor: SponsorTile }) {
   )
 }
 
+// Tile width + flex gap, kept in sync with the classes on Tile/the track
+// below. Only used to work out how many times the list has to repeat.
+const TILE_PITCH = 132 + 16
+
+// The animation translates the track by -50%, which only looks seamless if
+// ONE half is at least as wide as the viewport -- otherwise the half that
+// scrolled off hasn't been replaced yet and you get a blank gap on the right
+// before it snaps back. Five sponsors is ~740px, narrower than any desktop
+// screen, so the list is repeated until a half comfortably covers an
+// ultrawide monitor. Tiles are cheap; a wrong-looking loop is not.
+// 3440 is the widest common desktop (ultrawide); anything above that is rare
+// enough to not be worth more DOM nodes.
+const HALF_MIN_WIDTH = 3500
+const REPEATS = Math.max(2, Math.ceil(HALF_MIN_WIDTH / (SPONSORS.length * TILE_PITCH)))
+
+// The keyframe travels a fixed -50%, so widening the track without touching
+// the duration would speed the scroll up by exactly the repeat factor. Scale
+// the duration with it to hold the perceived speed at the original ~26px/s.
+const BASE_DURATION_S = 28
+const DURATION_S = BASE_DURATION_S * REPEATS
+
 export function SponsorMarquee() {
-  const track = [...SPONSORS, ...SPONSORS]
+  const half = Array.from({ length: REPEATS }, () => SPONSORS).flat()
+  const track = [...half, ...half]
 
   return (
     <section className="px-5 sm:px-10 py-10 border-t border-[#2A2118]/8">
@@ -64,7 +86,10 @@ export function SponsorMarquee() {
         Backed by
       </LabelCaps>
       <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-        <div className="flex gap-4 w-max animate-marquee hover:[animation-play-state:paused] motion-reduce:animate-none">
+        <div
+          style={{ animationDuration: `${DURATION_S}s` }}
+          className="flex gap-4 w-max animate-marquee hover:[animation-play-state:paused] motion-reduce:animate-none"
+        >
           {track.map((sponsor, i) => (
             <Tile key={`${sponsor.name}-${i}`} sponsor={sponsor} />
           ))}
