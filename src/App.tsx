@@ -12,6 +12,7 @@ import { OpportunitiesProvider } from '@/lib/opportunities-context'
 import { NotificationsProvider } from '@/lib/notifications-context'
 import { CommunityStatsProvider } from '@/lib/community-stats-context'
 import { Welcome } from '@/pages/Welcome'
+import { Contest } from '@/pages/Contest'
 import { Auth } from '@/pages/Auth'
 import { Onboarding } from '@/pages/Onboarding'
 import { Help } from '@/pages/Help'
@@ -79,6 +80,11 @@ export default function App() {
                   the real marketing landing now. */}
               <Route path="/"     element={<Welcome />} />
               <Route path="/home" element={<Welcome />} />
+              {/* Public and ungated on purpose — a visitor can read the whole
+                  contest before deciding to make an account. The gated
+                  version lives at /dashboard/contests for signed-in Builders
+                  (submitting, voting, leaderboard); this is the shop window. */}
+              <Route path="/contest" element={<Contest />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/help" element={<Help />} />

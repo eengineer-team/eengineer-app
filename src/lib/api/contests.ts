@@ -104,6 +104,33 @@ export async function fetchContests(): Promise<Contest[]> {
   })
 }
 
+/** Signed-out read for the public /contest page.
+ *
+ *  Deliberately touches ONLY the contests table. fetchContests() also queries
+ *  contest_submissions for counts and for "my entry", and every policy on
+ *  that table is scoped to the `authenticated` role -- for an anonymous
+ *  visitor those come back empty anyway, so running them is a wasted
+ *  round-trip on the one page where first paint matters most. */
+export async function fetchPublicContests(): Promise<
+  Pick<Contest, 'id' | 'title' | 'description' | 'discipline' | 'submissionDeadline' | 'votingDeadline' | 'phase'>[]
+> {
+  const { data, error } = await supabase
+    .from('contests')
+    .select('id, title, description, discipline, submission_deadline, voting_deadline')
+    .order('title', { ascending: true })
+  if (error) throw error
+
+  return ((data ?? []) as ContestRow[]).map((c) => ({
+    id: c.id,
+    title: c.title,
+    description: c.description,
+    discipline: c.discipline,
+    submissionDeadline: c.submission_deadline,
+    votingDeadline: c.voting_deadline,
+    phase: contestPhase({ submissionDeadline: c.submission_deadline, votingDeadline: c.voting_deadline }),
+  }))
+}
+
 type ContestSubmissionRow = {
   id: string
   contest_id: string
