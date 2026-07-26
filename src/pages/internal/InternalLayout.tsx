@@ -10,6 +10,7 @@ const TABS = [
   { to: '/internal/waitlist', label: 'Waitlist' },
   { to: '/internal/feedback', label: 'Feedback' },
   { to: '/internal/competitions', label: 'Competitions' },
+  { to: '/internal/contest', label: 'Video Contest' },
 ]
 
 // Real authorization happens in Postgres (app.is_internal_admin(), see
