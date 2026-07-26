@@ -1,8 +1,3 @@
-// Generated from the live Supabase project (bgdlpdokubhutwicsfyp) via
-// `generate_typescript_types`. Regenerate after any schema migration:
-//   supabase gen types typescript --project-id bgdlpdokubhutwicsfyp > src/lib/database.types.ts
-// Do not hand-edit.
-
 export type Json =
   | string
   | number
@@ -19,289 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      blocks: {
-        Row: {
-          blocked_id: string
-          blocker_id: string
-          created_at: string
-        }
-        Insert: {
-          blocked_id: string
-          blocker_id: string
-          created_at?: string
-        }
-        Update: {
-          blocked_id?: string
-          blocker_id?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "blocks_blocked_id_fkey"
-            columns: ["blocked_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blocks_blocker_id_fkey"
-            columns: ["blocker_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      club_memberships: {
-        Row: {
-          discipline:
-            | "Aerospace"
-            | "Mechanical"
-            | "Electrical"
-            | "Software"
-            | "Civil"
-            | "Chemical"
-            | "Biomedical"
-            | "Materials"
-            | "Environmental"
-            | "Other"
-          joined_at: string
-          profile_id: string
-        }
-        Insert: {
-          discipline:
-            | "Aerospace"
-            | "Mechanical"
-            | "Electrical"
-            | "Software"
-            | "Civil"
-            | "Chemical"
-            | "Biomedical"
-            | "Materials"
-            | "Environmental"
-            | "Other"
-          joined_at?: string
-          profile_id: string
-        }
-        Update: {
-          discipline?:
-            | "Aerospace"
-            | "Mechanical"
-            | "Electrical"
-            | "Software"
-            | "Civil"
-            | "Chemical"
-            | "Biomedical"
-            | "Materials"
-            | "Environmental"
-            | "Other"
-          joined_at?: string
-          profile_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "club_memberships_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      competitions: {
-        Row: {
-          deadline: string
-          description: string
-          discipline: string
-          id: string
-          location: string
-          name: string
-          organizer: string
-          organizer_email: string | null
-          remote: boolean
-          requirements: string[]
-        }
-        Insert: {
-          deadline: string
-          description?: string
-          discipline?: string
-          id?: string
-          location?: string
-          name: string
-          organizer?: string
-          organizer_email?: string | null
-          remote?: boolean
-          requirements?: string[]
-        }
-        Update: {
-          deadline?: string
-          description?: string
-          discipline?: string
-          id?: string
-          location?: string
-          name?: string
-          organizer?: string
-          organizer_email?: string | null
-          remote?: boolean
-          requirements?: string[]
-        }
-        Relationships: []
-      }
-      competition_registrations: {
-        Row: {
-          competition_id: string
-          created_at: string
-          email: string
-          id: string
-          name: string
-          profile_id: string
-          team_school: string
-        }
-        Insert: {
-          competition_id: string
-          created_at?: string
-          email: string
-          id?: string
-          name: string
-          profile_id: string
-          team_school: string
-        }
-        Update: {
-          competition_id?: string
-          created_at?: string
-          email?: string
-          id?: string
-          name?: string
-          profile_id?: string
-          team_school?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "competition_registrations_competition_id_fkey"
-            columns: ["competition_id"]
-            isOneToOne: false
-            referencedRelation: "competitions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "competition_registrations_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      connections: {
-        Row: {
-          addressee_id: string
-          created_at: string
-          id: string
-          requester_id: string
-          status: "requested" | "connected" | "declined"
-        }
-        Insert: {
-          addressee_id: string
-          created_at?: string
-          id?: string
-          requester_id: string
-          status?: "requested" | "connected" | "declined"
-        }
-        Update: {
-          addressee_id?: string
-          created_at?: string
-          id?: string
-          requester_id?: string
-          status?: "requested" | "connected" | "declined"
-        }
-        Relationships: [
-          {
-            foreignKeyName: "connections_addressee_id_fkey"
-            columns: ["addressee_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "connections_requester_id_fkey"
-            columns: ["requester_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      consent_records: {
-        Row: {
-          consented_at: string
-          doc_type: string
-          guardian_email: string | null
-          id: string
-          user_id: string
-          version: string
-        }
-        Insert: {
-          consented_at?: string
-          doc_type: string
-          guardian_email?: string | null
-          id?: string
-          user_id: string
-          version: string
-        }
-        Update: {
-          consented_at?: string
-          doc_type?: string
-          guardian_email?: string | null
-          id?: string
-          user_id?: string
-          version?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "consent_records_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      conversations: {
-        Row: {
-          created_at: string
-          id: string
-          participant_a: string
-          participant_b: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          participant_a: string
-          participant_b: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          participant_a?: string
-          participant_b?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conversations_participant_a_fkey"
-            columns: ["participant_a"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversations_participant_b_fkey"
-            columns: ["participant_b"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       activity_updates: {
         Row: {
           attachment_kind: string | null
@@ -367,6 +79,616 @@ export type Database = {
           {
             foreignKeyName: "activity_updates_author_id_fkey"
             columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "activity_updates_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocks_blocked_id_fkey"
+            columns: ["blocked_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "blocks_blocked_id_fkey"
+            columns: ["blocked_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blocks_blocker_id_fkey"
+            columns: ["blocker_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "blocks_blocker_id_fkey"
+            columns: ["blocker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_memberships: {
+        Row: {
+          discipline:
+            | "Aerospace"
+            | "Mechanical"
+            | "Electrical"
+            | "Software"
+            | "Civil"
+            | "Chemical"
+            | "Biomedical"
+            | "Materials"
+            | "Environmental"
+            | "Other"
+          joined_at: string
+          profile_id: string
+        }
+        Insert: {
+          discipline:
+            | "Aerospace"
+            | "Mechanical"
+            | "Electrical"
+            | "Software"
+            | "Civil"
+            | "Chemical"
+            | "Biomedical"
+            | "Materials"
+            | "Environmental"
+            | "Other"
+          joined_at?: string
+          profile_id: string
+        }
+        Update: {
+          discipline?:
+            | "Aerospace"
+            | "Mechanical"
+            | "Electrical"
+            | "Software"
+            | "Civil"
+            | "Chemical"
+            | "Biomedical"
+            | "Materials"
+            | "Environmental"
+            | "Other"
+          joined_at?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_memberships_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "club_memberships_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      competition_registrations: {
+        Row: {
+          competition_id: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          profile_id: string
+          team_school: string
+        }
+        Insert: {
+          competition_id: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          profile_id: string
+          team_school: string
+        }
+        Update: {
+          competition_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          profile_id?: string
+          team_school?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competition_registrations_competition_id_fkey"
+            columns: ["competition_id"]
+            isOneToOne: false
+            referencedRelation: "competitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competition_registrations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "competition_registrations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      competitions: {
+        Row: {
+          deadline: string
+          description: string
+          discipline: string
+          id: string
+          location: string
+          name: string
+          organizer: string
+          organizer_email: string | null
+          remote: boolean
+          requirements: string[]
+        }
+        Insert: {
+          deadline: string
+          description?: string
+          discipline?: string
+          id?: string
+          location?: string
+          name: string
+          organizer?: string
+          organizer_email?: string | null
+          remote?: boolean
+          requirements?: string[]
+        }
+        Update: {
+          deadline?: string
+          description?: string
+          discipline?: string
+          id?: string
+          location?: string
+          name?: string
+          organizer?: string
+          organizer_email?: string | null
+          remote?: boolean
+          requirements?: string[]
+        }
+        Relationships: []
+      }
+      connections: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: "requested" | "connected" | "declined"
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: "requested" | "connected" | "declined"
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: "requested" | "connected" | "declined"
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connections_addressee_id_fkey"
+            columns: ["addressee_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "connections_addressee_id_fkey"
+            columns: ["addressee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connections_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "connections_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consent_records: {
+        Row: {
+          consented_at: string
+          doc_type: string
+          guardian_email: string | null
+          id: string
+          user_id: string
+          version: string
+        }
+        Insert: {
+          consented_at?: string
+          doc_type: string
+          guardian_email?: string | null
+          id?: string
+          user_id: string
+          version: string
+        }
+        Update: {
+          consented_at?: string
+          doc_type?: string
+          guardian_email?: string | null
+          id?: string
+          user_id?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "consent_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contest_inquiries: {
+        Row: {
+          client_ip: string | null
+          contact: string
+          created_at: string
+          id: string
+          message: string
+          name: string | null
+        }
+        Insert: {
+          client_ip?: string | null
+          contact: string
+          created_at?: string
+          id?: string
+          message: string
+          name?: string | null
+        }
+        Update: {
+          client_ip?: string | null
+          contact?: string
+          created_at?: string
+          id?: string
+          message?: string
+          name?: string | null
+        }
+        Relationships: []
+      }
+      contest_registrations: {
+        Row: {
+          age_group: string
+          client_ip: string | null
+          contact_email: string | null
+          contact_telegram: string
+          created_at: string
+          guardian_telegram: string | null
+          id: string
+          name: string
+          region: string
+        }
+        Insert: {
+          age_group: string
+          client_ip?: string | null
+          contact_email?: string | null
+          contact_telegram: string
+          created_at?: string
+          guardian_telegram?: string | null
+          id?: string
+          name: string
+          region: string
+        }
+        Update: {
+          age_group?: string
+          client_ip?: string | null
+          contact_email?: string | null
+          contact_telegram?: string
+          created_at?: string
+          guardian_telegram?: string | null
+          id?: string
+          name?: string
+          region?: string
+        }
+        Relationships: []
+      }
+      contest_submissions: {
+        Row: {
+          content: string
+          contest_id: string
+          created_at: string
+          elo_rating: number
+          id: string
+          image_url: string | null
+          losses: number
+          profile_id: string
+          wins: number
+        }
+        Insert: {
+          content: string
+          contest_id: string
+          created_at?: string
+          elo_rating?: number
+          id?: string
+          image_url?: string | null
+          losses?: number
+          profile_id: string
+          wins?: number
+        }
+        Update: {
+          content?: string
+          contest_id?: string
+          created_at?: string
+          elo_rating?: number
+          id?: string
+          image_url?: string | null
+          losses?: number
+          profile_id?: string
+          wins?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contest_submissions_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "contests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contest_submissions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "contest_submissions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contest_votes: {
+        Row: {
+          contest_id: string
+          created_at: string
+          id: string
+          submission_a_id: string
+          submission_b_id: string
+          voter_id: string
+          winner_id: string
+        }
+        Insert: {
+          contest_id: string
+          created_at?: string
+          id?: string
+          submission_a_id: string
+          submission_b_id: string
+          voter_id: string
+          winner_id: string
+        }
+        Update: {
+          contest_id?: string
+          created_at?: string
+          id?: string
+          submission_a_id?: string
+          submission_b_id?: string
+          voter_id?: string
+          winner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contest_votes_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "contests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contest_votes_submission_a_id_fkey"
+            columns: ["submission_a_id"]
+            isOneToOne: false
+            referencedRelation: "contest_submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contest_votes_submission_b_id_fkey"
+            columns: ["submission_b_id"]
+            isOneToOne: false
+            referencedRelation: "contest_submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contest_votes_voter_id_fkey"
+            columns: ["voter_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "contest_votes_voter_id_fkey"
+            columns: ["voter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contest_votes_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "contest_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contests: {
+        Row: {
+          created_at: string
+          description: string
+          discipline:
+            | "Aerospace"
+            | "Mechanical"
+            | "Electrical"
+            | "Software"
+            | "Civil"
+            | "Chemical"
+            | "Biomedical"
+            | "Materials"
+            | "Environmental"
+            | "Other"
+            | null
+          id: string
+          submission_deadline: string
+          title: string
+          voting_deadline: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          discipline?:
+            | "Aerospace"
+            | "Mechanical"
+            | "Electrical"
+            | "Software"
+            | "Civil"
+            | "Chemical"
+            | "Biomedical"
+            | "Materials"
+            | "Environmental"
+            | "Other"
+            | null
+          id?: string
+          submission_deadline: string
+          title: string
+          voting_deadline?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          discipline?:
+            | "Aerospace"
+            | "Mechanical"
+            | "Electrical"
+            | "Software"
+            | "Civil"
+            | "Chemical"
+            | "Biomedical"
+            | "Materials"
+            | "Environmental"
+            | "Other"
+            | null
+          id?: string
+          submission_deadline?: string
+          title?: string
+          voting_deadline?: string | null
+        }
+        Relationships: []
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          participant_a: string
+          participant_b: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          participant_a: string
+          participant_b: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          participant_a?: string
+          participant_b?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_participant_a_fkey"
+            columns: ["participant_a"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "conversations_participant_a_fkey"
+            columns: ["participant_a"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_participant_b_fkey"
+            columns: ["participant_b"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "conversations_participant_b_fkey"
+            columns: ["participant_b"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -439,6 +761,13 @@ export type Database = {
             foreignKeyName: "discussion_posts_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "discussion_posts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -480,8 +809,22 @@ export type Database = {
             foreignKeyName: "endorsements_from_id_fkey"
             columns: ["from_id"]
             isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "endorsements_from_id_fkey"
+            columns: ["from_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "endorsements_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "endorsements_profile_id_fkey"
@@ -522,10 +865,71 @@ export type Database = {
             foreignKeyName: "experiences_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "experiences_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
+      }
+      feedback: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          profile_id: string
+          rating: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          profile_id: string
+          rating: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          profile_id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "feedback_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      internal_admins: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       introductions: {
         Row: {
@@ -596,6 +1000,13 @@ export type Database = {
             foreignKeyName: "introductions_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: true
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "introductions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -639,6 +1050,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "conversations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "messages_sender_id_fkey"
@@ -688,12 +1106,74 @@ export type Database = {
             foreignKeyName: "moderation_actions_moderator_id_fkey"
             columns: ["moderator_id"]
             isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "moderation_actions_moderator_id_fkey"
+            columns: ["moderator_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "moderation_actions_target_author_id_fkey"
             columns: ["target_author_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "moderation_actions_target_author_id_fkey"
+            columns: ["target_author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          link: string | null
+          read: boolean
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          read?: boolean
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          read?: boolean
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -727,6 +1207,8 @@ export type Database = {
           requirements: string[]
           responsibilities: string[]
           source: string
+          source_key: string | null
+          synced_at: string | null
           title: string
           url: string | null
         }
@@ -756,6 +1238,8 @@ export type Database = {
           requirements?: string[]
           responsibilities?: string[]
           source?: string
+          source_key?: string | null
+          synced_at?: string | null
           title: string
           url?: string | null
         }
@@ -785,6 +1269,8 @@ export type Database = {
           requirements?: string[]
           responsibilities?: string[]
           source?: string
+          source_key?: string | null
+          synced_at?: string | null
           title?: string
           url?: string | null
         }
@@ -816,6 +1302,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "profile_private_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
           {
             foreignKeyName: "profile_private_id_fkey"
             columns: ["id"]
@@ -857,6 +1350,13 @@ export type Database = {
           year?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "profile_project_entries_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
           {
             foreignKeyName: "profile_project_entries_profile_id_fkey"
             columns: ["profile_id"]
@@ -983,6 +1483,13 @@ export type Database = {
             foreignKeyName: "project_feedback_from_id_fkey"
             columns: ["from_id"]
             isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "project_feedback_from_id_fkey"
+            columns: ["from_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1012,6 +1519,13 @@ export type Database = {
           project_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "project_followers_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
           {
             foreignKeyName: "project_followers_follower_id_fkey"
             columns: ["follower_id"]
@@ -1060,6 +1574,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_join_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "project_join_requests_requester_id_fkey"
@@ -1167,6 +1688,13 @@ export type Database = {
             foreignKeyName: "project_team_members_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "project_team_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1229,7 +1757,14 @@ export type Database = {
           {
             foreignKeyName: "projects_owner_id_fkey"
             columns: ["owner_id"]
-            isOneToOne: false
+            isOneToOne: true
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "projects_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1258,6 +1793,13 @@ export type Database = {
           text?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "question_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
           {
             foreignKeyName: "question_comments_author_id_fkey"
             columns: ["author_id"]
@@ -1297,6 +1839,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "questions"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "question_votes_user_id_fkey"
@@ -1367,46 +1916,12 @@ export type Database = {
             foreignKeyName: "questions_author_id_fkey"
             columns: ["author_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
           },
-        ]
-      }
-      notifications: {
-        Row: {
-          body: string
-          created_at: string
-          id: string
-          kind: string
-          link: string | null
-          read: boolean
-          title: string
-          user_id: string
-        }
-        Insert: {
-          body: string
-          created_at?: string
-          id?: string
-          kind?: string
-          link?: string | null
-          read?: boolean
-          title: string
-          user_id: string
-        }
-        Update: {
-          body?: string
-          created_at?: string
-          id?: string
-          kind?: string
-          link?: string | null
-          read?: boolean
-          title?: string
-          user_id?: string
-        }
-        Relationships: [
           {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "questions_author_id_fkey"
+            columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1452,8 +1967,22 @@ export type Database = {
             foreignKeyName: "reports_reporter_id_fkey"
             columns: ["reporter_id"]
             isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "reports_resolved_by_fkey"
@@ -1464,241 +1993,53 @@ export type Database = {
           },
         ]
       }
-      contests: {
+      reputation_events: {
         Row: {
           created_at: string
-          description: string
-          discipline:
-            | "Aerospace"
-            | "Mechanical"
-            | "Electrical"
-            | "Software"
-            | "Civil"
-            | "Chemical"
-            | "Biomedical"
-            | "Materials"
-            | "Environmental"
-            | "Other"
-            | null
           id: string
-          submission_deadline: string
-          title: string
-          voting_deadline: string | null
+          kind: string
+          points: number
+          profile_id: string
+          source_actor: string | null
+          source_id: string | null
+          source_table: string
         }
         Insert: {
           created_at?: string
-          description: string
-          discipline?:
-            | "Aerospace"
-            | "Mechanical"
-            | "Electrical"
-            | "Software"
-            | "Civil"
-            | "Chemical"
-            | "Biomedical"
-            | "Materials"
-            | "Environmental"
-            | "Other"
-            | null
           id?: string
-          submission_deadline: string
-          title: string
-          voting_deadline?: string | null
+          kind: string
+          points: number
+          profile_id: string
+          source_actor?: string | null
+          source_id?: string | null
+          source_table: string
         }
         Update: {
           created_at?: string
-          description?: string
-          discipline?:
-            | "Aerospace"
-            | "Mechanical"
-            | "Electrical"
-            | "Software"
-            | "Civil"
-            | "Chemical"
-            | "Biomedical"
-            | "Materials"
-            | "Environmental"
-            | "Other"
-            | null
           id?: string
-          submission_deadline?: string
-          title?: string
-          voting_deadline?: string | null
-        }
-        Relationships: []
-      }
-      contest_submissions: {
-        Row: {
-          contest_id: string
-          content: string
-          created_at: string
-          elo_rating: number
-          id: string
-          image_url: string | null
-          losses: number
-          profile_id: string
-          wins: number
-        }
-        Insert: {
-          contest_id: string
-          content: string
-          created_at?: string
-          elo_rating?: number
-          id?: string
-          image_url?: string | null
-          losses?: number
-          profile_id: string
-          wins?: number
-        }
-        Update: {
-          contest_id?: string
-          content?: string
-          created_at?: string
-          elo_rating?: number
-          id?: string
-          image_url?: string | null
-          losses?: number
+          kind?: string
+          points?: number
           profile_id?: string
-          wins?: number
+          source_actor?: string | null
+          source_id?: string | null
+          source_table?: string
         }
         Relationships: [
           {
-            foreignKeyName: "contest_submissions_contest_id_fkey"
-            columns: ["contest_id"]
+            foreignKeyName: "reputation_events_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
-            referencedRelation: "contests"
-            referencedColumns: ["id"]
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
           },
           {
-            foreignKeyName: "contest_submissions_profile_id_fkey"
+            foreignKeyName: "reputation_events_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
-      }
-      contest_votes: {
-        Row: {
-          contest_id: string
-          created_at: string
-          id: string
-          submission_a_id: string
-          submission_b_id: string
-          voter_id: string
-          winner_id: string
-        }
-        Insert: {
-          contest_id: string
-          created_at?: string
-          id?: string
-          submission_a_id: string
-          submission_b_id: string
-          voter_id: string
-          winner_id: string
-        }
-        Update: {
-          contest_id?: string
-          created_at?: string
-          id?: string
-          submission_a_id?: string
-          submission_b_id?: string
-          voter_id?: string
-          winner_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contest_votes_contest_id_fkey"
-            columns: ["contest_id"]
-            isOneToOne: false
-            referencedRelation: "contests"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contest_votes_voter_id_fkey"
-            columns: ["voter_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contest_votes_submission_a_id_fkey"
-            columns: ["submission_a_id"]
-            isOneToOne: false
-            referencedRelation: "contest_submissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contest_votes_submission_b_id_fkey"
-            columns: ["submission_b_id"]
-            isOneToOne: false
-            referencedRelation: "contest_submissions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contest_votes_winner_id_fkey"
-            columns: ["winner_id"]
-            isOneToOne: false
-            referencedRelation: "contest_submissions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      feedback: {
-        Row: {
-          created_at: string
-          id: string
-          message: string
-          profile_id: string
-          rating: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          message: string
-          profile_id: string
-          rating: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          message?: string
-          profile_id?: string
-          rating?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "feedback_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      waitlist_signups: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          name: string
-          organization: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: string
-          name: string
-          organization: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          name?: string
-          organization?: string
-        }
-        Relationships: []
       }
       skills: {
         Row: {
@@ -1724,10 +2065,35 @@ export type Database = {
             foreignKeyName: "skills_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "skills_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
+      }
+      sync_tokens: {
+        Row: {
+          created_at: string
+          name: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          name: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          name?: string
+          token?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -1741,6 +2107,30 @@ export type Database = {
         Update: {
           role?: "builder" | "community-lead" | "admin" | "super-admin"
           user_id?: string
+        }
+        Relationships: []
+      }
+      waitlist_signups: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          organization: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          organization: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          organization?: string
         }
         Relationships: []
       }
@@ -1765,6 +2155,13 @@ export type Database = {
             foreignKeyName: "webinar_rsvps_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "profile_reputation"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "webinar_rsvps_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1780,6 +2177,7 @@ export type Database = {
       webinars: {
         Row: {
           created_at: string
+          description: string | null
           discipline:
             | "Aerospace"
             | "Mechanical"
@@ -1791,7 +2189,6 @@ export type Database = {
             | "Materials"
             | "Environmental"
             | "Other"
-          description: string | null
           duration_minutes: number
           id: string
           meeting_url: string | null
@@ -1803,6 +2200,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string | null
           discipline:
             | "Aerospace"
             | "Mechanical"
@@ -1814,7 +2212,6 @@ export type Database = {
             | "Materials"
             | "Environmental"
             | "Other"
-          description?: string | null
           duration_minutes?: number
           id?: string
           meeting_url?: string | null
@@ -1826,6 +2223,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string | null
           discipline?:
             | "Aerospace"
             | "Mechanical"
@@ -1863,31 +2261,25 @@ export type Database = {
             | "Materials"
             | "Environmental"
             | "Other"
-          member_count: number
-          recent_activity_count: number
+            | null
+          member_count: number | null
+          recent_activity_count: number | null
         }
         Relationships: []
       }
       profile_reputation: {
         Row: {
-          profile_id: string
-          points: number
-          tier: string
+          points: number | null
+          profile_id: string | null
+          tier: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profile_reputation_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Functions: {
+      am_i_internal_admin: { Args: never; Returns: boolean }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
-      am_i_internal_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
+      notify_webinar_live: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
@@ -1898,9 +2290,125 @@ export type Database = {
   }
 }
 
-export type Tables<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Row']
-export type TablesInsert<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Insert']
-export type TablesUpdate<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Update']
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

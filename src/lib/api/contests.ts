@@ -227,3 +227,54 @@ export async function castVote(
   })
   if (error) throw error
 }
+
+// Contest registration -- deliberately decoupled from both `contests` and
+// eengineer accounts (see supabase/migrations/20260726160000_contest_registrations.sql).
+// A 12-year-old registers with name + region + age bracket + a Telegram
+// handle; nothing here touches auth. Anon can insert but never read a row
+// back, so this never returns the inserted row -- just throws on failure.
+
+export type ContestAgeGroup = 'junior' | 'senior'
+
+/** Strips a leading "@", lowercases, trims -- so "@Foo" and "foo" store and
+ *  dedupe identically. Format itself (5-32 chars, a-z0-9_) is enforced by
+ *  the table's check constraints, not here. */
+export function normalizeTelegramHandle(raw: string): string {
+  return raw.trim().replace(/^@/, '').toLowerCase()
+}
+
+export interface ContestRegistrationInput {
+  name: string
+  region: string
+  ageGroup: ContestAgeGroup
+  contactTelegram: string
+  guardianTelegram?: string
+  contactEmail?: string
+}
+
+export async function registerForContest(input: ContestRegistrationInput): Promise<void> {
+  const { error } = await supabase.from('contest_registrations').insert({
+    name: input.name.trim(),
+    region: input.region.trim(),
+    age_group: input.ageGroup,
+    contact_telegram: normalizeTelegramHandle(input.contactTelegram),
+    guardian_telegram: input.guardianTelegram ? normalizeTelegramHandle(input.guardianTelegram) : null,
+    contact_email: input.contactEmail?.trim() || null,
+  })
+  if (error) throw error
+}
+
+export interface ContestInquiryInput {
+  name?: string
+  contact: string
+  message: string
+}
+
+export async function submitContestInquiry(input: ContestInquiryInput): Promise<void> {
+  const { error } = await supabase.from('contest_inquiries').insert({
+    name: input.name?.trim() || null,
+    contact: input.contact.trim(),
+    message: input.message.trim(),
+  })
+  if (error) throw error
+}

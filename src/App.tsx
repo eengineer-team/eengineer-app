@@ -48,6 +48,7 @@ import { InternalLayout } from '@/pages/internal/InternalLayout'
 import { InternalWaitlist } from '@/pages/internal/InternalWaitlist'
 import { InternalFeedback } from '@/pages/internal/InternalFeedback'
 import { InternalCompetitions } from '@/pages/internal/InternalCompetitions'
+import { InternalContest } from '@/pages/internal/InternalContest'
 import './index.css'
 
 export default function App() {
@@ -182,6 +183,7 @@ export default function App() {
                 <Route path="waitlist" element={<InternalWaitlist />} />
                 <Route path="feedback" element={<InternalFeedback />} />
                 <Route path="competitions" element={<InternalCompetitions />} />
+                <Route path="contest" element={<InternalContest />} />
               </Route>
             </Routes>
           </BrowserRouter>
