@@ -12,7 +12,6 @@ import { OpportunitiesProvider } from '@/lib/opportunities-context'
 import { NotificationsProvider } from '@/lib/notifications-context'
 import { CommunityStatsProvider } from '@/lib/community-stats-context'
 import { Welcome } from '@/pages/Welcome'
-import { Contest } from '@/pages/Contest'
 import { Auth } from '@/pages/Auth'
 import { Onboarding } from '@/pages/Onboarding'
 import { Help } from '@/pages/Help'
@@ -49,7 +48,6 @@ import { InternalWaitlist } from '@/pages/internal/InternalWaitlist'
 import { InternalTasks } from '@/pages/internal/InternalTasks'
 import { InternalFeedback } from '@/pages/internal/InternalFeedback'
 import { InternalCompetitions } from '@/pages/internal/InternalCompetitions'
-import { InternalContest } from '@/pages/internal/InternalContest'
 import './index.css'
 
 export default function App() {
@@ -82,11 +80,6 @@ export default function App() {
                   the real marketing landing now. */}
               <Route path="/"     element={<Welcome />} />
               <Route path="/home" element={<Welcome />} />
-              {/* Public and ungated on purpose — a visitor can read the whole
-                  contest before deciding to make an account. The gated
-                  version lives at /dashboard/contests for signed-in Builders
-                  (submitting, voting, leaderboard); this is the shop window. */}
-              <Route path="/contest" element={<Contest />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/help" element={<Help />} />
@@ -188,7 +181,6 @@ export default function App() {
                 <Route path="tasks" element={<InternalTasks />} />
                 <Route path="feedback" element={<InternalFeedback />} />
                 <Route path="competitions" element={<InternalCompetitions />} />
-                <Route path="contest" element={<InternalContest />} />
               </Route>
             </Routes>
           </BrowserRouter>

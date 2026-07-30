@@ -138,35 +138,6 @@ export async function updateOrganizerEmail(competitionId: string, organizerEmail
   if (error) throw error
 }
 
-export interface ContestRegistrationEntry {
-  id: string
-  name: string
-  region: string
-  ageGroup: 'junior' | 'senior'
-  contactTelegram: string
-  guardianTelegram: string | null
-  contactEmail: string | null
-  createdAt: string
-}
-
-export async function fetchContestRegistrations(): Promise<ContestRegistrationEntry[]> {
-  const { data, error } = await supabase
-    .from('contest_registrations')
-    .select('id, name, region, age_group, contact_telegram, guardian_telegram, contact_email, created_at')
-    .order('created_at', { ascending: false })
-  if (error) throw error
-  return (data ?? []).map((r) => ({
-    id: r.id,
-    name: r.name,
-    region: r.region,
-    ageGroup: r.age_group as 'junior' | 'senior',
-    contactTelegram: r.contact_telegram,
-    guardianTelegram: r.guardian_telegram,
-    contactEmail: r.contact_email,
-    createdAt: r.created_at,
-  }))
-}
-
 export type TaskPriority = 'low' | 'medium' | 'high'
 export type TaskStatus = 'open' | 'in_progress' | 'done'
 export type TaskCategory = 'bug' | 'content' | 'design' | 'feature' | 'other'
@@ -348,25 +319,3 @@ export async function deleteTeamMember(name: string): Promise<void> {
   if (error) throw error
 }
 
-export interface ContestInquiryEntry {
-  id: string
-  name: string | null
-  contact: string
-  message: string
-  createdAt: string
-}
-
-export async function fetchContestInquiries(): Promise<ContestInquiryEntry[]> {
-  const { data, error } = await supabase
-    .from('contest_inquiries')
-    .select('id, name, contact, message, created_at')
-    .order('created_at', { ascending: false })
-  if (error) throw error
-  return (data ?? []).map((r) => ({
-    id: r.id,
-    name: r.name,
-    contact: r.contact,
-    message: r.message,
-    createdAt: r.created_at,
-  }))
-}

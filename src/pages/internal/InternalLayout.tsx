@@ -14,7 +14,6 @@ const TABS = [
   { to: `${ADMIN_PANEL_PATH}/tasks`, label: 'Tasks' },
   { to: `${ADMIN_PANEL_PATH}/feedback`, label: 'Feedback' },
   { to: `${ADMIN_PANEL_PATH}/competitions`, label: 'Competitions' },
-  { to: `${ADMIN_PANEL_PATH}/contest`, label: 'Video Contest' },
 ]
 
 // Real authorization happens in Postgres (app.is_internal_admin(), see

@@ -104,33 +104,6 @@ export async function fetchContests(): Promise<Contest[]> {
   })
 }
 
-/** Signed-out read for the public /contest page.
- *
- *  Deliberately touches ONLY the contests table. fetchContests() also queries
- *  contest_submissions for counts and for "my entry", and every policy on
- *  that table is scoped to the `authenticated` role -- for an anonymous
- *  visitor those come back empty anyway, so running them is a wasted
- *  round-trip on the one page where first paint matters most. */
-export async function fetchPublicContests(): Promise<
-  Pick<Contest, 'id' | 'title' | 'description' | 'discipline' | 'submissionDeadline' | 'votingDeadline' | 'phase'>[]
-> {
-  const { data, error } = await supabase
-    .from('contests')
-    .select('id, title, description, discipline, submission_deadline, voting_deadline')
-    .order('title', { ascending: true })
-  if (error) throw error
-
-  return ((data ?? []) as ContestRow[]).map((c) => ({
-    id: c.id,
-    title: c.title,
-    description: c.description,
-    discipline: c.discipline,
-    submissionDeadline: c.submission_deadline,
-    votingDeadline: c.voting_deadline,
-    phase: contestPhase({ submissionDeadline: c.submission_deadline, votingDeadline: c.voting_deadline }),
-  }))
-}
-
 type ContestSubmissionRow = {
   id: string
   contest_id: string
@@ -224,57 +197,6 @@ export async function castVote(
     submission_a_id: submissionAId,
     submission_b_id: submissionBId,
     winner_id: winnerId,
-  })
-  if (error) throw error
-}
-
-// Contest registration -- deliberately decoupled from both `contests` and
-// eengineer accounts (see supabase/migrations/20260726160000_contest_registrations.sql).
-// A 12-year-old registers with name + region + age bracket + a Telegram
-// handle; nothing here touches auth. Anon can insert but never read a row
-// back, so this never returns the inserted row -- just throws on failure.
-
-export type ContestAgeGroup = 'junior' | 'senior'
-
-/** Strips a leading "@", lowercases, trims -- so "@Foo" and "foo" store and
- *  dedupe identically. Format itself (5-32 chars, a-z0-9_) is enforced by
- *  the table's check constraints, not here. */
-export function normalizeTelegramHandle(raw: string): string {
-  return raw.trim().replace(/^@/, '').toLowerCase()
-}
-
-export interface ContestRegistrationInput {
-  name: string
-  region: string
-  ageGroup: ContestAgeGroup
-  contactTelegram: string
-  guardianTelegram?: string
-  contactEmail?: string
-}
-
-export async function registerForContest(input: ContestRegistrationInput): Promise<void> {
-  const { error } = await supabase.from('contest_registrations').insert({
-    name: input.name.trim(),
-    region: input.region.trim(),
-    age_group: input.ageGroup,
-    contact_telegram: normalizeTelegramHandle(input.contactTelegram),
-    guardian_telegram: input.guardianTelegram ? normalizeTelegramHandle(input.guardianTelegram) : null,
-    contact_email: input.contactEmail?.trim() || null,
-  })
-  if (error) throw error
-}
-
-export interface ContestInquiryInput {
-  name?: string
-  contact: string
-  message: string
-}
-
-export async function submitContestInquiry(input: ContestInquiryInput): Promise<void> {
-  const { error } = await supabase.from('contest_inquiries').insert({
-    name: input.name?.trim() || null,
-    contact: input.contact.trim(),
-    message: input.message.trim(),
   })
   if (error) throw error
 }

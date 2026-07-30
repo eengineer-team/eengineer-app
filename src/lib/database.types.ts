@@ -388,69 +388,6 @@ export type Database = {
           },
         ]
       }
-      contest_inquiries: {
-        Row: {
-          client_ip: string | null
-          contact: string
-          created_at: string
-          id: string
-          message: string
-          name: string | null
-        }
-        Insert: {
-          client_ip?: string | null
-          contact: string
-          created_at?: string
-          id?: string
-          message: string
-          name?: string | null
-        }
-        Update: {
-          client_ip?: string | null
-          contact?: string
-          created_at?: string
-          id?: string
-          message?: string
-          name?: string | null
-        }
-        Relationships: []
-      }
-      contest_registrations: {
-        Row: {
-          age_group: string
-          client_ip: string | null
-          contact_email: string | null
-          contact_telegram: string
-          created_at: string
-          guardian_telegram: string | null
-          id: string
-          name: string
-          region: string
-        }
-        Insert: {
-          age_group: string
-          client_ip?: string | null
-          contact_email?: string | null
-          contact_telegram: string
-          created_at?: string
-          guardian_telegram?: string | null
-          id?: string
-          name: string
-          region: string
-        }
-        Update: {
-          age_group?: string
-          client_ip?: string | null
-          contact_email?: string | null
-          contact_telegram?: string
-          created_at?: string
-          guardian_telegram?: string | null
-          id?: string
-          name?: string
-          region?: string
-        }
-        Relationships: []
-      }
       contest_submissions: {
         Row: {
           content: string

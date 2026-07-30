@@ -153,8 +153,6 @@ export function Welcome() {
           <motion.div
             variants={fadeUp}
             transition={{ duration: 0.4 }}
-            // Wraps: this row carries three CTAs now (Sign up / Log in /
-            // Contest) and at size lg they overflow a 320px screen in one line.
             className="flex flex-wrap items-center gap-x-3.5 gap-y-2.5"
           >
             <Button
@@ -175,22 +173,6 @@ export function Welcome() {
               className="font-sans text-[0.8125rem] font-semibold tracking-[0.05em] uppercase"
             >
               <Link to="/auth?mode=login">Log in</Link>
-            </Button>
-            {/* Third CTA, alongside auth rather than behind it: the contest is
-                the strongest reason a first-time visitor has to care, and
-                making them sign up before they can even read it wastes that.
-                Goes to the public /contest page, which asks for an account
-                only at the point of entering. */}
-            <Button
-              asChild
-              variant="ghost"
-              size="lg"
-              className="font-sans text-[0.8125rem] font-semibold tracking-[0.05em] uppercase gap-2"
-            >
-              <Link to="/contest">
-                Contest
-                <span className="w-1.5 h-1.5 rounded-full bg-corn-700 animate-pulse motion-reduce:animate-none" />
-              </Link>
             </Button>
           </motion.div>
         </motion.div>
