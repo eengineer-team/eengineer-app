@@ -2,6 +2,7 @@ import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import * as internalApi from '@/lib/api/internal'
 import { errorMessage } from '@/lib/utils'
+import { ADMIN_PANEL_PATH } from '@/pages/internal/InternalLayout'
 
 // Deliberately separate from /auth (GitHub/LinkedIn OAuth) -- plain email +
 // password, unrelated to the builder-facing sign-in. Signing up here does
@@ -27,7 +28,7 @@ export function InternalLogin() {
     try {
       if (mode === 'signin') {
         await internalApi.internalSignIn(email, password)
-        navigate('/internal')
+        navigate(ADMIN_PANEL_PATH)
       } else {
         await internalApi.internalSignUp(email, password)
         setSignedUp(true)

@@ -2110,6 +2110,104 @@ export type Database = {
         }
         Relationships: []
       }
+      internal_task_comments: {
+        Row: {
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          task_id: string
+        }
+        Insert: {
+          author_name: string
+          body: string
+          created_at?: string
+          id?: string
+          task_id: string
+        }
+        Update: {
+          author_name?: string
+          body?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "internal_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      internal_tasks: {
+        Row: {
+          author_name: string
+          category: string | null
+          claimed_by: string | null
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          page_url: string | null
+          priority: string
+          screenshot_url: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_name: string
+          category?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          page_url?: string | null
+          priority?: string
+          screenshot_url?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string
+          category?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          page_url?: string | null
+          priority?: string
+          screenshot_url?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      internal_team_members: {
+        Row: {
+          created_at: string
+          name: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          name: string
+          role: string
+        }
+        Update: {
+          created_at?: string
+          name?: string
+          role?: string
+        }
+        Relationships: []
+      }
       waitlist_signups: {
         Row: {
           created_at: string

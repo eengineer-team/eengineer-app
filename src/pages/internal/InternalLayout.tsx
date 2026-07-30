@@ -6,11 +6,15 @@ import { cn } from '@/lib/utils'
 
 type GuardState = 'loading' | 'signed-out' | 'not-admin' | 'admin'
 
+// Obscure, unlinked URL -- change this one string to move the whole panel.
+export const ADMIN_PANEL_PATH = '/unique_key/admin_panel'
+
 const TABS = [
-  { to: '/internal/waitlist', label: 'Waitlist' },
-  { to: '/internal/feedback', label: 'Feedback' },
-  { to: '/internal/competitions', label: 'Competitions' },
-  { to: '/internal/contest', label: 'Video Contest' },
+  { to: `${ADMIN_PANEL_PATH}/waitlist`, label: 'Waitlist' },
+  { to: `${ADMIN_PANEL_PATH}/tasks`, label: 'Tasks' },
+  { to: `${ADMIN_PANEL_PATH}/feedback`, label: 'Feedback' },
+  { to: `${ADMIN_PANEL_PATH}/competitions`, label: 'Competitions' },
+  { to: `${ADMIN_PANEL_PATH}/contest`, label: 'Video Contest' },
 ]
 
 // Real authorization happens in Postgres (app.is_internal_admin(), see
@@ -48,7 +52,7 @@ export function InternalLayout() {
   }
 
   if (state === 'signed-out') {
-    return <Navigate to="/internal/login" replace />
+    return <Navigate to={`${ADMIN_PANEL_PATH}/login`} replace />
   }
 
   if (state === 'not-admin') {

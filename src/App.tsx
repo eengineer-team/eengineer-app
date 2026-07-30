@@ -46,6 +46,7 @@ import { AdminRoles } from '@/pages/dashboard/admin/AdminRoles'
 import { InternalLogin } from '@/pages/internal/InternalLogin'
 import { InternalLayout } from '@/pages/internal/InternalLayout'
 import { InternalWaitlist } from '@/pages/internal/InternalWaitlist'
+import { InternalTasks } from '@/pages/internal/InternalTasks'
 import { InternalFeedback } from '@/pages/internal/InternalFeedback'
 import { InternalCompetitions } from '@/pages/internal/InternalCompetitions'
 import { InternalContest } from '@/pages/internal/InternalContest'
@@ -176,11 +177,15 @@ export default function App() {
                   email+password login (separate from GitHub/LinkedIn auth
                   above), own layout/theme. Real authorization is RLS via
                   app.is_internal_admin(), not this routing -- see
-                  supabase/migrations/20260723120000_internal_admins.sql. */}
-              <Route path="/internal/login" element={<InternalLogin />} />
-              <Route path="/internal" element={<InternalLayout />}>
+                  supabase/migrations/20260723120000_internal_admins.sql.
+                  URL deliberately obscure (not /internal) so it isn't
+                  guessable -- update ADMIN_PANEL_PATH below if this ever
+                  needs to move again. */}
+              <Route path="/unique_key/admin_panel/login" element={<InternalLogin />} />
+              <Route path="/unique_key/admin_panel" element={<InternalLayout />}>
                 <Route index element={<Navigate to="waitlist" replace />} />
                 <Route path="waitlist" element={<InternalWaitlist />} />
+                <Route path="tasks" element={<InternalTasks />} />
                 <Route path="feedback" element={<InternalFeedback />} />
                 <Route path="competitions" element={<InternalCompetitions />} />
                 <Route path="contest" element={<InternalContest />} />
