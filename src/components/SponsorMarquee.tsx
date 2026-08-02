@@ -25,6 +25,11 @@ const SPONSORS: SponsorTile[] = [
     blurb: 'Pizik Lab — hands-on physics experiments and science outreach across Uzbekistan',
   },
   {
+    name: 'Ivybek Academy',
+    logo: '/ivybek-mark.png',
+    blurb: 'Ivybek Academy — top university admissions support: profile building, essays, and full-service consulting',
+  },
+  {
     name: 'Muhandiss.uz',
     logo: '/muhandiss-mark-transparent.png',
     blurb: "Muhandiss.uz — Uzbek-language engineering community: translated articles, mentorship, and internship access",
