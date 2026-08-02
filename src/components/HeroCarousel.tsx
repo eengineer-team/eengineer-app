@@ -253,29 +253,24 @@ export function HeroCarousel() {
   }, [paused, slides.length, index])
 
   // Wheel-driven navigation: scrolling over the card steps through slides
-  // with a vertical effect instead of scrolling the page — but only while
-  // there's another slide in that direction. At the first/last slide the
-  // listener does NOT preventDefault, so the wheel gesture falls through to
-  // the page underneath rather than trapping the user's scroll (the classic
-  // scroll-jacking complaint). Needs a real (non-passive) DOM listener,
-  // not React's onWheel prop -- React attaches wheel handlers passively by
-  // default, so e.preventDefault() inside one is unreliable.
+  // with a vertical effect instead of scrolling the page. Loops both ways
+  // (last -> first, first -> last) — same infinite cycle the 6s auto-timer
+  // already does — rather than releasing the scroll at the ends. Needs a
+  // real (non-passive) DOM listener, not React's onWheel prop -- React
+  // attaches wheel handlers passively by default, so e.preventDefault()
+  // inside one is unreliable.
   React.useEffect(() => {
     const el = containerRef.current
     if (!el || slides.length <= 1) return
 
     function onWheel(e: WheelEvent) {
-      const goingForward = e.deltaY > 0
-      const canGoForward = index < slides.length - 1
-      const canGoBackward = index > 0
-      if ((goingForward && !canGoForward) || (!goingForward && !canGoBackward)) return
       if (Math.abs(e.deltaY) < 8) return // trackpad jitter
-
       e.preventDefault()
       if (wheelLockRef.current) return
       wheelLockRef.current = true
+      const goingForward = e.deltaY > 0
       setDirection(goingForward ? 1 : -1)
-      setIndex((i) => i + (goingForward ? 1 : -1))
+      setIndex((i) => (goingForward ? (i + 1) % slides.length : (i - 1 + slides.length) % slides.length))
       // One wheel notch/gesture = one slide -- without this, a single
       // trackpad swipe fires dozens of small deltaY events and blows
       // through several slides at once.
@@ -286,7 +281,7 @@ export function HeroCarousel() {
 
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  }, [index, slides.length])
+  }, [slides.length])
 
   if (slides.length === 0) return null
   const slide = slides[index]
