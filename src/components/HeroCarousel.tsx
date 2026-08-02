@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils'
 // and always present — so the carousel is never just one slide even before
 // any webinars/projects exist to show (webinars table is empty at launch).
 
-const SLIDE_MS = 10_000
+const SLIDE_MS = 6_000
 
 type Slide =
   | { kind: 'webinar'; webinar: Webinar }
