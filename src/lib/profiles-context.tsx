@@ -9,6 +9,7 @@ import {
 import type { Discipline } from '@/lib/community-data'
 import { supabase } from '@/lib/supabase'
 import * as api from '@/lib/api/profiles'
+import type { ConnectionRequest } from '@/lib/api/profiles'
 
 // Live Supabase-backed profile store shared across the list/detail routes.
 // Only the ME_ID profile is ever editable by the current session; every
@@ -47,19 +48,28 @@ interface ProfilesContextValue {
     evidenceUrl?: string
   ) => void
   toggleConnect: (targetProfileId: string) => void
+  incomingRequests: ConnectionRequest[]
+  respondToRequest: (connectionId: string, accept: boolean) => void
 }
 
 const ProfilesContext = React.createContext<ProfilesContextValue | null>(null)
 
 export function ProfilesProvider({ children }: { children: React.ReactNode }) {
   const [profiles, setProfiles] = React.useState<BuilderProfile[]>([])
+  const [incomingRequests, setIncomingRequests] = React.useState<ConnectionRequest[]>([])
   const [loading, setLoading] = React.useState(true)
   const uidRef = React.useRef<string | null>(null)
 
   const refresh = React.useCallback(async () => {
-    uidRef.current = await api.currentUid()
+    const uid = await api.currentUid()
+    uidRef.current = uid
     try {
-      setProfiles(await api.fetchProfiles())
+      const [nextProfiles, nextRequests] = await Promise.all([
+        api.fetchProfiles(),
+        uid ? api.fetchIncomingRequests(uid) : Promise.resolve([]),
+      ])
+      setProfiles(nextProfiles)
+      setIncomingRequests(nextRequests)
     } catch (err) {
       console.error('Failed to load profiles', err)
     } finally {
@@ -346,6 +356,27 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
     [profiles, refresh]
   )
 
+  // Accept/ignore an incoming request -- the counterpart to toggleConnect's
+  // "only your own outgoing request is yours to manage" comment above: this
+  // one IS yours to manage, since you're the addressee. Optimistically
+  // drops it from the list and, on accept, flips the requester's profile to
+  // 'connected' locally so My Network/the profile card update without
+  // waiting on a refetch.
+  const respondToRequest = React.useCallback(
+    (connectionId: string, accept: boolean) => {
+      const request = incomingRequests.find((r) => r.id === connectionId)
+      setIncomingRequests((prev) => prev.filter((r) => r.id !== connectionId))
+      if (accept && request) {
+        setProfiles((prev) => prev.map((p) => (p.id === request.requesterId ? { ...p, connectStatus: 'connected' } : p)))
+      }
+      api.respondToConnection(connectionId, accept).catch((err) => {
+        console.error('Connection response failed', err)
+        void refresh()
+      })
+    },
+    [incomingRequests, refresh]
+  )
+
   const value = React.useMemo(
     () => ({
       profiles,
@@ -368,6 +399,8 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
       setGuardianConsent,
       addEndorsement,
       toggleConnect,
+      incomingRequests,
+      respondToRequest,
     }),
     [
       profiles,
@@ -390,6 +423,8 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
       setGuardianConsent,
       addEndorsement,
       toggleConnect,
+      incomingRequests,
+      respondToRequest,
     ]
   )
 

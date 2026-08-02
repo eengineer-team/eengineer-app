@@ -29,6 +29,7 @@ import { MyProjectRedirect } from '@/pages/dashboard/projects/MyProjectRedirect'
 import { ProfilesLayout } from '@/pages/dashboard/profiles/ProfilesLayout'
 import { ProfilesList } from '@/pages/dashboard/profiles/ProfilesList'
 import { ProfileDetail } from '@/pages/dashboard/profiles/ProfileDetail'
+import { Connections } from '@/pages/dashboard/Connections'
 import { Calendar } from '@/pages/dashboard/Calendar'
 import { CompetitionDetail } from '@/pages/dashboard/CompetitionDetail'
 import { OpportunityDetail } from '@/pages/dashboard/OpportunityDetail'
@@ -131,6 +132,10 @@ export default function App() {
                   <Route index element={<ProfilesList />} />
                   <Route path=":id" element={<ProfileDetail />} />
                 </Route>
+                <Route
+                  path="connections"
+                  element={<RequireAction action="community:network:connect"><Connections /></RequireAction>}
+                />
                 <Route
                   path="calendar"
                   element={<RequireAction action="calendar:view"><Calendar /></RequireAction>}

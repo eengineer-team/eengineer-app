@@ -276,3 +276,54 @@ export async function toggleConnect(
     .insert({ requester_id: uid, addressee_id: targetProfileId, status: 'requested' })
   if (error) throw error
 }
+
+export interface ConnectionRequest {
+  /** connections.id -- what respondToConnection needs, not the requester's profile id. */
+  id: string
+  requesterId: string
+  requesterName: string
+  requesterAvatarUrl: string | undefined
+  requesterDiscipline: Discipline
+  createdAt: string
+}
+
+// conn_select already lets the addressee read these rows (see
+// 20260716120200_rls.sql) -- this was just never queried from the client.
+// profiles!inner is safe without a `!constraint` hint: connections has
+// exactly one FK from requester_id into profiles(id), the same
+// single-relationship shape as feedback_profile_id_fkey.
+export async function fetchIncomingRequests(uid: string): Promise<ConnectionRequest[]> {
+  const { data, error } = await supabase
+    .from('connections')
+    .select('id, created_at, requester_id, profiles!connections_requester_id_fkey ( display_name, avatar_url, discipline )')
+    .eq('addressee_id', uid)
+    .eq('status', 'requested')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []).map((r) => {
+    const requester = r.profiles as unknown as { display_name: string; avatar_url: string | null; discipline: Discipline } | null
+    return {
+      id: r.id,
+      requesterId: r.requester_id,
+      requesterName: requester?.display_name ?? 'A Builder',
+      requesterAvatarUrl: requester?.avatar_url ?? undefined,
+      requesterDiscipline: requester?.discipline ?? 'Other',
+      createdAt: r.created_at,
+    }
+  })
+}
+
+// Accept flips the row to 'connected' (conn_update permits this for the
+// addressee). Ignore DELETEs rather than setting 'declined' -- connections
+// has a unique(requester_id, addressee_id) constraint, so a 'declined' row
+// left in place would permanently block the same person from ever
+// requesting again. Deleting lets that happen naturally later.
+export async function respondToConnection(connectionId: string, accept: boolean): Promise<void> {
+  if (accept) {
+    const { error } = await supabase.from('connections').update({ status: 'connected' }).eq('id', connectionId)
+    if (error) throw error
+    return
+  }
+  const { error } = await supabase.from('connections').delete().eq('id', connectionId)
+  if (error) throw error
+}

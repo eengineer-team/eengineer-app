@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle, Settings, LogOut, X, PanelLeftClose, PanelLeftOpen, Rocket, ShieldCheck, Trophy } from 'lucide-react'
+import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle, Settings, LogOut, X, PanelLeftClose, PanelLeftOpen, Rocket, ShieldCheck, Trophy, UserPlus } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '@/lib/auth-context'
+import { useProfiles } from '@/lib/profiles-context'
 import { can, type Action } from '@/lib/permissions'
 import { Tooltip } from '@/components/ui/tooltip'
 import { Wordmark } from '@/components/ui/wordmark'
@@ -31,6 +32,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard/projects', label: 'Projects', icon: Rocket, action: 'projects:view' },
   { to: '/dashboard/opportunities', label: 'Opportunities', icon: Briefcase, action: 'opportunities:view' },
   { to: '/dashboard/profiles', label: 'Profiles', icon: UserCircle, action: 'profiles:view' },
+  { to: '/dashboard/connections', label: 'Connections', icon: UserPlus, action: 'community:network:connect' },
   { to: '/dashboard/calendar', label: 'Calendar', icon: CalendarDays, action: 'calendar:view' },
   { to: '/dashboard/messages', label: 'Messages', icon: MessageSquare, action: 'messages:view' },
   { to: '/dashboard/admin', label: 'Admin', icon: ShieldCheck, action: 'moderation:queue:view' },
@@ -50,6 +52,7 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const { user, signOut } = useAuth()
+  const { incomingRequests } = useProfiles()
   const items = NAV_ITEMS.filter((item) => can(user, item.action))
   const [collapsed, setCollapsed] = useState(readStoredCollapsed)
 
@@ -118,11 +121,27 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           <nav className="flex flex-col gap-1">
             {items.map((item) => {
               const Icon = item.icon
+              // Only Connections ever carries a count -- pending requests
+              // someone actually needs to act on, not an unread/activity
+              // count like the notifications bell.
+              const pendingCount = item.to === '/dashboard/connections' ? incomingRequests.length : 0
               return (
                 <Tooltip key={item.to} label={item.label} disabled={!collapsed} className="md:block">
                   <NavLink to={item.to} end={item.end} onClick={onClose} className={navItemClass}>
-                    <Icon size={19} strokeWidth={1.8} className="flex-shrink-0" />
-                    <span className={collapsed ? 'md:hidden' : ''}>{item.label}</span>
+                    <span className="relative flex-shrink-0">
+                      <Icon size={19} strokeWidth={1.8} />
+                      {pendingCount > 0 && (
+                        <span className="absolute -top-1 -right-1 w-[7px] h-[7px] rounded-full bg-corn-700" />
+                      )}
+                    </span>
+                    <span className={cn('flex-1 flex items-center justify-between', collapsed && 'md:hidden')}>
+                      {item.label}
+                      {pendingCount > 0 && (
+                        <span className="font-sans text-[11px] font-semibold text-corn-300 bg-corn-700/20 rounded-full px-1.5 py-0.5">
+                          {pendingCount}
+                        </span>
+                      )}
+                    </span>
                   </NavLink>
                 </Tooltip>
               )
