@@ -257,11 +257,16 @@ type WebinarRow = {
   discipline: Discipline
   title: string
   speaker: string
+  speaker_photo_url: string | null
+  speaker_bio: string | null
   starts_at: string
   meeting_url: string | null
   duration_minutes: number
   description: string | null
 }
+
+const WEBINAR_COLUMNS =
+  'id, discipline, title, speaker, speaker_photo_url, speaker_bio, starts_at, meeting_url, duration_minutes, description'
 
 export async function fetchWebinars(): Promise<Webinar[]> {
   const uid = await currentUid()
@@ -275,11 +280,7 @@ export async function fetchWebinars(): Promise<Webinar[]> {
   // client-side below.
   const lookback = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
   const [{ data: webinars, error }, { data: rsvps, error: rsvpError }] = await Promise.all([
-    supabase
-      .from('webinars')
-      .select('id, discipline, title, speaker, starts_at, meeting_url, duration_minutes, description')
-      .gte('starts_at', lookback)
-      .order('starts_at', { ascending: true }),
+    supabase.from('webinars').select(WEBINAR_COLUMNS).gte('starts_at', lookback).order('starts_at', { ascending: true }),
     supabase.from('webinar_rsvps').select('webinar_id, user_id'),
   ])
   if (error) throw error
@@ -293,12 +294,49 @@ export async function fetchWebinars(): Promise<Webinar[]> {
       discipline: w.discipline,
       title: w.title,
       speaker: w.speaker,
+      speakerPhotoUrl: w.speaker_photo_url,
+      speakerBio: w.speaker_bio,
       startsAt: w.starts_at,
       meetingUrl: w.meeting_url,
       durationMinutes: w.duration_minutes,
       description: w.description,
       attending: rsvpRows.filter((r) => r.webinar_id === w.id).length,
       registered: uid ? rsvpRows.some((r) => r.webinar_id === w.id && r.user_id === uid) : false,
+    }))
+    .filter((w) => now < new Date(w.startsAt).getTime() + w.durationMinutes * 60_000)
+}
+
+/** Signed-out read for the hero carousel on the public landing page.
+ *
+ *  Deliberately touches ONLY the webinars table -- fetchWebinars() also
+ *  queries webinar_rsvps for attending counts / "am I registered", which
+ *  stays authenticated-only (see web_select_public's comment in
+ *  20260802060000_hero_carousel.sql: only `webinars` itself got an anon
+ *  policy). A visitor has no RSVP state to show anyway. */
+export async function fetchPublicWebinars(): Promise<Webinar[]> {
+  const lookback = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+  const { data, error } = await supabase
+    .from('webinars')
+    .select(WEBINAR_COLUMNS)
+    .gte('starts_at', lookback)
+    .order('starts_at', { ascending: true })
+  if (error) throw error
+
+  const now = Date.now()
+  return ((data ?? []) as WebinarRow[])
+    .map((w): Webinar => ({
+      id: w.id,
+      discipline: w.discipline,
+      title: w.title,
+      speaker: w.speaker,
+      speakerPhotoUrl: w.speaker_photo_url,
+      speakerBio: w.speaker_bio,
+      startsAt: w.starts_at,
+      meetingUrl: w.meeting_url,
+      durationMinutes: w.duration_minutes,
+      description: w.description,
+      attending: 0,
+      registered: false,
     }))
     .filter((w) => now < new Date(w.startsAt).getTime() + w.durationMinutes * 60_000)
 }

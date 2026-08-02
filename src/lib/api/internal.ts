@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import type { Discipline } from '@/lib/community-data'
 
 // Data layer for the hidden /internal panel -- everything here used to be
 // "founder reads it via SQL" only: waitlist_signups, feedback,
@@ -316,6 +317,124 @@ export async function upsertTeamMember(name: string, role: string): Promise<void
 
 export async function deleteTeamMember(name: string): Promise<void> {
   const { error } = await supabase.from('internal_team_members').delete().eq('name', name)
+  if (error) throw error
+}
+
+// Webinar management -- previously insert-only-by-hand-over-SQL (see
+// community-data.ts's Webinar doc comment). internal_admin_write (see
+// 20260802060000_hero_carousel.sql) is what actually lets these through:
+// internal-panel accounts aren't Builders, so the app.is_builder()-gated
+// web_write policy never applies to them.
+export interface AdminWebinar {
+  id: string
+  discipline: Discipline
+  title: string
+  speaker: string
+  speakerPhotoUrl: string | null
+  speakerBio: string | null
+  startsAt: string
+  meetingUrl: string | null
+  durationMinutes: number
+  description: string | null
+}
+
+const ADMIN_WEBINAR_COLUMNS =
+  'id, discipline, title, speaker, speaker_photo_url, speaker_bio, starts_at, meeting_url, duration_minutes, description'
+
+function mapAdminWebinar(r: {
+  id: string
+  discipline: string
+  title: string
+  speaker: string
+  speaker_photo_url: string | null
+  speaker_bio: string | null
+  starts_at: string
+  meeting_url: string | null
+  duration_minutes: number
+  description: string | null
+}): AdminWebinar {
+  return {
+    id: r.id,
+    discipline: r.discipline as Discipline,
+    title: r.title,
+    speaker: r.speaker,
+    speakerPhotoUrl: r.speaker_photo_url,
+    speakerBio: r.speaker_bio,
+    startsAt: r.starts_at,
+    meetingUrl: r.meeting_url,
+    durationMinutes: r.duration_minutes,
+    description: r.description,
+  }
+}
+
+export async function fetchAdminWebinars(): Promise<AdminWebinar[]> {
+  const { data, error } = await supabase.from('webinars').select(ADMIN_WEBINAR_COLUMNS).order('starts_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []).map(mapAdminWebinar)
+}
+
+// Speaker photo goes to its own public bucket, same pattern as
+// internal-task-screenshots -- the row only ever stores the resulting URL.
+export async function uploadSpeakerPhoto(file: File): Promise<string> {
+  const ext = file.name.split('.').pop() || 'jpg'
+  const path = `${crypto.randomUUID()}.${ext}`
+  const { error } = await supabase.storage.from('webinar-speakers').upload(path, file, { contentType: file.type || 'image/jpeg' })
+  if (error) throw error
+  return supabase.storage.from('webinar-speakers').getPublicUrl(path).data.publicUrl
+}
+
+export interface AdminWebinarInput {
+  discipline: Discipline
+  title: string
+  speaker: string
+  speakerPhotoUrl: string | null
+  speakerBio: string
+  startsAt: string
+  meetingUrl: string
+  durationMinutes: number
+  description: string
+}
+
+export async function createWebinar(input: AdminWebinarInput): Promise<AdminWebinar> {
+  const { data, error } = await supabase
+    .from('webinars')
+    .insert({
+      discipline: input.discipline,
+      title: input.title.trim(),
+      speaker: input.speaker.trim(),
+      speaker_photo_url: input.speakerPhotoUrl,
+      speaker_bio: input.speakerBio.trim() || null,
+      starts_at: input.startsAt,
+      meeting_url: input.meetingUrl.trim() || null,
+      duration_minutes: input.durationMinutes,
+      description: input.description.trim() || null,
+    })
+    .select(ADMIN_WEBINAR_COLUMNS)
+    .single()
+  if (error) throw error
+  return mapAdminWebinar(data)
+}
+
+export async function updateWebinar(id: string, input: AdminWebinarInput): Promise<void> {
+  const { error } = await supabase
+    .from('webinars')
+    .update({
+      discipline: input.discipline,
+      title: input.title.trim(),
+      speaker: input.speaker.trim(),
+      speaker_photo_url: input.speakerPhotoUrl,
+      speaker_bio: input.speakerBio.trim() || null,
+      starts_at: input.startsAt,
+      meeting_url: input.meetingUrl.trim() || null,
+      duration_minutes: input.durationMinutes,
+      description: input.description.trim() || null,
+    })
+    .eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteWebinar(id: string): Promise<void> {
+  const { error } = await supabase.from('webinars').delete().eq('id', id)
   if (error) throw error
 }
 

@@ -118,6 +118,40 @@ export async function fetchProjects(): Promise<Project[]> {
   })
 }
 
+export interface PublicProject {
+  id: string
+  name: string
+  description: string
+  thumbnailUrl: string | null
+  coverUrl: string | null
+}
+
+/** Signed-out read for the hero carousel on the public landing page.
+ *
+ *  Deliberately a flat query -- no project_stats/materials/team/followers/
+ *  join-requests/feedback joins like PROJECT_SELECT. Those all carry a FK
+ *  into `profiles`, which stays authenticated-only; a visitor only needs
+ *  enough to render "here's something a student built", not the full
+ *  Projects Hub detail view. Skips blank placeholder rows (every Builder
+ *  gets one lazily on first read, see ensureMyProject -- most have never
+ *  been filled in) and caps at 6, newest first. */
+export async function fetchPublicProjects(): Promise<PublicProject[]> {
+  const { data, error } = await supabase
+    .from('projects')
+    .select('id, name, description, thumbnail_url, cover_url, updated_at')
+    .neq('name', '')
+    .order('updated_at', { ascending: false })
+    .limit(6)
+  if (error) throw error
+  return (data ?? []).map((r) => ({
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    thumbnailUrl: r.thumbnail_url,
+    coverUrl: r.cover_url,
+  }))
+}
+
 export async function updateMyProject(uid: string, patch: ProjectUpdate): Promise<void> {
   const { error } = await supabase.from('projects').update(patch).eq('owner_id', uid)
   if (error) throw error

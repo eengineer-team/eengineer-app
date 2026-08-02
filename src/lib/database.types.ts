@@ -2229,6 +2229,8 @@ export type Database = {
           meeting_url: string | null
           notified_live: boolean
           speaker: string
+          speaker_bio: string | null
+          speaker_photo_url: string | null
           starts_at: string
           title: string
           tz_label: string
@@ -2252,6 +2254,8 @@ export type Database = {
           meeting_url?: string | null
           notified_live?: boolean
           speaker?: string
+          speaker_bio?: string | null
+          speaker_photo_url?: string | null
           starts_at: string
           title: string
           tz_label?: string
@@ -2275,6 +2279,8 @@ export type Database = {
           meeting_url?: string | null
           notified_live?: boolean
           speaker?: string
+          speaker_bio?: string | null
+          speaker_photo_url?: string | null
           starts_at?: string
           title?: string
           tz_label?: string

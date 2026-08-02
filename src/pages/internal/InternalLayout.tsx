@@ -12,6 +12,7 @@ export const ADMIN_PANEL_PATH = '/unique_key/admin_panel'
 const TABS = [
   { to: `${ADMIN_PANEL_PATH}/waitlist`, label: 'Waitlist' },
   { to: `${ADMIN_PANEL_PATH}/tasks`, label: 'Tasks' },
+  { to: `${ADMIN_PANEL_PATH}/webinars`, label: 'Webinars' },
   { to: `${ADMIN_PANEL_PATH}/feedback`, label: 'Feedback' },
   { to: `${ADMIN_PANEL_PATH}/competitions`, label: 'Competitions' },
 ]

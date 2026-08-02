@@ -46,6 +46,7 @@ import { InternalLogin } from '@/pages/internal/InternalLogin'
 import { InternalLayout } from '@/pages/internal/InternalLayout'
 import { InternalWaitlist } from '@/pages/internal/InternalWaitlist'
 import { InternalTasks } from '@/pages/internal/InternalTasks'
+import { InternalWebinars } from '@/pages/internal/InternalWebinars'
 import { InternalFeedback } from '@/pages/internal/InternalFeedback'
 import { InternalCompetitions } from '@/pages/internal/InternalCompetitions'
 import './index.css'
@@ -179,6 +180,7 @@ export default function App() {
                 <Route index element={<Navigate to="waitlist" replace />} />
                 <Route path="waitlist" element={<InternalWaitlist />} />
                 <Route path="tasks" element={<InternalTasks />} />
+                <Route path="webinars" element={<InternalWebinars />} />
                 <Route path="feedback" element={<InternalFeedback />} />
                 <Route path="competitions" element={<InternalCompetitions />} />
               </Route>

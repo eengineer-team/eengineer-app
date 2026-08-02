@@ -49,6 +49,13 @@ export interface Webinar {
   discipline: Discipline
   title: string
   speaker: string
+  /** Null until set via the internal panel (Webinars tab) or SQL. Shown on
+   *  the hero carousel and the webinar card; falls back to an initials
+   *  avatar when null. */
+  speakerPhotoUrl: string | null
+  /** Null until set the same way as speakerPhotoUrl. One or two sentences,
+   *  not a full profile. */
+  speakerBio: string | null
   /** ISO 8601 UTC instant — never a hand-typed weekday/date string. */
   startsAt: string
   attending: number

@@ -5,6 +5,7 @@ import { TeamAbout } from '@/components/TeamAbout'
 import { SponsorMarquee } from '@/components/SponsorMarquee'
 import { LandingFeatures } from '@/components/LandingFeatures'
 import { FeaturedProject } from '@/components/FeaturedProject'
+import { HeroCarousel } from '@/components/HeroCarousel'
 import { LandingCalendar } from '@/components/LandingCalendar'
 import { SettingsMenu } from '@/components/SettingsMenu'
 import { FeedbackMenu } from '@/components/FeedbackMenu'
@@ -70,11 +71,12 @@ export function Welcome() {
         ref={heroRef}
         className="relative isolate flex-1 flex flex-col px-5 sm:px-10 py-10 lg:py-12 bg-graph-paper"
       >
+        <div className="relative z-10 w-full max-w-[1240px] grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_420px] gap-8 lg:gap-12 items-center">
         <motion.div
           variants={stagger}
           initial="hidden"
           animate="show"
-          className="relative z-10 w-full max-w-[820px] flex flex-col"
+          className="w-full max-w-[820px] flex flex-col"
         >
 
           {/* Headline — now on the "display" token (tailwind.config.js) instead
@@ -176,6 +178,18 @@ export function Welcome() {
             </Button>
           </motion.div>
         </motion.div>
+
+        {/* Info carousel — founder ask (Telegram, 2026-08-01): fill the empty
+            graph-paper space beside the headline with something worth a
+            first-time visitor's attention, rather than leave it bare. */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+        >
+          <HeroCarousel />
+        </motion.div>
+        </div>
       </main>
 
       <SponsorMarquee />
