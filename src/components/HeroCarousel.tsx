@@ -8,23 +8,25 @@ import type { Webinar } from '@/lib/community-data'
 import { getDisciplineColor } from '@/lib/discipline-colors'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { Button } from '@/components/ui/button'
+import { Wordmark } from '@/components/ui/wordmark'
 import { cn } from '@/lib/utils'
 
 // Hero carousel — founder ask (Telegram, 2026-08-01/02): fill the empty
 // space next to the headline with a rotating panel. First pass also had
 // static "why eengineer" pitch slides and project/competition-deadline
 // slides; founder feedback ("dont make it like promotion" / "just mention
-// upcoming webinars, opportunities") cut it down to just those two --
-// real, time-bound content instead of marketing copy. 6s per slide, pauses
-// on hover, scroll-to-navigate (see the wheel handler below).
+// upcoming webinars, opportunities") cut it down to those two -- real,
+// time-bound content instead of marketing copy. A third slide kind (see
+// TeaserSlide below) was added after for a deliberately vague video-contest
+// teaser, per a follow-up founder ask. 6s per slide, pauses on hover,
+// scroll-to-navigate (see the wheel handler below).
 //
-// Both categories are skip-if-empty. If neither has anything (e.g. no
-// webinars scheduled and opportunities empty), the carousel renders
-// nothing rather than padding itself out with filler.
+// Webinar/opportunity slides are skip-if-empty. The teaser slide is static
+// and always present, so the carousel never renders nothing.
 
 const SLIDE_MS = 6_000
 
-type Slide = { kind: 'webinar'; webinar: Webinar } | { kind: 'opportunity'; opportunity: Opportunity }
+type Slide = { kind: 'webinar'; webinar: Webinar } | { kind: 'opportunity'; opportunity: Opportunity } | { kind: 'teaser' }
 
 function formatSlideDate(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -113,6 +115,60 @@ function OpportunitySlide({ opportunity }: { opportunity: Opportunity }) {
   )
 }
 
+// Teaser slide -- founder ask (Telegram, 2026-08-02): "add like an upcoming
+// video contest, like just mention contest, blur the background, make pizik
+// lab x eengineer a little more obvious / but like people should not know
+// for sure." Deliberately vague: no dates, no submission details, nothing
+// that would need a migration or an admin-panel field to keep current --
+// unlike the webinar/opportunity slides this is static copy, closer to the
+// obscured "more coming" placeholder tile in SponsorMarquee than to real
+// content. The Pizik Lab mark + eengineer wordmark lockup (same leaning
+// composition as TrustMark in LandingFeatures.tsx) stays sharp so the
+// partnership reads clearly; everything else -- the background glow, the
+// copy -- stays soft/non-committal on purpose.
+function TeaserSlide() {
+  return (
+    <div className="relative flex flex-col h-full overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <img
+          src="/pizik-mark-transparent.png"
+          alt=""
+          className="absolute -top-8 -right-8 w-36 h-36 object-contain blur-2xl opacity-20 rotate-12"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-white/90 to-corn-500/10" />
+      </div>
+
+      <div className="relative flex items-center gap-1.5 mb-4">
+        <span className="w-1.5 h-1.5 rounded-full bg-corn-700 animate-pulse" />
+        <LabelCaps theme="welcome">Something&rsquo;s brewing</LabelCaps>
+      </div>
+
+      <div className="relative flex items-center gap-2.5 mb-4">
+        <div className="w-11 h-11 rounded-xl bg-white border border-corn-900/10 shadow-[0_6px_16px_rgba(42,33,24,0.14)] flex items-center justify-center rotate-[-8deg] -translate-x-1 p-2 flex-shrink-0">
+          <img src="/pizik-mark-transparent.png" alt="Pizik Lab" className="w-full h-full object-contain" />
+        </div>
+        <span className="font-display text-lg text-corn-900/25">×</span>
+        <div className="rotate-[6deg] translate-x-1">
+          <Wordmark variant="light" size="sm" />
+        </div>
+      </div>
+
+      <p className="relative font-display font-bold text-[1.25rem] leading-[1.2] text-[#2A2118] mb-2">
+        A video contest, maybe
+      </p>
+      <p className="relative font-sans text-[0.8125rem] text-corn-800/75 leading-snug mb-auto">
+        Pizik Lab and eengineer are quietly cooking something up for builders who don&rsquo;t mind a camera. Nothing official yet — worth keeping an eye on.
+      </p>
+      <Button asChild variant="ghost" size="sm" className="relative w-fit mt-4 gap-1.5">
+        <Link to="/auth?mode=signup">
+          Get notified
+          <ArrowRight size={13} strokeWidth={2.5} />
+        </Link>
+      </Button>
+    </div>
+  )
+}
+
 export function HeroCarousel() {
   const [webinars, setWebinars] = React.useState<Webinar[]>([])
   const [opportunities, setOpportunities] = React.useState<Opportunity[]>([])
@@ -140,7 +196,11 @@ export function HeroCarousel() {
       })
       .slice(0, 3)
       .map((opportunity) => ({ kind: 'opportunity', opportunity }))
-    return [...webinarSlides, ...opportunitySlides]
+    // Teaser is static and always included (not skip-if-empty like the two
+    // data-driven kinds above) -- it's the one slide that doesn't depend on
+    // anything loading, so it also keeps the carousel non-empty even before
+    // webinars/opportunities have fetched.
+    return [...webinarSlides, ...opportunitySlides, { kind: 'teaser' } as Slide]
   }, [webinars, opportunities])
 
   // Reset to a valid index whenever the slide set changes shape (e.g. data
@@ -195,7 +255,9 @@ export function HeroCarousel() {
   const slide = slides[index]
 
   function slideKey(s: Slide): string {
-    return s.kind === 'webinar' ? `webinar-${s.webinar.id}` : `opportunity-${s.opportunity.id}`
+    if (s.kind === 'webinar') return `webinar-${s.webinar.id}`
+    if (s.kind === 'opportunity') return `opportunity-${s.opportunity.id}`
+    return 'teaser'
   }
 
   return (
@@ -221,7 +283,9 @@ export function HeroCarousel() {
             transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
             className="absolute inset-0 h-full bg-white border border-corn-900/10 rounded-lg shadow-[0_10px_28px_rgba(42,33,24,0.14)] p-6 flex flex-col"
           >
-            {slide.kind === 'webinar' ? <WebinarSlide webinar={slide.webinar} /> : <OpportunitySlide opportunity={slide.opportunity} />}
+            {slide.kind === 'webinar' && <WebinarSlide webinar={slide.webinar} />}
+            {slide.kind === 'opportunity' && <OpportunitySlide opportunity={slide.opportunity} />}
+            {slide.kind === 'teaser' && <TeaserSlide />}
           </motion.div>
         </AnimatePresence>
       </div>
