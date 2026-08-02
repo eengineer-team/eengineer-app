@@ -271,12 +271,13 @@ export function HeroCarousel() {
       const goingForward = e.deltaY > 0
       setDirection(goingForward ? 1 : -1)
       setIndex((i) => (goingForward ? (i + 1) % slides.length : (i - 1 + slides.length) % slides.length))
-      // One wheel notch/gesture = one slide -- without this, a single
-      // trackpad swipe fires dozens of small deltaY events and blows
-      // through several slides at once.
+      // Debounce, not a "wait for the next deliberate scroll" gate — short
+      // enough that holding the wheel/trackpad down keeps flipping through
+      // cards at a fast, continuous clip, just still one slide per tick
+      // instead of a single swipe skipping five at once.
       setTimeout(() => {
         wheelLockRef.current = false
-      }, 550)
+      }, 220)
     }
 
     el.addEventListener('wheel', onWheel, { passive: false })
@@ -319,7 +320,7 @@ export function HeroCarousel() {
             initial={{ y: direction > 0 ? '100%' : '-100%', opacity: 0, scale: 0.94 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: direction > 0 ? '-100%' : '100%', opacity: 0, scale: 0.94 }}
-            transition={{ duration: 0.42, ease: [0.32, 0.72, 0, 1] }}
+            transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
             className="absolute inset-0 h-full bg-white border border-corn-900/10 rounded-lg shadow-[0_10px_28px_rgba(42,33,24,0.14)] p-6 flex flex-col"
           >
             {slide.kind === 'webinar' && <WebinarSlide webinar={slide.webinar} />}
