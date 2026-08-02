@@ -119,13 +119,16 @@ function OpportunitySlide({ opportunity }: { opportunity: Opportunity }) {
 // video contest, like just mention contest, blur the background, make pizik
 // lab x eengineer a little more obvious / but like people should not know
 // for sure." Deliberately vague: no dates, no submission details, nothing
-// that would need a migration or an admin-panel field to keep current --
-// unlike the webinar/opportunity slides this is static copy, closer to the
-// obscured "more coming" placeholder tile in SponsorMarquee than to real
-// content. The Pizik Lab mark + eengineer wordmark lockup (same leaning
-// composition as TrustMark in LandingFeatures.tsx) stays sharp so the
-// partnership reads clearly; everything else -- the background glow, the
-// copy -- stays soft/non-committal on purpose.
+// that would need a migration or an admin-panel field to keep current.
+//
+// Leans into "trailer for something we won't confirm" rather than another
+// listing card -- dark spotlit surface (own bg on the wrapping card in
+// HeroCarousel below), a pulsing rec-dot instead of the usual discipline
+// dot, blurred/rotated Pizik Lab glow shapes standing in for "footage we're
+// not showing you yet". The Pizik Lab mark + eengineer wordmark lockup
+// (same leaning composition as TrustMark in LandingFeatures.tsx) is the one
+// sharp thing in the frame, sitting in its own white chip so it stays
+// legible against the dark card regardless of the mark's own colors.
 function TeaserSlide() {
   return (
     <div className="relative flex flex-col h-full overflow-hidden">
@@ -133,33 +136,44 @@ function TeaserSlide() {
         <img
           src="/pizik-mark-transparent.png"
           alt=""
-          className="absolute -top-8 -right-8 w-36 h-36 object-contain blur-2xl opacity-20 rotate-12"
+          className="absolute -top-10 -right-10 w-40 h-40 object-contain blur-3xl opacity-30 rotate-12 invert"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-white/90 to-corn-500/10" />
+        <img
+          src="/pizik-mark-transparent.png"
+          alt=""
+          className="absolute -bottom-14 -left-10 w-32 h-32 object-contain blur-3xl opacity-20 -rotate-6 invert"
+        />
+        {/* Faint spotlight vignette, like a stage light finding the logo lockup */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08),transparent_60%)]" />
       </div>
 
       <div className="relative flex items-center gap-1.5 mb-4">
-        <span className="w-1.5 h-1.5 rounded-full bg-corn-700 animate-pulse" />
-        <LabelCaps theme="welcome">Something&rsquo;s brewing</LabelCaps>
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500/60" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+        </span>
+        <LabelCaps theme="welcome" className="text-white/50">
+          Rolling soon
+        </LabelCaps>
       </div>
 
       <div className="relative flex items-center gap-2.5 mb-4">
-        <div className="w-11 h-11 rounded-xl bg-white border border-corn-900/10 shadow-[0_6px_16px_rgba(42,33,24,0.14)] flex items-center justify-center rotate-[-8deg] -translate-x-1 p-2 flex-shrink-0">
+        <div className="w-11 h-11 rounded-xl bg-white border border-white/10 shadow-[0_6px_20px_rgba(0,0,0,0.35)] flex items-center justify-center rotate-[-8deg] -translate-x-1 p-2 flex-shrink-0">
           <img src="/pizik-mark-transparent.png" alt="Pizik Lab" className="w-full h-full object-contain" />
         </div>
-        <span className="font-display text-lg text-corn-900/25">×</span>
+        <span className="font-display text-lg text-white/25">×</span>
         <div className="rotate-[6deg] translate-x-1">
-          <Wordmark variant="light" size="sm" />
+          <Wordmark variant="dark" size="sm" />
         </div>
       </div>
 
-      <p className="relative font-display font-bold text-[1.25rem] leading-[1.2] text-[#2A2118] mb-2">
-        A video contest, maybe
+      <p className="relative font-display font-bold text-[1.25rem] leading-[1.2] text-white mb-2">
+        Somebody&rsquo;s pointing a camera at something
       </p>
-      <p className="relative font-sans text-[0.8125rem] text-corn-800/75 leading-snug mb-auto">
-        Pizik Lab and eengineer are quietly cooking something up for builders who don&rsquo;t mind a camera. Nothing official yet — worth keeping an eye on.
+      <p className="relative font-sans text-[0.8125rem] text-white/55 leading-snug mb-auto">
+        Pizik Lab × eengineer are plotting a video contest. That&rsquo;s all we&rsquo;ll say for now — no dates, no rules, no promises. Just don&rsquo;t be the last to know.
       </p>
-      <Button asChild variant="ghost" size="sm" className="relative w-fit mt-4 gap-1.5">
+      <Button asChild variant="ghost" size="sm" className="relative w-fit mt-4 gap-1.5 !border-white/15 !text-white hover:!bg-white/10">
         <Link to="/auth?mode=signup">
           Get notified
           <ArrowRight size={13} strokeWidth={2.5} />
@@ -281,7 +295,15 @@ export function HeroCarousel() {
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: direction > 0 ? '-100%' : '100%', opacity: 0, scale: 0.94 }}
             transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
-            className="absolute inset-0 h-full bg-white border border-corn-900/10 rounded-lg shadow-[0_10px_28px_rgba(42,33,24,0.14)] p-6 flex flex-col"
+            className={cn(
+              'absolute inset-0 h-full rounded-lg shadow-[0_10px_28px_rgba(42,33,24,0.14)] p-6 flex flex-col',
+              // Teaser gets its own dark, spotlit card instead of the shared
+              // white one -- it's meant to feel like a different kind of
+              // thing catching your eye mid-scroll, not another listing.
+              slide.kind === 'teaser'
+                ? 'bg-[#171310] border border-white/10'
+                : 'bg-white border border-corn-900/10'
+            )}
           >
             {slide.kind === 'webinar' && <WebinarSlide webinar={slide.webinar} />}
             {slide.kind === 'opportunity' && <OpportunitySlide opportunity={slide.opportunity} />}
