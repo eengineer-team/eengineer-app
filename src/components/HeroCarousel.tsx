@@ -311,16 +311,21 @@ export function HeroCarousel() {
       onMouseLeave={() => setPaused(false)}
       className="w-full lg:w-[380px] xl:w-[420px] flex-shrink-0 bg-white/60 border border-corn-900/10 rounded-lg p-6 h-[300px] flex flex-col"
     >
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <AnimatePresence mode="wait" custom={direction}>
+      {/* relative + absolute-inset children so the outgoing and incoming
+          slides can overlap and actually pass each other during the
+          transition, like flipping through a stack — mode="wait" (the
+          previous version) fully finished the exit before starting the
+          enter, which read as a fade-in-place, not a slide. */}
+      <div className="relative flex-1 min-h-0 overflow-hidden">
+        <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={slideKey(slide)}
             custom={direction}
-            initial={{ opacity: 0, y: direction > 0 ? 22 : -22 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: direction > 0 ? -22 : 22 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="h-full"
+            initial={{ y: direction > 0 ? '100%' : '-100%', opacity: 0.4 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: direction > 0 ? '-100%' : '100%', opacity: 0.4 }}
+            transition={{ duration: 0.42, ease: [0.32, 0.72, 0, 1] }}
+            className="absolute inset-0 h-full"
           >
             {slide.kind === 'webinar' && <WebinarSlide webinar={slide.webinar} />}
             {slide.kind === 'feature' && <FeatureSlide id={slide.id} Icon={slide.Icon} title={slide.title} description={slide.description} />}
