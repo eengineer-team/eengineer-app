@@ -1,63 +1,30 @@
 import * as React from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Video, Users, Hammer, Trophy, ArrowRight } from 'lucide-react'
-import { useCompetitions } from '@/lib/competitions-context'
+import { ArrowRight } from 'lucide-react'
 import { fetchPublicWebinars } from '@/lib/api/community'
-import { fetchPublicProjects, type PublicProject } from '@/lib/api/projects'
+import { fetchPublicOpportunities, opportunityDisciplineLabel, type Opportunity } from '@/lib/api/opportunities'
 import type { Webinar } from '@/lib/community-data'
 import { getDisciplineColor } from '@/lib/discipline-colors'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-// Hero carousel — founder ask (Telegram, 2026-08-01): fill the empty space
-// next to the headline with a rotating panel that catches a first-time
-// visitor's eye: upcoming webinars (with the speaker's face), what the site
-// actually does, real projects students are building, and competition
-// deadlines. 10s per slide per spec ("10 seconds for each post"), pauses on
-// hover so it can actually be read.
+// Hero carousel — founder ask (Telegram, 2026-08-01/02): fill the empty
+// space next to the headline with a rotating panel. First pass also had
+// static "why eengineer" pitch slides and project/competition-deadline
+// slides; founder feedback ("dont make it like promotion" / "just mention
+// upcoming webinars, opportunities") cut it down to just those two --
+// real, time-bound content instead of marketing copy. 6s per slide, pauses
+// on hover, scroll-to-navigate (see the wheel handler below).
 //
-// Every category is skip-if-empty except `features`, which is static copy
-// and always present — so the carousel is never just one slide even before
-// any webinars/projects exist to show (webinars table is empty at launch).
+// Both categories are skip-if-empty. If neither has anything (e.g. no
+// webinars scheduled and opportunities empty), the carousel renders
+// nothing rather than padding itself out with filler.
 
 const SLIDE_MS = 6_000
 
-type Slide =
-  | { kind: 'webinar'; webinar: Webinar }
-  | { kind: 'feature'; id: string; Icon: typeof Video; title: string; description: string }
-  | { kind: 'project'; project: PublicProject }
-  | {
-      kind: 'deadline'
-      id: string
-      name: string
-      discipline: string
-      organizer: string
-      location: string
-      deadline: Date
-    }
-
-const FEATURES: { id: string; Icon: typeof Video; title: string; description: string }[] = [
-  {
-    id: 'community',
-    Icon: Users,
-    title: 'Nine engineering disciplines, one community',
-    description: 'From model rockets to bridges — post what you\'re building and get feedback from real builders.',
-  },
-  {
-    id: 'projects',
-    Icon: Hammer,
-    title: 'Document, share, and ship real projects',
-    description: 'Every builder gets a project page — write it up, get feedback, iterate, and put it out into the world.',
-  },
-  {
-    id: 'contests',
-    Icon: Trophy,
-    title: 'Blind peer-voted contests, Elo-ranked',
-    description: 'Submit an entry, vote on others\' work, climb the leaderboard — judged by builders, not a black box.',
-  },
-]
+type Slide = { kind: 'webinar'; webinar: Webinar } | { kind: 'opportunity'; opportunity: Opportunity }
 
 function formatSlideDate(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -67,10 +34,6 @@ function formatSlideDate(iso: string) {
     hour: '2-digit',
     minute: '2-digit',
   })
-}
-
-function formatShortDate(d: Date) {
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
 function SpeakerAvatar({ webinar }: { webinar: Webinar }) {
@@ -122,78 +85,27 @@ function WebinarSlide({ webinar }: { webinar: Webinar }) {
   )
 }
 
-function FeatureSlide({ Icon, title, description }: (typeof FEATURES)[number]) {
-  return (
-    <div className="flex flex-col h-full">
-      <div className="w-11 h-11 rounded-xl bg-corn-900/8 text-corn-900 flex items-center justify-center mb-5">
-        <Icon size={20} strokeWidth={1.8} />
-      </div>
-      <LabelCaps theme="welcome" className="block mb-2">
-        Why eengineer
-      </LabelCaps>
-      <p className="font-display font-bold text-[1.375rem] leading-[1.15] text-[#2A2118] mb-2.5">{title}</p>
-      <p className="font-sans text-[0.8125rem] text-corn-800/75 leading-relaxed mb-auto">{description}</p>
-      <Button asChild variant="ghost" size="sm" className="w-fit mt-4 gap-1.5">
-        <Link to="/auth?mode=signup">
-          Explore
-          <ArrowRight size={13} strokeWidth={2.5} />
-        </Link>
-      </Button>
-    </div>
-  )
-}
-
-function ProjectSlide({ project }: { project: PublicProject }) {
-  const img = project.thumbnailUrl ?? project.coverUrl
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-1.5 mb-4">
-        <span className="w-1.5 h-1.5 rounded-full bg-corn-700" />
-        <LabelCaps theme="welcome">Built by a student here</LabelCaps>
-      </div>
-      <div className="flex items-center gap-3 mb-4">
-        {img ? (
-          <img src={img} alt="" className="w-14 h-14 rounded-lg object-cover flex-shrink-0 border border-corn-900/10" />
-        ) : (
-          <div className="w-14 h-14 rounded-lg bg-corn-900/8 flex items-center justify-center flex-shrink-0">
-            <Hammer size={20} strokeWidth={1.8} className="text-corn-900/50" />
-          </div>
-        )}
-        <p className="font-display font-bold text-[1.25rem] leading-[1.15] text-[#2A2118] line-clamp-2">{project.name}</p>
-      </div>
-      <p className="font-sans text-[0.8125rem] text-corn-800/75 leading-relaxed mb-auto line-clamp-4">
-        {project.description || 'No write-up yet — see the project page for what they\'re building.'}
-      </p>
-      <Button asChild variant="ghost" size="sm" className="w-fit mt-4 gap-1.5">
-        <Link to="/auth?mode=signup">
-          See projects
-          <ArrowRight size={13} strokeWidth={2.5} />
-        </Link>
-      </Button>
-    </div>
-  )
-}
-
-function DeadlineSlide({ slide }: { slide: Extract<Slide, { kind: 'deadline' }> }) {
-  const disc = getDisciplineColor(slide.discipline)
-  const daysUntil = Math.round((slide.deadline.getTime() - Date.now()) / 86_400_000)
-  const label = daysUntil <= 0 ? 'today' : daysUntil === 1 ? 'tomorrow' : `in ${daysUntil} days`
+function OpportunitySlide({ opportunity }: { opportunity: Opportunity }) {
+  const disc = getDisciplineColor(opportunityDisciplineLabel(opportunity.discipline))
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-1.5 mb-4">
         <span className={cn('w-1.5 h-1.5 rounded-full', disc.dot)} />
-        <LabelCaps theme="welcome">Competition deadline</LabelCaps>
+        <LabelCaps theme="welcome">Opportunity</LabelCaps>
       </div>
-      <p className="font-display font-bold text-[1.375rem] leading-[1.15] text-[#2A2118] mb-2">{slide.name}</p>
+      <p className="font-display font-bold text-[1.25rem] leading-[1.15] text-[#2A2118] mb-1.5 line-clamp-2">
+        {opportunity.title}
+      </p>
+      <p className="font-sans text-[0.8125rem] text-corn-800 font-medium mb-3">{opportunity.org}</p>
       <span className="w-fit font-sans text-[12px] font-medium text-corn-900 bg-corn-500/25 rounded px-1.5 py-0.5 mb-3">
-        Due {formatShortDate(slide.deadline)} — {label}
+        {opportunity.deadlineLabel}
       </span>
-      <p className="font-sans text-[0.8125rem] text-corn-800/75 leading-snug mb-auto">
-        {slide.location} · {slide.discipline} · {slide.organizer}
+      <p className="font-sans text-[0.8125rem] text-corn-800/75 leading-snug mb-auto line-clamp-3">
+        {opportunity.description}
       </p>
       <Button asChild variant="ghost" size="sm" className="w-fit mt-4 gap-1.5">
         <Link to="/auth?mode=signup">
-          Set a reminder
+          View opportunity
           <ArrowRight size={13} strokeWidth={2.5} />
         </Link>
       </Button>
@@ -202,9 +114,8 @@ function DeadlineSlide({ slide }: { slide: Extract<Slide, { kind: 'deadline' }> 
 }
 
 export function HeroCarousel() {
-  const { competitions } = useCompetitions()
   const [webinars, setWebinars] = React.useState<Webinar[]>([])
-  const [projects, setProjects] = React.useState<PublicProject[]>([])
+  const [opportunities, setOpportunities] = React.useState<Opportunity[]>([])
   const [index, setIndex] = React.useState(0)
   const [direction, setDirection] = React.useState(1)
   const [paused, setPaused] = React.useState(false)
@@ -213,28 +124,24 @@ export function HeroCarousel() {
 
   React.useEffect(() => {
     fetchPublicWebinars().then(setWebinars).catch(() => setWebinars([]))
-    fetchPublicProjects().then(setProjects).catch(() => setProjects([]))
+    fetchPublicOpportunities().then(setOpportunities).catch(() => setOpportunities([]))
   }, [])
 
   const slides: Slide[] = React.useMemo(() => {
     const webinarSlides: Slide[] = webinars.slice(0, 2).map((webinar) => ({ kind: 'webinar', webinar }))
-    const featureSlides: Slide[] = FEATURES.map((f) => ({ kind: 'feature', ...f }))
-    const projectSlides: Slide[] = projects.slice(0, 3).map((project) => ({ kind: 'project', project }))
-    const deadlineSlides: Slide[] = [...competitions]
-      .filter((c) => c.deadline.getTime() > Date.now())
-      .sort((a, b) => a.deadline.getTime() - b.deadline.getTime())
-      .slice(0, 2)
-      .map((c) => ({
-        kind: 'deadline',
-        id: c.id,
-        name: c.name,
-        discipline: c.discipline,
-        organizer: c.organizer,
-        location: c.location,
-        deadline: c.deadline,
-      }))
-    return [...webinarSlides, ...featureSlides, ...projectSlides, ...deadlineSlides]
-  }, [webinars, projects, competitions])
+    // Rolling programs (no deadlineDate) sort after dated ones but still
+    // show -- "no deadline" isn't the same as "not worth mentioning".
+    const opportunitySlides: Slide[] = [...opportunities]
+      .filter((o) => !o.deadlineDate || o.deadlineDate.getTime() > Date.now())
+      .sort((a, b) => {
+        if (!a.deadlineDate) return 1
+        if (!b.deadlineDate) return -1
+        return a.deadlineDate.getTime() - b.deadlineDate.getTime()
+      })
+      .slice(0, 3)
+      .map((opportunity) => ({ kind: 'opportunity', opportunity }))
+    return [...webinarSlides, ...opportunitySlides]
+  }, [webinars, opportunities])
 
   // Reset to a valid index whenever the slide set changes shape (e.g. data
   // finishes loading after the initial render) so we never point past the
@@ -288,16 +195,7 @@ export function HeroCarousel() {
   const slide = slides[index]
 
   function slideKey(s: Slide): string {
-    switch (s.kind) {
-      case 'webinar':
-        return `webinar-${s.webinar.id}`
-      case 'feature':
-        return `feature-${s.id}`
-      case 'project':
-        return `project-${s.project.id}`
-      case 'deadline':
-        return `deadline-${s.id}`
-    }
+    return s.kind === 'webinar' ? `webinar-${s.webinar.id}` : `opportunity-${s.opportunity.id}`
   }
 
   return (
@@ -323,10 +221,7 @@ export function HeroCarousel() {
             transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
             className="absolute inset-0 h-full bg-white border border-corn-900/10 rounded-lg shadow-[0_10px_28px_rgba(42,33,24,0.14)] p-6 flex flex-col"
           >
-            {slide.kind === 'webinar' && <WebinarSlide webinar={slide.webinar} />}
-            {slide.kind === 'feature' && <FeatureSlide id={slide.id} Icon={slide.Icon} title={slide.title} description={slide.description} />}
-            {slide.kind === 'project' && <ProjectSlide project={slide.project} />}
-            {slide.kind === 'deadline' && <DeadlineSlide slide={slide} />}
+            {slide.kind === 'webinar' ? <WebinarSlide webinar={slide.webinar} /> : <OpportunitySlide opportunity={slide.opportunity} />}
           </motion.div>
         </AnimatePresence>
       </div>

@@ -88,6 +88,16 @@ export async function fetchOpportunities(): Promise<Opportunity[]> {
   return ((data ?? []) as unknown as OpportunityRow[]).map(mapOpportunity)
 }
 
+// Signed-out read for the hero carousel on the public landing page (see
+// opp_select_public, 20260802073000_opportunities_anon_read.sql). Same
+// shape as fetchOpportunities -- nothing here is sensitive, this just runs
+// under the anon RLS policy instead of the authenticated one.
+export async function fetchPublicOpportunities(): Promise<Opportunity[]> {
+  const { data, error } = await supabase.from('opportunities').select('*').order('deadline', { ascending: true, nullsFirst: false })
+  if (error) throw error
+  return ((data ?? []) as unknown as OpportunityRow[]).map(mapOpportunity)
+}
+
 // null discipline means "open to all disciplines" — never render the raw
 // value directly (it would show as blank).
 export function opportunityDisciplineLabel(discipline: Discipline | null): string {
