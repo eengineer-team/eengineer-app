@@ -309,23 +309,23 @@ export function HeroCarousel() {
       ref={containerRef}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
-      className="w-full lg:w-[380px] xl:w-[420px] flex-shrink-0 bg-white/60 border border-corn-900/10 rounded-lg p-6 h-[300px] flex flex-col"
+      className="w-full lg:w-[380px] xl:w-[420px] flex-shrink-0 h-[300px] flex flex-col"
     >
-      {/* relative + absolute-inset children so the outgoing and incoming
-          slides can overlap and actually pass each other during the
-          transition, like flipping through a stack — mode="wait" (the
-          previous version) fully finished the exit before starting the
-          enter, which read as a fade-in-place, not a slide. */}
+      {/* The track just clips and positions — every visual "card" surface
+          (background, border, shadow, rounded corners, padding) lives on
+          the slide itself below, not here. That's what makes each slide
+          read as its own separate card sliding past, instead of content
+          reflowing inside one static frame. */}
       <div className="relative flex-1 min-h-0 overflow-hidden">
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={slideKey(slide)}
             custom={direction}
-            initial={{ y: direction > 0 ? '100%' : '-100%', opacity: 0.4 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: direction > 0 ? '-100%' : '100%', opacity: 0.4 }}
+            initial={{ y: direction > 0 ? '100%' : '-100%', opacity: 0, scale: 0.94 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: direction > 0 ? '-100%' : '100%', opacity: 0, scale: 0.94 }}
             transition={{ duration: 0.42, ease: [0.32, 0.72, 0, 1] }}
-            className="absolute inset-0 h-full"
+            className="absolute inset-0 h-full bg-white border border-corn-900/10 rounded-lg shadow-[0_10px_28px_rgba(42,33,24,0.14)] p-6 flex flex-col"
           >
             {slide.kind === 'webinar' && <WebinarSlide webinar={slide.webinar} />}
             {slide.kind === 'feature' && <FeatureSlide id={slide.id} Icon={slide.Icon} title={slide.title} description={slide.description} />}
