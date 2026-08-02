@@ -206,7 +206,10 @@ export function HeroCarousel() {
   const [webinars, setWebinars] = React.useState<Webinar[]>([])
   const [projects, setProjects] = React.useState<PublicProject[]>([])
   const [index, setIndex] = React.useState(0)
+  const [direction, setDirection] = React.useState(1)
   const [paused, setPaused] = React.useState(false)
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const wheelLockRef = React.useRef(false)
 
   React.useEffect(() => {
     fetchPublicWebinars().then(setWebinars).catch(() => setWebinars([]))
@@ -242,9 +245,48 @@ export function HeroCarousel() {
 
   React.useEffect(() => {
     if (paused || slides.length <= 1) return
-    const timer = setInterval(() => setIndex((i) => (i + 1) % slides.length), SLIDE_MS)
+    const timer = setInterval(() => {
+      setDirection(1)
+      setIndex((i) => (i + 1) % slides.length)
+    }, SLIDE_MS)
     return () => clearInterval(timer)
   }, [paused, slides.length, index])
+
+  // Wheel-driven navigation: scrolling over the card steps through slides
+  // with a vertical effect instead of scrolling the page — but only while
+  // there's another slide in that direction. At the first/last slide the
+  // listener does NOT preventDefault, so the wheel gesture falls through to
+  // the page underneath rather than trapping the user's scroll (the classic
+  // scroll-jacking complaint). Needs a real (non-passive) DOM listener,
+  // not React's onWheel prop -- React attaches wheel handlers passively by
+  // default, so e.preventDefault() inside one is unreliable.
+  React.useEffect(() => {
+    const el = containerRef.current
+    if (!el || slides.length <= 1) return
+
+    function onWheel(e: WheelEvent) {
+      const goingForward = e.deltaY > 0
+      const canGoForward = index < slides.length - 1
+      const canGoBackward = index > 0
+      if ((goingForward && !canGoForward) || (!goingForward && !canGoBackward)) return
+      if (Math.abs(e.deltaY) < 8) return // trackpad jitter
+
+      e.preventDefault()
+      if (wheelLockRef.current) return
+      wheelLockRef.current = true
+      setDirection(goingForward ? 1 : -1)
+      setIndex((i) => i + (goingForward ? 1 : -1))
+      // One wheel notch/gesture = one slide -- without this, a single
+      // trackpad swipe fires dozens of small deltaY events and blows
+      // through several slides at once.
+      setTimeout(() => {
+        wheelLockRef.current = false
+      }, 550)
+    }
+
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [index, slides.length])
 
   if (slides.length === 0) return null
   const slide = slides[index]
@@ -264,18 +306,20 @@ export function HeroCarousel() {
 
   return (
     <div
+      ref={containerRef}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       className="w-full lg:w-[380px] xl:w-[420px] flex-shrink-0 bg-white/60 border border-corn-900/10 rounded-lg p-6 h-[300px] flex flex-col"
     >
       <div className="flex-1 min-h-0 overflow-hidden">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={slideKey(slide)}
-            initial={{ opacity: 0, y: 6 }}
+            custom={direction}
+            initial={{ opacity: 0, y: direction > 0 ? 22 : -22 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.35 }}
+            exit={{ opacity: 0, y: direction > 0 ? -22 : 22 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
             className="h-full"
           >
             {slide.kind === 'webinar' && <WebinarSlide webinar={slide.webinar} />}
@@ -294,7 +338,10 @@ export function HeroCarousel() {
               role="tab"
               aria-selected={i === index}
               aria-label={`Slide ${i + 1} of ${slides.length}`}
-              onClick={() => setIndex(i)}
+              onClick={() => {
+                setDirection(i > index ? 1 : -1)
+                setIndex(i)
+              }}
               className={cn(
                 'h-1 rounded-full transition-all duration-200',
                 i === index ? 'w-5 bg-corn-900' : 'w-1.5 bg-corn-900/20 hover:bg-corn-900/35'
