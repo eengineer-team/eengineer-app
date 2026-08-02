@@ -115,23 +115,38 @@ function OpportunitySlide({ opportunity }: { opportunity: Opportunity }) {
   )
 }
 
+function formatRecTime(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60)
+  const s = totalSeconds % 60
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
 // Teaser slide -- founder ask (Telegram, 2026-08-02): "add like an upcoming
 // video contest, like just mention contest, blur the background, make pizik
 // lab x eengineer a little more obvious / but like people should not know
 // for sure." Deliberately vague: no dates, no submission details, nothing
 // that would need a migration or an admin-panel field to keep current.
 //
-// Leans into "trailer for something we won't confirm" rather than another
-// listing card -- dark spotlit surface (own bg on the wrapping card in
-// HeroCarousel below), a pulsing rec-dot instead of the usual discipline
-// dot, blurred/rotated Pizik Lab glow shapes standing in for "footage we're
-// not showing you yet". The Pizik Lab mark + eengineer wordmark lockup
-// (same leaning composition as TrustMark in LandingFeatures.tsx) is the one
-// sharp thing in the frame, sitting in its own white chip so it stays
-// legible against the dark card regardless of the mark's own colors.
+// Deliberately built as its own thing rather than a fourth flavor of
+// listing card: viewfinder corner brackets + a live-ticking REC counter
+// (starts at 00:00 each time this slide comes into view) play on "camera
+// pointed at something", a diagonal PREVIEW stamp reinforces "not the real
+// thing yet", and a scanline texture over the dark surface gives it a
+// filmstrip feel none of the other slides have. The Pizik Lab mark +
+// eengineer wordmark lockup (same leaning composition as TrustMark in
+// LandingFeatures.tsx) is still the one sharp, legible thing in the frame --
+// everything around it stays soft/unconfirmed on purpose.
 function TeaserSlide() {
+  const [seconds, setSeconds] = React.useState(0)
+  React.useEffect(() => {
+    const timer = setInterval(() => setSeconds((s) => s + 1), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
   return (
     <div className="relative flex flex-col h-full overflow-hidden">
+      {/* Decorative backdrop: blurred logo glow standing in for "footage we're
+          not showing you", a spotlight vignette, and a subtle scanline texture. */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <img
           src="/pizik-mark-transparent.png"
@@ -143,18 +158,35 @@ function TeaserSlide() {
           alt=""
           className="absolute -bottom-14 -left-10 w-32 h-32 object-contain blur-3xl opacity-20 -rotate-6 invert"
         />
-        {/* Faint spotlight vignette, like a stage light finding the logo lockup */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08),transparent_60%)]" />
+        <div className="absolute inset-0 opacity-[0.05] bg-[repeating-linear-gradient(180deg,#fff_0px,#fff_1px,transparent_1px,transparent_3px)]" />
       </div>
+
+      {/* Viewfinder corner brackets -- the one visual motif that's specific
+          to "camera pointed at something" rather than generic teaser chrome. */}
+      <div className="absolute inset-3 pointer-events-none" aria-hidden="true">
+        <span className="absolute top-0 left-0 w-3.5 h-3.5 border-t border-l border-white/25 rounded-tl-sm" />
+        <span className="absolute top-0 right-0 w-3.5 h-3.5 border-t border-r border-white/25 rounded-tr-sm" />
+        <span className="absolute bottom-0 left-0 w-3.5 h-3.5 border-b border-l border-white/25 rounded-bl-sm" />
+        <span className="absolute bottom-0 right-0 w-3.5 h-3.5 border-b border-r border-white/25 rounded-br-sm" />
+      </div>
+
+      {/* Diagonal "PREVIEW" stamp -- reinforces this isn't the real thing yet. */}
+      <span
+        aria-hidden="true"
+        className="absolute top-5 -right-7 w-28 rotate-45 text-center font-sans text-[9px] font-bold tracking-[0.2em] text-white/25 border-y border-white/15 py-0.5"
+      >
+        PREVIEW
+      </span>
 
       <div className="relative flex items-center gap-1.5 mb-4">
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500/60" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
         </span>
-        <LabelCaps theme="welcome" className="text-white/50">
-          Rolling soon
-        </LabelCaps>
+        <span className="font-mono text-[11px] tracking-[0.15em] text-white/45 tabular-nums">
+          REC {formatRecTime(seconds)}
+        </span>
       </div>
 
       <div className="relative flex items-center gap-2.5 mb-4">
