@@ -1,22 +1,19 @@
+<!-- No @font-face here on purpose (previous version loaded Syne from
+     fonts.gstatic.com) -- favicons render in a restricted context where
+     external requests are unreliable, so a remote font load either silently
+     fails (blank icon) or just never fires for non-browser consumers
+     entirely. Falls back through the system's own bold sans stack instead;
+     "ee" reads fine at favicon size regardless of exact typeface. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <defs>
-    <style>
-      @font-face {
-        font-family: 'Syne';
-        font-weight: 800;
-        src: url(https://fonts.gstatic.com/s/syne/v24/8vIS7w4qzmVxsWxjBZRjr0FKM_24vj6k.ttf) format('truetype');
-      }
-    </style>
-  </defs>
   <text
     x="32"
     y="35"
     text-anchor="middle"
     dominant-baseline="central"
-    font-family="Syne, Arial, sans-serif"
+    font-family="Arial, Helvetica, sans-serif"
     font-weight="800"
     font-size="38"
     letter-spacing="-2"
-    fill="#C79A3A"
+    fill="#8B6914"
   >ee</text>
 </svg>
