@@ -345,7 +345,17 @@ export function Messages() {
                       </div>
                     )}
                     <div
-                      className={`max-w-[85%] sm:max-w-[70%] rounded-lg overflow-hidden font-sans text-[0.8125rem] leading-snug ${
+                      className={`max-w-[85%] sm:max-w-[70%] rounded-lg font-sans text-[0.8125rem] leading-snug ${
+                        // overflow-hidden is only there to clip an edge-to-edge
+                        // image/video's corners to match rounded-lg -- applying it
+                        // unconditionally meant plain text got clipped too whenever
+                        // the browser's actual glyph rendering came out a hair wider
+                        // than the box's computed shrink-to-fit width (a font
+                        // sub-pixel rounding thing, not a wrapping/width bug) --
+                        // e.g. "sure" losing its last "e". Scope it to the two
+                        // attachment kinds that actually need corner-clipping.
+                        m.attachment?.kind === 'image' || m.attachment?.kind === 'video' ? 'overflow-hidden' : ''
+                      } ${
                         // bg-white/6 (no border) read as basically invisible on the
                         // dark background -- received messages had no visible bubble
                         // at all, just bare text. dark-surface2 is the same token
