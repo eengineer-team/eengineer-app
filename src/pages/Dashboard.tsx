@@ -49,7 +49,17 @@ export function Dashboard() {
     <div className="min-h-screen bg-dark-radial flex">
       <Sidebar open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* h-screen + overflow-y-auto (not just min-w-0) -- Sidebar already pins
+          itself to exactly one viewport height via its own h-screen; this
+          column needs the same real ceiling, not just min-h-screen's floor,
+          or nothing below it that relies on flex-shrink (Messages.tsx's
+          internal scrolling panes) has an actual size to shrink into. Without
+          it the whole column just grows forever with page content instead of
+          scrolling internally -- see Messages.tsx's conversation list, which
+          got pushed out of view once a thread grew past one screen. Other
+          pages that expect ordinary page-scroll are unaffected: this wrapper
+          scrolling internally reads identically to the old page-level scroll. */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
         <DashboardHeader name={displayName(user)} onMenuClick={() => setMobileNavOpen(true)} />
         <DashboardErrorBoundary>
           <Outlet />
