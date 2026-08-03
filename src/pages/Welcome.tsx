@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Wordmark } from '@/components/ui/wordmark'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { useCursorSpotlight } from '@/lib/use-cursor-spotlight'
+import { useDocumentMeta } from '@/lib/use-document-meta'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -34,6 +35,11 @@ export function Welcome() {
   // same grid is revealed in a soft radius under the pointer (desktop only,
   // respects reduced-motion). Ref goes on the hero <main> carrying .bg-graph-paper.
   const heroRef = useCursorSpotlight<HTMLElement>()
+
+  useDocumentMeta(
+    'eengineer — Where student builders find their people',
+    'eengineer is a community for student engineers and builders: showcase real projects, join webinars, find mentors, and discover scholarships, internships, and competitions.'
+  )
 
   return (
     <div className="min-h-screen bg-corn-100 flex flex-col">

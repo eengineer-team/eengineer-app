@@ -4,7 +4,54 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>eengineer-app</title>
+
+    <!-- Primary SEO. Per-page overrides (Welcome, Help, Terms, Privacy) are
+         set at runtime via useDocumentMeta (src/lib/use-document-meta.ts) --
+         these are the defaults every crawler that doesn't execute JS will
+         see, so they describe the site as a whole, not one page. -->
+    <title>eengineer — Where student builders find their people</title>
+    <meta name="description" content="eengineer is a community for student engineers and builders: showcase real projects, join webinars, find mentors, and discover scholarships, internships, and competitions." />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://eengineer.net/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="eengineer" />
+    <meta property="og:title" content="eengineer — Where student builders find their people" />
+    <meta property="og:description" content="Showcase real projects, join webinars, find mentors, and discover scholarships, internships, and competitions — built for student engineers." />
+    <meta property="og:url" content="https://eengineer.net/" />
+    <meta property="og:image" content="https://eengineer.net/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter/X card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="eengineer — Where student builders find their people" />
+    <meta name="twitter:description" content="Showcase real projects, join webinars, find mentors, and discover scholarships, internships, and competitions — built for student engineers." />
+    <meta name="twitter:image" content="https://eengineer.net/og-image.png" />
+
+    <!-- Structured data (Organization + WebSite) -- read directly out of the
+         static HTML by crawlers that don't execute JS, including AI/answer
+         engines (see llms.txt for the GEO-specific counterpart). -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "eengineer",
+        "url": "https://eengineer.net/",
+        "logo": "https://eengineer.net/og-image.png",
+        "description": "A community platform for student engineers and builders to showcase projects, attend webinars, find mentors, and discover opportunities."
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "eengineer",
+        "url": "https://eengineer.net/"
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

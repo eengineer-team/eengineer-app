@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowUpRight } from 'lucide-react'
 import { SettingsMenu } from '@/components/SettingsMenu'
 import { Wordmark } from '@/components/ui/wordmark'
 import { LabelCaps } from '@/components/ui/label-caps'
+import { useDocumentMeta } from '@/lib/use-document-meta'
 import {
   Accordion,
   AccordionItem,
@@ -49,6 +50,11 @@ const fadeUp = {
 const CONTACT_EMAIL = 'bshoxrux48@gmail.com'
 
 export function Help() {
+  useDocumentMeta(
+    'Help & FAQ — eengineer',
+    'Answers to common questions about eengineer: what it is, who it’s for, and how sign-in and verification work.'
+  )
+
   return (
     <div className="min-h-screen bg-corn-100 flex flex-col">
 

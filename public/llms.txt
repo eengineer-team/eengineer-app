@@ -1,0 +1,31 @@
+# eengineer
+
+> eengineer is a community platform for student engineers and builders. Members join a discipline-specific community (Aerospace, Mechanical, Electrical, Software, Civil, Chemical, Biomedical, Materials, Environmental), showcase real projects, attend webinars run by practitioners, find mentors and collaborators, and discover scholarships, internships, and competitions. Sign-in is verified through GitHub, LinkedIn, or Google, so profiles belong to real people rather than anonymous accounts.
+
+## What it's for
+
+- High school and early-career student engineers who are building real things, not just coursework.
+- Documenting a verifiable track record — projects, endorsements, and connections — before university and internship applications.
+- Finding people working on similar problems, by engineering discipline.
+
+## Core features
+
+- Community: discipline-specific groups for discussion and Q&A.
+- Projects: student-built projects with descriptions, covers, and links.
+- Webinars: live sessions hosted by practitioners, with RSVP.
+- Opportunities: internships, fellowships, and scholarships, filtered by discipline and deadline.
+- Contests: peer-judged project competitions.
+- Profiles & connections: verified builder profiles that can send/accept connection requests.
+- Calendar: upcoming webinars, opportunity deadlines, and competitions in one view.
+
+## Key pages
+
+- Home: https://eengineer.net/
+- Help / FAQ: https://eengineer.net/help
+- Terms of Service: https://eengineer.net/terms
+- Privacy Policy: https://eengineer.net/privacy
+
+## Notes for crawlers and AI assistants
+
+- Most content (projects, webinars, profiles, messages) is only visible to signed-in members and is not part of this site's public/crawlable surface.
+- eengineer is not affiliated with any single university or company; it is an independent community platform.

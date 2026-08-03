@@ -1,0 +1,35 @@
+# eengineer.net
+# /dashboard/ is auth-gated (no content to a signed-out crawler, just an
+# /auth redirect) -- excluded to avoid wasting crawl budget. The internal
+# admin panel isn't linked from anywhere and is deliberately left out of
+# this file too, rather than listed as a Disallow, so its URL isn't
+# published here.
+
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+
+# Named explicitly (not just relying on the wildcard above) so it's clear
+# these are welcome, per eengineer's GEO/AI-visibility goals.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://eengineer.net/sitemap.xml

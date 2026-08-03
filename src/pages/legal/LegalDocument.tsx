@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import { SettingsMenu } from '@/components/SettingsMenu'
 import { Wordmark } from '@/components/ui/wordmark'
 import { LabelCaps } from '@/components/ui/label-caps'
+import { useDocumentMeta } from '@/lib/use-document-meta'
 
 export function LegalDocument({
   title,
@@ -14,6 +15,8 @@ export function LegalDocument({
   lastUpdated: string
   children: ReactNode
 }) {
+  useDocumentMeta(`${title} — eengineer`, `eengineer's ${title.toLowerCase()}, last updated ${lastUpdated}.`)
+
   return (
     <div className="min-h-screen bg-corn-100 flex flex-col">
       <header className="flex items-center justify-between px-10 pt-8">
