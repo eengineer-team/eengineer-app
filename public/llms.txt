@@ -20,10 +20,10 @@
 
 ## Key pages
 
-- Home: https://eengineer.net/
-- Help / FAQ: https://eengineer.net/help
-- Terms of Service: https://eengineer.net/terms
-- Privacy Policy: https://eengineer.net/privacy
+- Home: https://www.eengineer.net/
+- Help / FAQ: https://www.eengineer.net/help
+- Terms of Service: https://www.eengineer.net/terms
+- Privacy Policy: https://www.eengineer.net/privacy
 
 ## Notes for crawlers and AI assistants
 
