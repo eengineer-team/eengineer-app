@@ -345,23 +345,9 @@ export function Messages() {
                       </div>
                     )}
                     <div
-                      className={`max-w-[85%] sm:max-w-[70%] rounded-lg font-sans text-[0.8125rem] leading-snug ${
-                        // overflow-hidden is only there to clip an edge-to-edge
-                        // image/video's corners to match rounded-lg -- applying it
-                        // unconditionally meant plain text got clipped too whenever
-                        // the browser's actual glyph rendering came out a hair wider
-                        // than the box's computed shrink-to-fit width (a font
-                        // sub-pixel rounding thing, not a wrapping/width bug) --
-                        // e.g. "sure" losing its last "e". Scope it to the two
-                        // attachment kinds that actually need corner-clipping.
+                      className={`max-w-[85%] sm:max-w-[70%] rounded-lg font-sans text-[0.8125rem] leading-snug break-words ${
                         m.attachment?.kind === 'image' || m.attachment?.kind === 'video' ? 'overflow-hidden' : ''
                       } ${
-                        // bg-white/6 (no border) read as basically invisible on the
-                        // dark background -- received messages had no visible bubble
-                        // at all, just bare text. dark-surface2 is the same token
-                        // TeamAbout/comment-thread surfaces already use for "a card
-                        // nested on a dark background", so this now actually reads
-                        // as a bubble instead of floating text.
                         isMine ? 'bg-gold-dark/15 border border-gold-dark/25 text-dark-text' : 'bg-dark-surface2 border border-white/8 text-white/85'
                       } ${m.attachment && m.attachment.kind !== 'link' ? '' : 'px-3.5 py-2.5'}`}
                     >
@@ -393,9 +379,9 @@ export function Messages() {
                         </a>
                       )}
                       {m.text && (m.attachment ? m.attachment.kind !== 'link' : true) && (
-                        <p className={m.attachment ? 'px-3.5 py-2 pt-2' : ''}>{m.text}</p>
+                        <p className={`whitespace-pre-wrap ${m.attachment ? 'px-3.5 py-2 pt-2' : ''}`}>{m.text}</p>
                       )}
-                    </div>
+                    </div> 
                   </div>
                   <span className="font-sans text-[12px] text-dark-muted mt-1">{formatMessageTime(m.createdAt)}</span>
                 </div>
