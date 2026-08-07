@@ -345,7 +345,7 @@ export function Messages() {
                       </div>
                     )}
                     <div
-                      className={`max-w-[85%] sm:max-w-[70%] rounded-lg font-sans text-[0.8125rem] leading-snug break-words ${
+                      className={`w-fit max-w-[85%] sm:max-w-[70%] rounded-lg font-sans text-[0.8125rem] leading-snug ${
                         m.attachment?.kind === 'image' || m.attachment?.kind === 'video' ? 'overflow-hidden' : ''
                       } ${
                         isMine ? 'bg-gold-dark/15 border border-gold-dark/25 text-dark-text' : 'bg-dark-surface2 border border-white/8 text-white/85'
@@ -379,9 +379,9 @@ export function Messages() {
                         </a>
                       )}
                       {m.text && (m.attachment ? m.attachment.kind !== 'link' : true) && (
-                        <p className={`whitespace-pre-wrap ${m.attachment ? 'px-3.5 py-2 pt-2' : ''}`}>{m.text}</p>
+                        <p className={`whitespace-pre-wrap break-words ${m.attachment ? 'px-3.5 py-2 pt-2' : ''}`}>{m.text}</p>
                       )}
-                    </div> 
+                    </div>
                   </div>
                   <span className="font-sans text-[12px] text-dark-muted mt-1">{formatMessageTime(m.createdAt)}</span>
                 </div>
