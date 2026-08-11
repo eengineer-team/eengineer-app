@@ -168,7 +168,7 @@ export async function commentQuestion(uid: string, questionId: string, text: str
 export async function fetchJoinedClubs(uid: string): Promise<JoinedClub[]> {
   const { data, error } = await supabase.from('club_memberships').select('discipline').eq('profile_id', uid)
   if (error) throw error
-  return (data ?? []).map((r) => ({ name: r.discipline }))
+  return (data ?? []).map((r) => ({ name: r.discipline as Discipline }))
 }
 
 export async function joinClub(uid: string, discipline: Discipline): Promise<void> {

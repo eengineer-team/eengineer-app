@@ -15,14 +15,8 @@ export interface CommunityGroupMeta {
 const DESCRIPTIONS: Record<Discipline, string> = {
   Aerospace: 'Propulsion, aerodynamics, and flight control for student rockets and drones.',
   Mechanical: 'CAD, FEA, and mechanism design for competition robots and machines.',
-  Electrical: 'Circuit design, power electronics, and sensor systems.',
   Software: 'Firmware, dashboards, and the code that ties builds together.',
-  Civil: 'Structures, transportation, and infrastructure design.',
-  Chemical: 'Process design, materials synthesis, and reaction engineering.',
-  Biomedical: 'Medical devices, prosthetics, and biomechanics projects.',
-  Materials: 'Composites, additive manufacturing materials, and failure analysis.',
   Environmental: 'Water systems, sustainability, and environmental impact engineering.',
-  Other: 'Anything engineering that doesn’t fit a single discipline above.',
 }
 
 export const COMMUNITY_GROUPS: CommunityGroupMeta[] = DISCIPLINES.map((discipline) => ({

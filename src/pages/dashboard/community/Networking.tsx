@@ -57,7 +57,7 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
     // Preserves the existing intro's discipline on edit (same as the old
     // mock: only a brand-new intro takes the current group's discipline).
     const existing = intros.find((i) => i.authorId === 'me')
-    const targetDiscipline = existing?.discipline ?? discipline ?? 'Other'
+    const targetDiscipline = existing?.discipline ?? discipline ?? 'Software'
 
     setDraft('')
     setPendingAttachment(null)

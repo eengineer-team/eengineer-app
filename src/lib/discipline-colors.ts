@@ -10,12 +10,7 @@
 const DISCIPLINE_KEYS = [
   'aerospace',
   'mechanical',
-  'electrical',
   'software',
-  'civil',
-  'chemical',
-  'biomedical',
-  'materials',
   'environmental',
 ] as const
 

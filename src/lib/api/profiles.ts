@@ -307,7 +307,7 @@ export async function fetchIncomingRequests(uid: string): Promise<ConnectionRequ
       requesterId: r.requester_id,
       requesterName: requester?.display_name ?? 'A Builder',
       requesterAvatarUrl: requester?.avatar_url ?? undefined,
-      requesterDiscipline: requester?.discipline ?? 'Other',
+      requesterDiscipline: requester?.discipline ?? 'Software',
       createdAt: r.created_at,
     }
   })

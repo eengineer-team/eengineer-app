@@ -10,7 +10,7 @@ export default {
   // as literal strings in source — safelist keeps them from being purged.
   safelist: [
     {
-      pattern: /^(bg|border|text)-discipline-(aerospace|mechanical|electrical|software|civil|chemical|biomedical|materials|environmental|other)$/,
+      pattern: /^(bg|border|text)-discipline-(aerospace|mechanical|software|environmental|other)$/,
     },
   ],
   theme: {
@@ -59,12 +59,7 @@ export default {
         discipline: {
           aerospace: '#6E8FB0',
           mechanical: '#B08A6E',
-          electrical: '#B0A06E',
           software: '#7EA88C',
-          civil: '#9A8FB0',
-          chemical: '#B07E8C',
-          biomedical: '#6EB0A4',
-          materials: '#8C8C9A',
           environmental: '#7FB06E',
           other: '#9A9488',
         },

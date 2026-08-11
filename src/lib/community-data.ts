@@ -3,14 +3,8 @@ import type { Attachment } from '@/lib/attachments'
 export const DISCIPLINES = [
   'Aerospace',
   'Mechanical',
-  'Electrical',
   'Software',
-  'Civil',
-  'Chemical',
-  'Biomedical',
-  'Materials',
   'Environmental',
-  'Other',
 ] as const
 export type Discipline = (typeof DISCIPLINES)[number]
 

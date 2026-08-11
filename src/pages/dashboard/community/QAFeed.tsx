@@ -198,7 +198,7 @@ export function QAFeed({ readOnly = false, discipline }: { readOnly?: boolean; d
 
     setDraft('')
     setDuplicate(null)
-    api.postQuestion(uid, discipline ?? 'Other', text).catch((err: unknown) => {
+    api.postQuestion(uid, discipline ?? 'Software', text).catch((err: unknown) => {
       console.error('Post failed', err)
       // Put the draft back rather than silently eating what they typed.
       setDraft(text)

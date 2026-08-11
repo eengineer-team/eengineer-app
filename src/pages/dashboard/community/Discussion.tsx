@@ -55,7 +55,7 @@ export function Discussion({ discipline }: { discipline?: Discipline } = {}) {
     setDraft('')
     setPendingAttachment(null)
     api
-      .postDiscussionPost(uid, discipline ?? 'Other', text, pendingAttachment ?? undefined)
+      .postDiscussionPost(uid, discipline ?? 'Software', text, pendingAttachment ?? undefined)
       .then(refresh)
       .catch((err) => {
         console.error('Post failed', err)
