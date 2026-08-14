@@ -3,6 +3,7 @@ import { ThumbsUp, ThumbsDown, Flag, MessageCircle, Trash2 } from 'lucide-react'
 import type { Question } from '@/lib/community-data'
 import { Avatar } from '@/components/ui/avatar'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 
 // Chat-message styling (per founder feedback: "make it like a telegram
 // groupchat") instead of isolated Q&A cards — same underlying model (vote /
@@ -44,11 +45,15 @@ export function QuestionCard({
       <Avatar name={question.author} size="sm" theme="dashboard" className="flex-shrink-0 mt-0.5" />
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-baseline gap-2 mb-0.5">
+        {/* items-center, not items-baseline: the badge is a graphic with no
+            text baseline of its own, so baseline alignment drops it a pixel
+            below the name it belongs to. */}
+        <div className="flex items-center gap-1.5 mb-0.5">
           <span className="font-sans text-[0.8125rem] font-semibold text-dark-text">
             {question.author}
           </span>
-          <span className="font-sans text-[13px] text-dark-muted">{question.time}</span>
+          {question.verified && <VerifiedBadge provider={question.verifiedVia} />}
+          <span className="font-sans text-[13px] text-dark-muted ml-0.5">{question.time}</span>
         </div>
 
         {/* Message bubble */}
@@ -135,9 +140,10 @@ export function QuestionCard({
               <div key={c.id} className="flex gap-2">
                 <Avatar name={c.author} size="sm" theme="dashboard" className="flex-shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline gap-2">
+                  <div className="flex items-center gap-1.5">
                     <span className="font-sans text-[0.75rem] font-medium text-white/80">{c.author}</span>
-                    {c.time && <span className="font-sans text-[12px] text-dark-muted">{c.time}</span>}
+                    {c.verified && <VerifiedBadge provider={c.verifiedVia} />}
+                    {c.time && <span className="font-sans text-[12px] text-dark-muted ml-0.5">{c.time}</span>}
                   </div>
                   <div className="flex items-start gap-1.5">
                     <div className="inline-block bg-white/6 rounded-lg rounded-tl-sm px-3 py-1.5 mt-0.5">

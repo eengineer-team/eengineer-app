@@ -90,10 +90,18 @@ export function Onboarding() {
     !isUnderMinimumAge &&
     (!isMinor || (guardianConsentChecked && guardianEmail.trim() !== ''))
 
-  // Only a freshly-signed-in Builder should land here — anyone else (no
-  // session, or a stateless Google preview) has no ME profile to write into.
+  // Only a signed-in member should land here — anyone else has no ME profile
+  // to write into.
   if (loading) return <AppLoader />
   if (!user || user.status !== 'builder') return <Navigate to="/auth" replace />
+
+  // Google members arrive with a profile already populated from their Google
+  // account (name + photo, filled by app.ensure_member_profile), so asking them
+  // to type it again would be busywork. The date of birth is the one thing no
+  // provider can tell us, and it is the one thing that legally must be asked:
+  // under 13 is refused outright, 13–17 needs a guardian's email. So for them
+  // this page collapses to exactly that question.
+  const compact = user.provider === 'google'
 
   function addInterest() {
     const trimmed = interestInput.trim()
@@ -157,12 +165,12 @@ export function Onboarding() {
           Welcome, Builder
         </LabelCaps>
         <h1 className="font-display font-bold text-[#2A2118] text-[clamp(1.75rem,3.2vw,2.25rem)] leading-[1.1] tracking-[-0.02em] mb-2">
-          Set up your profile
+          {compact ? 'One thing before you start' : 'Set up your profile'}
         </h1>
         <p className="font-sans text-[0.875rem] leading-[1.6] text-corn-800 mb-8">
-          Takes about a minute. Everything below is optional and can be changed later from your
-          profile page, except your date of birth (required, once, right now) — skip the rest if
-          you'd rather jump straight in.
+          {compact
+            ? "We've brought your name and photo across from Google, so your profile is already set up — you can change any of it later from Settings. We just need your date of birth first."
+            : 'Takes about a minute. Everything below is optional and can be changed later from your profile page, except your date of birth (required, once, right now) — skip the rest if you\'d rather jump straight in.'}
         </p>
 
         <div className="flex flex-col gap-7">
@@ -224,165 +232,172 @@ export function Onboarding() {
             )}
           </div>
 
-          {/* Name */}
-          <div>
-            <LabelCaps theme="welcome" className="block mb-2.5">Name</LabelCaps>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
-              className={inputClass}
-            />
-          </div>
-
-          {/* Photo */}
-          <div>
-            <LabelCaps theme="welcome" className="block mb-2.5">Photo</LabelCaps>
-            <div className="flex items-center gap-4">
-              <Avatar name={name || 'Builder'} src={avatarPreview} theme="welcome" size="lg" />
-              <label className="inline-flex items-center gap-2 cursor-pointer font-sans text-[0.8125rem] font-medium text-corn-900 border border-corn-900/20 rounded px-3.5 py-2 hover:bg-corn-900/5 transition-colors">
-                <Camera size={14} strokeWidth={1.8} />
-                {avatarPreview ? 'Change photo' : 'Upload photo'}
-                <input type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
-              </label>
+          {/* Everything below is profile detail Google already gave us, or
+              that Settings covers just as well. Hidden in compact mode so the
+              only question on screen is the one we actually have to ask. */}
+          {!compact && (
+            <>
+            {/* Name */}
+            <div>
+              <LabelCaps theme="welcome" className="block mb-2.5">Name</LabelCaps>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                className={inputClass}
+              />
             </div>
-          </div>
 
-          {/* Discipline */}
-          <div>
-            <LabelCaps theme="welcome" className="block mb-2.5">Discipline</LabelCaps>
-            <div className="flex flex-wrap gap-1.5">
-              {DISCIPLINES.map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  onClick={() => setDisciplineDraft(d)}
-                  className={cn(
-                    'font-sans text-[0.8125rem] rounded-sm px-3 py-1.5 border transition-colors duration-150',
-                    discipline === d
-                      ? 'bg-corn-900 border-corn-900 text-corn-100'
-                      : 'border-corn-900/20 text-corn-900/70 hover:border-corn-900/40 hover:text-corn-900'
-                  )}
-                >
-                  {d}
-                </button>
-              ))}
+            {/* Photo */}
+            <div>
+              <LabelCaps theme="welcome" className="block mb-2.5">Photo</LabelCaps>
+              <div className="flex items-center gap-4">
+                <Avatar name={name || 'Builder'} src={avatarPreview} theme="welcome" size="lg" />
+                <label className="inline-flex items-center gap-2 cursor-pointer font-sans text-[0.8125rem] font-medium text-corn-900 border border-corn-900/20 rounded px-3.5 py-2 hover:bg-corn-900/5 transition-colors">
+                  <Camera size={14} strokeWidth={1.8} />
+                  {avatarPreview ? 'Change photo' : 'Upload photo'}
+                  <input type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
+                </label>
+              </div>
             </div>
-          </div>
 
-          {/* Bio */}
-          <div>
-            <LabelCaps theme="welcome" className="block mb-2.5">About you</LabelCaps>
-            <textarea
-              value={bio}
-              onChange={(e) => setBioDraft(e.target.value)}
-              rows={3}
-              placeholder="What are you building, and what are you into?"
-              className={cn(inputClass, 'resize-none')}
-            />
-          </div>
-
-          {/* Interests */}
-          <div>
-            <LabelCaps theme="welcome" className="block mb-2.5">Interests</LabelCaps>
-            {interests.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-2.5">
-                {interests.map((i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center gap-1.5 rounded px-2.5 py-1 bg-corn-900/6 border border-corn-900/15 font-sans text-[0.75rem] text-corn-900"
+            {/* Discipline */}
+            <div>
+              <LabelCaps theme="welcome" className="block mb-2.5">Discipline</LabelCaps>
+              <div className="flex flex-wrap gap-1.5">
+                {DISCIPLINES.map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setDisciplineDraft(d)}
+                    className={cn(
+                      'font-sans text-[0.8125rem] rounded-sm px-3 py-1.5 border transition-colors duration-150',
+                      discipline === d
+                        ? 'bg-corn-900 border-corn-900 text-corn-100'
+                        : 'border-corn-900/20 text-corn-900/70 hover:border-corn-900/40 hover:text-corn-900'
+                    )}
                   >
-                    {i}
-                    <button
-                      type="button"
-                      onClick={() => removeInterest(i)}
-                      aria-label={`Remove ${i}`}
-                      className="min-w-[40px] min-h-[40px] -my-2.5 -mr-2 flex items-center justify-center"
-                    >
-                      <X size={11} strokeWidth={2} className="text-corn-800/60 hover:text-corn-900" />
-                    </button>
-                  </span>
+                    {d}
+                  </button>
                 ))}
               </div>
-            )}
-            <div className="flex gap-2">
-              <input
-                value={interestInput}
-                onChange={(e) => setInterestInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    addInterest()
-                  }
-                }}
-                placeholder="e.g. Rocketry, robotics, PCB design…"
-                className={inputClass}
-              />
-              <Button type="button" variant="ghost" size="sm" onClick={addInterest} disabled={!interestInput.trim()}>
-                Add
-              </Button>
             </div>
-          </div>
 
-          {/* Experience — single optional entry, more can be added later from the profile page */}
-          <div>
-            <LabelCaps theme="welcome" className="block mb-2.5">Experience (optional)</LabelCaps>
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-2">
-                <input
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  placeholder="Role — e.g. Propulsion Intern"
-                  className={inputClass}
-                />
-                <input
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  placeholder="When"
-                  className={cn(inputClass, 'w-32 flex-shrink-0')}
-                />
-              </div>
-              <input
-                value={organization}
-                onChange={(e) => setOrganization(e.target.value)}
-                placeholder="Organization"
-                className={inputClass}
-              />
+            {/* Bio */}
+            <div>
+              <LabelCaps theme="welcome" className="block mb-2.5">About you</LabelCaps>
               <textarea
-                value={expDescription}
-                onChange={(e) => setExpDescription(e.target.value)}
-                rows={2}
-                placeholder="What did you do?"
+                value={bio}
+                onChange={(e) => setBioDraft(e.target.value)}
+                rows={3}
+                placeholder="What are you building, and what are you into?"
                 className={cn(inputClass, 'resize-none')}
               />
             </div>
-          </div>
 
-          {/* Open to work */}
-          <label className="flex items-center gap-1 cursor-pointer select-none">
-            <button
-              type="button"
-              role="switch"
-              aria-checked={openToWork}
-              onClick={() => setOpenToWorkDraft((v) => !v)}
-              className="min-w-[40px] min-h-[40px] flex items-center justify-center flex-shrink-0"
-            >
-              <span
-                className={cn(
-                  'relative w-10 h-[22px] rounded-full transition-colors duration-150',
-                  openToWork ? 'bg-corn-700' : 'bg-corn-900/15'
-                )}
+            {/* Interests */}
+            <div>
+              <LabelCaps theme="welcome" className="block mb-2.5">Interests</LabelCaps>
+              {interests.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2.5">
+                  {interests.map((i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center gap-1.5 rounded px-2.5 py-1 bg-corn-900/6 border border-corn-900/15 font-sans text-[0.75rem] text-corn-900"
+                    >
+                      {i}
+                      <button
+                        type="button"
+                        onClick={() => removeInterest(i)}
+                        aria-label={`Remove ${i}`}
+                        className="min-w-[40px] min-h-[40px] -my-2.5 -mr-2 flex items-center justify-center"
+                      >
+                        <X size={11} strokeWidth={2} className="text-corn-800/60 hover:text-corn-900" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-2">
+                <input
+                  value={interestInput}
+                  onChange={(e) => setInterestInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      addInterest()
+                    }
+                  }}
+                  placeholder="e.g. Rocketry, robotics, PCB design…"
+                  className={inputClass}
+                />
+                <Button type="button" variant="ghost" size="sm" onClick={addInterest} disabled={!interestInput.trim()}>
+                  Add
+                </Button>
+              </div>
+            </div>
+
+            {/* Experience — single optional entry, more can be added later from the profile page */}
+            <div>
+              <LabelCaps theme="welcome" className="block mb-2.5">Experience (optional)</LabelCaps>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <input
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    placeholder="Role — e.g. Propulsion Intern"
+                    className={inputClass}
+                  />
+                  <input
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    placeholder="When"
+                    className={cn(inputClass, 'w-32 flex-shrink-0')}
+                  />
+                </div>
+                <input
+                  value={organization}
+                  onChange={(e) => setOrganization(e.target.value)}
+                  placeholder="Organization"
+                  className={inputClass}
+                />
+                <textarea
+                  value={expDescription}
+                  onChange={(e) => setExpDescription(e.target.value)}
+                  rows={2}
+                  placeholder="What did you do?"
+                  className={cn(inputClass, 'resize-none')}
+                />
+              </div>
+            </div>
+
+            {/* Open to work */}
+            <label className="flex items-center gap-1 cursor-pointer select-none">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={openToWork}
+                onClick={() => setOpenToWorkDraft((v) => !v)}
+                className="min-w-[40px] min-h-[40px] flex items-center justify-center flex-shrink-0"
               >
                 <span
                   className={cn(
-                    'absolute top-[3px] left-[3px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-150',
-                    openToWork ? 'translate-x-[18px]' : 'translate-x-0'
+                    'relative w-10 h-[22px] rounded-full transition-colors duration-150',
+                    openToWork ? 'bg-corn-700' : 'bg-corn-900/15'
                   )}
-                />
-              </span>
-            </button>
-            <span className="font-sans text-[0.875rem] text-[#2A2118]">Open to work / internships</span>
-          </label>
+                >
+                  <span
+                    className={cn(
+                      'absolute top-[3px] left-[3px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-150',
+                      openToWork ? 'translate-x-[18px]' : 'translate-x-0'
+                    )}
+                  />
+                </span>
+              </button>
+              <span className="font-sans text-[0.875rem] text-[#2A2118]">Open to work / internships</span>
+            </label>
+            </>
+          )}
         </div>
 
         {!canProceed && (
@@ -397,27 +412,41 @@ export function Onboarding() {
           <Button
             variant="primary"
             size="lg"
-            onClick={finish}
+            // In compact mode `finish` must not run: it would write the
+            // discipline picker's default ("Aerospace") onto someone who was
+            // never shown the picker. Record the age gate and nothing else.
+            onClick={
+              compact
+                ? () => {
+                    if (!canProceed) return
+                    recordAgeGate()
+                    navigate('/dashboard')
+                  }
+                : finish
+            }
             disabled={!canProceed}
             className="gap-2 font-sans text-[0.8125rem] font-semibold tracking-[0.05em] uppercase"
           >
-            Save and continue
+            {compact ? 'Continue' : 'Save and continue'}
             <ArrowRight size={13} strokeWidth={2.5} />
           </Button>
-          <Button
-            variant="ghost"
-            size="lg"
-            disabled={!canProceed}
-            onClick={() => {
-              if (!canProceed) return
-              recordAgeGate()
-              if (name.trim()) updateName(name.trim())
-              navigate('/dashboard')
-            }}
-            className="font-sans text-[0.8125rem] font-semibold tracking-[0.05em] uppercase"
-          >
-            Skip for now
-          </Button>
+          {/* Nothing to skip when the age gate is the whole page. */}
+          {!compact && (
+            <Button
+              variant="ghost"
+              size="lg"
+              disabled={!canProceed}
+              onClick={() => {
+                if (!canProceed) return
+                recordAgeGate()
+                if (name.trim()) updateName(name.trim())
+                navigate('/dashboard')
+              }}
+              className="font-sans text-[0.8125rem] font-semibold tracking-[0.05em] uppercase"
+            >
+              Skip for now
+            </Button>
+          )}
         </div>
       </div>
     </div>

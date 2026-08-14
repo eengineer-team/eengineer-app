@@ -9,6 +9,7 @@ import {
   type ReputationTier,
 } from '@/lib/profile-data'
 import type { Discipline } from '@/lib/community-data'
+import { verifiedProviderFrom, type VerifiedProvider } from '@/lib/verification'
 
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
 
@@ -19,7 +20,7 @@ type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
 
 const PROFILE_SELECT = `
   id, display_name, discipline, bio, background_id, avatar_url, github_url, linkedin_url,
-  open_to_work, interests, online, allow_dms, background_image_url,
+  open_to_work, interests, online, allow_dms, background_image_url, verified, oauth_provider,
   skills ( name, proficiency ),
   experiences ( id, role, organization, duration, description ),
   profile_project_entries ( id, title, year, description, image, video, skill_names ),
@@ -40,6 +41,8 @@ type ProfileRow = {
   online: boolean
   allow_dms: boolean
   background_image_url: string | null
+  verified: boolean
+  oauth_provider: string | null
   skills: { name: string; proficiency: number }[]
   experiences: ExperienceEntry[]
   profile_project_entries: { id: string; title: string; year: number | null; description: string; image: string | null; video: string | null; skill_names: string[] }[]
@@ -72,6 +75,19 @@ export async function fetchProfiles(): Promise<BuilderProfile[]> {
   const profileRows = (rows ?? []) as unknown as ProfileRow[]
 
   const nameById = new Map(profileRows.map((r) => [r.id, r.display_name]))
+  // Endorsers are already in `profileRows` (the endorsement only stores an id),
+  // so their badge costs nothing extra — no second query, same rows the names
+  // are resolved from. An endorsement from an unverified stranger and one from
+  // a verified engineer should not look identical.
+  const trustById = new Map(
+    profileRows.map((r) => [
+      r.id,
+      {
+        verified: r.verified,
+        verifiedVia: r.verified ? verifiedProviderFrom(r.oauth_provider) : undefined,
+      },
+    ]),
+  )
   const repById = new Map(
     ((repRows ?? []) as { profile_id: string; points: number; tier: string }[]).map((r) => [
       r.profile_id,
@@ -133,6 +149,8 @@ export async function fetchProfiles(): Promise<BuilderProfile[]> {
       endorsements: row.endorsements.map((e) => ({
         id: e.id,
         fromName: nameById.get(e.from_id) ?? 'A Builder',
+        fromVerified: trustById.get(e.from_id)?.verified ?? false,
+        fromVerifiedVia: trustById.get(e.from_id)?.verifiedVia,
         targetType: e.target_type,
         targetName: e.target_name,
         reason: e.reason,
@@ -140,6 +158,11 @@ export async function fetchProfiles(): Promise<BuilderProfile[]> {
       })),
       githubUrl: row.github_url ?? undefined,
       linkedinUrl: row.linkedin_url ?? undefined,
+      // profiles.verified is DB-owned (see the migration + app.profiles_guard):
+      // read straight through, never recomputed from the URLs above, which a
+      // member types in themselves and which therefore prove nothing.
+      verified: row.verified,
+      verifiedVia: row.verified ? verifiedProviderFrom(row.oauth_provider) : undefined,
       mutuals,
       connectStatus,
       openToWork: row.open_to_work,
@@ -284,6 +307,8 @@ export interface ConnectionRequest {
   requesterName: string
   requesterAvatarUrl: string | undefined
   requesterDiscipline: Discipline
+  requesterVerified: boolean
+  requesterVerifiedVia: VerifiedProvider | undefined
   createdAt: string
 }
 
@@ -295,19 +320,33 @@ export interface ConnectionRequest {
 export async function fetchIncomingRequests(uid: string): Promise<ConnectionRequest[]> {
   const { data, error } = await supabase
     .from('connections')
-    .select('id, created_at, requester_id, profiles!connections_requester_id_fkey ( display_name, avatar_url, discipline )')
+    .select(
+      'id, created_at, requester_id, profiles!connections_requester_id_fkey ( display_name, avatar_url, discipline, verified, oauth_provider )',
+    )
     .eq('addressee_id', uid)
     .eq('status', 'requested')
     .order('created_at', { ascending: false })
   if (error) throw error
   return (data ?? []).map((r) => {
-    const requester = r.profiles as unknown as { display_name: string; avatar_url: string | null; discipline: Discipline } | null
+    const requester = r.profiles as unknown as {
+      display_name: string
+      avatar_url: string | null
+      discipline: Discipline
+      verified: boolean
+      oauth_provider: string | null
+    } | null
     return {
       id: r.id,
       requesterId: r.requester_id,
       requesterName: requester?.display_name ?? 'A Builder',
       requesterAvatarUrl: requester?.avatar_url ?? undefined,
       requesterDiscipline: requester?.discipline ?? 'Software',
+      // A connection request is exactly the moment the badge matters most —
+      // it's the one screen where you decide whether to trust a stranger.
+      requesterVerified: requester?.verified ?? false,
+      requesterVerifiedVia: requester?.verified
+        ? verifiedProviderFrom(requester.oauth_provider)
+        : undefined,
       createdAt: r.created_at,
     }
   })

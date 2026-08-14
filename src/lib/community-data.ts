@@ -1,4 +1,15 @@
 import type { Attachment } from '@/lib/attachments'
+import type { VerifiedProvider } from '@/lib/verification'
+
+/** Author-side trust signal carried alongside every displayed name in a feed.
+ *  Deliberately duplicated onto each item rather than looked up from the
+ *  profiles store at render time: the profiles table is builder-only under RLS,
+ *  so a store lookup would silently drop every badge for preview viewers, and
+ *  a feed row already joins the author's profile for the display name anyway. */
+export interface AuthorTrust {
+  verified: boolean
+  verifiedVia?: VerifiedProvider
+}
 
 export const DISCIPLINES = [
   'Aerospace',
@@ -16,7 +27,7 @@ export function disciplineFromSlug(slug: string): Discipline | undefined {
   return DISCIPLINES.find((d) => disciplineSlug(d) === slug.toLowerCase())
 }
 
-export interface Comment {
+export interface Comment extends AuthorTrust {
   id: string
   authorId: string // 'me' for the signed-in Builder's own comment
   author: string
@@ -24,7 +35,7 @@ export interface Comment {
   time?: string
 }
 
-export interface Question {
+export interface Question extends AuthorTrust {
   id: string
   authorId: string // 'me' for the signed-in Builder's own question
   category: Discipline
@@ -90,7 +101,7 @@ export function formatWebinarDate(startsAt: string): string {
   return `${weekday}, ${monthDay} · ${time}`
 }
 
-export interface Introduction {
+export interface Introduction extends AuthorTrust {
   id: string
   authorId: string // 'me' for the signed-in Builder's own post
   name: string
@@ -102,7 +113,7 @@ export interface Introduction {
   attachment?: Attachment
 }
 
-export interface Post {
+export interface Post extends AuthorTrust {
   id: string
   authorId: string // 'me' for the signed-in Builder's own post
   name: string

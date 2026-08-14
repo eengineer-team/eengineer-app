@@ -5,6 +5,7 @@ import { useProfiles } from '@/lib/profiles-context'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
 import { LabelCaps } from '@/components/ui/label-caps'
+import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 import { cn } from '@/lib/utils'
 
 // Founder ask (Telegram, 2026-08-02): the addressee of a connection request
@@ -41,7 +42,10 @@ export function Connections() {
                 <Link to={`/dashboard/profiles/${r.requesterId}`} className="flex items-center gap-4 flex-1 min-w-0">
                   <Avatar name={r.requesterName} src={r.requesterAvatarUrl} size="md" theme="dashboard" />
                   <div className="min-w-0">
-                    <p className="font-sans text-[0.875rem] font-semibold text-dark-text truncate">{r.requesterName}</p>
+                    <p className="flex items-center gap-1.5 font-sans text-[0.875rem] font-semibold text-dark-text">
+                      <span className="truncate">{r.requesterName}</span>
+                      {r.requesterVerified && <VerifiedBadge provider={r.requesterVerifiedVia} />}
+                    </p>
                     <p className="font-sans text-[0.75rem] text-dark-muted">{r.requesterDiscipline}</p>
                   </div>
                 </Link>
@@ -79,7 +83,10 @@ export function Connections() {
               >
                 <Avatar name={p.name} src={p.avatarUrl} size="md" theme="dashboard" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-sans text-[0.875rem] font-semibold text-dark-text truncate">{p.name}</p>
+                  <p className="flex items-center gap-1.5 font-sans text-[0.875rem] font-semibold text-dark-text">
+                    <span className="truncate">{p.name}</span>
+                    {p.verified && <VerifiedBadge provider={p.verifiedVia} />}
+                  </p>
                   <div className="flex items-center gap-1.5 text-dark-muted mt-0.5">
                     <Users size={10} strokeWidth={1.8} />
                     <span className="font-sans text-[13px]">{p.discipline}</span>

@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import * as api from '@/lib/api/messages'
 import type { DirectMessage, Conversation } from '@/lib/api/messages'
 import type { Attachment } from '@/lib/attachments'
+import type { VerifiedProvider } from '@/lib/verification'
 
 // Supabase-backed replacement for the mock SEED_CONVERSATIONS/localStorage
 // store. RLS (see supabase/migrations/20260716120400_block18_age_consent.sql
@@ -29,6 +30,12 @@ export interface ConversationView {
   withName: string
   discipline: string
   avatarUrl?: string
+  /** Mirrors the other Builder's profiles.verified — messaging already
+   *  requires both sides to be verified (app.can_message), so in practice this
+   *  is true for every reachable thread; it is still read from the profile
+   *  rather than assumed, so the check never claims something the row doesn't. */
+  withVerified: boolean
+  withVerifiedVia?: VerifiedProvider
   /** false only when the other Builder has explicitly turned DMs off. */
   allowDMs: boolean
   messages: DirectMessage[]
@@ -258,6 +265,8 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
         withName: profile?.name ?? 'A Builder',
         discipline: profile?.discipline ?? '',
         avatarUrl: profile?.avatarUrl,
+        withVerified: profile?.verified ?? false,
+        withVerifiedVia: profile?.verifiedVia,
         allowDMs: profile?.allowDMs !== false,
         messages,
         unread,

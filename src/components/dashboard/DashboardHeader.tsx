@@ -7,6 +7,7 @@ import { useMessages } from '@/lib/messages-context'
 import { useCompetitions } from '@/lib/competitions-context'
 import { NotificationsBell } from '@/components/dashboard/NotificationsBell'
 import { FeedbackDialog } from '@/components/dashboard/FeedbackDialog'
+import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 import * as feedbackApi from '@/lib/api/feedback'
 import { errorMessage, cn } from '@/lib/utils'
 
@@ -83,8 +84,14 @@ export function DashboardHeader({ name, onMenuClick }: { name: string; onMenuCli
         >
           <Menu size={18} strokeWidth={1.8} />
         </button>
-        <span className="font-display text-white text-[1.25rem] font-bold tracking-[-0.02em] truncate">
-          Hello, {name}
+        <span className="flex items-center gap-1.5 min-w-0 font-display text-white text-[1.25rem] font-bold tracking-[-0.02em]">
+          <span className="truncate">Hello, {name}</span>
+          {/* Your own check, shown for the same reason as everyone else's: the
+              greeting is where you notice whether the upgrade you just did in
+              Settings actually took effect. */}
+          {user?.status === 'builder' && user.verified && (
+            <VerifiedBadge provider={user.verifiedVia} size="md" />
+          )}
         </span>
       </div>
 

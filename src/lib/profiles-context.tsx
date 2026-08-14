@@ -24,6 +24,11 @@ interface ProfilesContextValue {
   // redirect on absence would bounce the user away mid-load.
   loading: boolean
   getProfile: (id: string) => BuilderProfile | undefined
+  /** Re-reads the profiles snapshot from Supabase. Needed after an event that
+   *  changes what this session is allowed to see at all — notably linking a
+   *  GitHub identity, which turns a preview session into a Builder and only
+   *  then makes the profiles table readable to it. */
+  refresh: () => Promise<void>
   rateSkill: (skillName: string, proficiency: number) => void
   addSkill: (skillName: string) => void
   addProject: (project: Omit<ProjectEntry, 'id'>) => void
@@ -300,8 +305,13 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
       const uid = uidRef.current
       if (!uid) return
       const trimmedEvidence = evidenceUrl?.trim()
-      setProfiles((prev) =>
-        prev.map((p) =>
+      setProfiles((prev) => {
+        // The optimistic row is my own endorsement, so my own profile is the
+        // right source for its badge — reading it from `prev` keeps the
+        // placeholder identical to what the refetch will return instead of
+        // making the check appear a moment later.
+        const me = prev.find((p) => p.id === ME_ID)
+        return prev.map((p) =>
           p.id === targetProfileId
             ? {
                 ...p,
@@ -309,6 +319,8 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
                   {
                     id: `end-${p.endorsements.length}`,
                     fromName,
+                    fromVerified: me?.verified ?? false,
+                    fromVerifiedVia: me?.verifiedVia,
                     targetType,
                     targetName,
                     reason: trimmedReason,
@@ -319,7 +331,7 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
               }
             : p
         )
-      )
+      })
       api
         .addEndorsement(uid, targetProfileId, targetType, targetName, trimmedReason, trimmedEvidence)
         .then(() => void refresh())
@@ -382,6 +394,7 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
       profiles,
       loading,
       getProfile,
+      refresh,
       rateSkill,
       addSkill,
       addProject,
@@ -406,6 +419,7 @@ export function ProfilesProvider({ children }: { children: React.ReactNode }) {
       profiles,
       loading,
       getProfile,
+      refresh,
       rateSkill,
       addSkill,
       addProject,
