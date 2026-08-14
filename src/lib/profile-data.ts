@@ -1,4 +1,5 @@
 import type { Discipline } from '@/lib/community-data'
+import type { VerifiedProvider } from '@/lib/verification'
 
 // Profiles — types and display constants only. The data itself is
 // Supabase-backed (lib/api/profiles.ts reads it, profiles-context.tsx holds
@@ -27,6 +28,10 @@ export const MIN_ENDORSEMENT_REASON_LENGTH = 20
 export interface Endorsement {
   id: string
   fromName: string
+  /** Whether the endorser is verified — an endorsement is only worth as much
+   *  as the identity behind it, so the check travels with the name here too. */
+  fromVerified: boolean
+  fromVerifiedVia?: VerifiedProvider
   targetType: 'skill' | 'project'
   targetName: string
   reason: string // mandatory per spec — never optional
@@ -118,6 +123,17 @@ export interface BuilderProfile {
   /** OAuth verification links — trust signal per spec, not a data source. */
   githubUrl?: string
   linkedinUrl?: string
+  /** True when this Builder signed up with — or later linked — a GitHub or
+   *  LinkedIn account. Mirrors profiles.verified, which only the database
+   *  writes (app.apply_verified_identity, checked against auth.identities).
+   *  Drives the check next to their name; never a permission check, since the
+   *  real gate is app.is_verified() inside RLS. */
+  verified: boolean
+  /** Which account backs the check, for the tooltip. Undefined for unverified
+   *  profiles — and possibly undefined for a verified one whose provider
+   *  column predates this field, in which case the badge degrades to a
+   *  generic label rather than disappearing. */
+  verifiedVia?: VerifiedProvider
   /** Mutual connections with the viewer — not shown on your own profile. */
   mutuals: number
   connectStatus: 'none' | 'requested' | 'connected'

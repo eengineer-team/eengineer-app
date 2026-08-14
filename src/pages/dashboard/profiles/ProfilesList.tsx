@@ -5,6 +5,7 @@ import { ME_ID } from '@/lib/profile-data'
 import { Avatar } from '@/components/ui/avatar'
 import { Chip } from '@/components/ui/chip'
 import { LabelCaps } from '@/components/ui/label-caps'
+import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 
 function displayName(user: ReturnType<typeof useAuth>['user'], name: string) {
   return name === 'You' && user?.status === 'builder' ? user.name : name
@@ -44,9 +45,13 @@ export function ProfilesList() {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <div className="font-sans text-[0.875rem] font-semibold text-dark-text leading-tight truncate">
-                    {name}
-                    {p.id === ME_ID && <span className="text-dark-muted font-normal"> (you)</span>}
+                  {/* `truncate` moved from the row onto the name itself — on the
+                      row it would clip the badge along with a long name, which
+                      is the one part of this line that must not disappear. */}
+                  <div className="flex items-center gap-1 font-sans text-[0.875rem] font-semibold text-dark-text leading-tight">
+                    <span className="truncate">{name}</span>
+                    {p.verified && <VerifiedBadge provider={p.verifiedVia} />}
+                    {p.id === ME_ID && <span className="text-dark-muted font-normal">(you)</span>}
                   </div>
                   {/* Was a static "Builder" caps label on every card. Now the
                       earned tier, so the row actually distinguishes people. */}

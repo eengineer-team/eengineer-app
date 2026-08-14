@@ -9,6 +9,7 @@ import { Chip } from '@/components/ui/chip'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn, errorMessage } from '@/lib/utils'
 import { useMorphOnChange } from '@/lib/use-morph-on-change'
+import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 
 // Compact profile preview for hover/click contexts (DM header, message
 // avatars) where jumping straight to the full profile page would lose the
@@ -77,6 +78,7 @@ export function ProfilePreviewPopover({
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-display text-[0.9375rem] font-bold text-dark-text leading-tight">{profile.name}</span>
+            {profile.verified && <VerifiedBadge provider={profile.verifiedVia} />}
             <span className="inline-flex items-center rounded px-1 py-0.5 bg-gold-dark/15 border border-gold-dark/30 text-gold-dark font-sans text-[12px] font-semibold uppercase tracking-wide">
               Builder
             </span>

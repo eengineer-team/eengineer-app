@@ -4,6 +4,7 @@ import type { Discipline, Introduction } from '@/lib/community-data'
 import { readFileAsAttachment, type Attachment } from '@/lib/attachments'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
+import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { supabase } from '@/lib/supabase'
@@ -231,7 +232,10 @@ export function Networking({ discipline }: { discipline?: Discipline } = {}) {
                 <Avatar name={i.name} size="md" theme="dashboard" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <div className="font-sans text-[0.875rem] font-semibold text-dark-text">{i.name}</div>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                    <div className="font-sans text-[0.875rem] font-semibold text-dark-text truncate">{i.name}</div>
+                    {i.verified && <VerifiedBadge provider={i.verifiedVia} />}
+                  </div>
                     <span className="font-sans text-[12px] text-dark-muted flex-shrink-0">{i.time}</span>
                   </div>
                   <div className="font-sans text-[0.75rem] text-dark-muted mb-2">{i.discipline}</div>

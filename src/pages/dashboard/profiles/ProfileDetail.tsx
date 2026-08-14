@@ -13,6 +13,7 @@ import { cn, errorMessage } from '@/lib/utils'
 import { SkillBar } from '@/components/profile/SkillBar'
 import { EndorseDialog } from '@/components/profile/EndorseDialog'
 import { ReputationBadge } from '@/components/profile/ReputationBadge'
+import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 import { useMorphOnChange } from '@/lib/use-morph-on-change'
 
 function displayName(user: ReturnType<typeof useAuth>['user'], name: string) {
@@ -112,6 +113,11 @@ export function ProfileDetail() {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <h1 className="font-display text-[1.25rem] font-bold text-dark-text leading-tight">{name}</h1>
+              {/* Sits immediately after the name and before the earned tier:
+                  verification is a fact about the account, the tier is a
+                  record of what they've done — different claims, and the
+                  identity one belongs closest to the identity. */}
+              {profile.verified && <VerifiedBadge provider={profile.verifiedVia} size="md" />}
               {/* Replaces a hardcoded "Builder" chip that said the same thing
                   about everyone. The tier still reads "Builder" at the floor,
                   so nothing is lost — it just becomes earned above that. */}
@@ -354,9 +360,10 @@ export function ProfileDetail() {
           <div className="flex flex-col gap-3">
             {profile.endorsements.map((e) => (
               <div key={e.id} className="bg-white/[0.03] border border-white/8 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-1.5">
+                <div className="flex items-center gap-1.5 mb-1.5">
                   <span className="font-sans text-[0.8125rem] font-medium text-white/85">{e.fromName}</span>
-                  <span className="font-sans text-[12px] text-dark-muted">
+                  {e.fromVerified && <VerifiedBadge provider={e.fromVerifiedVia} />}
+                  <span className="font-sans text-[12px] text-dark-muted ml-0.5">
                     endorsed {e.targetType} · {e.targetName}
                   </span>
                 </div>

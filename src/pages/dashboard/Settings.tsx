@@ -10,6 +10,8 @@ import { Chip } from '@/components/ui/chip'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { Button } from '@/components/ui/button'
 import { SkillBar } from '@/components/profile/SkillBar'
+import { VerificationCard } from '@/components/profile/VerificationCard'
+import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 import { cn } from '@/lib/utils'
 
 const APPEARANCE_OPTIONS = [
@@ -127,6 +129,11 @@ export function SettingsPage() {
   if (!profile) {
     return (
       <div className="flex-1 w-full px-8 py-8 max-w-[720px] mx-auto">
+        {/* Verification comes first here on purpose. A Google-preview session
+            has no profile row at all (profiles_select is builder-only), so it
+            always lands in this branch — and this card is the one thing on
+            the page that can get it out of that state. */}
+        <VerificationCard />
         {/* Don't announce failure while the fetch is still in flight — that
             error message used to flash on every load of this page. */}
         <p className="font-sans text-[0.8125rem] text-dark-muted">
@@ -191,6 +198,8 @@ export function SettingsPage() {
       <p className="font-sans text-[0.8125rem] text-dark-muted mb-8">
         Your profile, appearance, and notification preferences.
       </p>
+
+      <VerificationCard />
 
       {/* Your Profile */}
       <section className="mb-10">
@@ -257,6 +266,7 @@ export function SettingsPage() {
               ) : (
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <h2 className="font-display text-[1.125rem] font-bold text-dark-text leading-tight">{profile.name}</h2>
+                  {profile.verified && <VerifiedBadge provider={profile.verifiedVia} size="md" />}
                   <button
                     onClick={() => {
                       setNameDraft(profile.name)

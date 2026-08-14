@@ -74,8 +74,12 @@ const ROLE_ACTIONS: Record<Role, Action[]> = {
   ],
 }
 
-// Google-preview is a stateless pseudo-status, not a role: no persistent
-// state, no admin can ever grant it more than this fixed allowlist.
+// Kept as a safety net, not as a product tier. Google sign-ins are full
+// members now (see 20260814140000_open_member_access.sql) — nothing routes
+// here deliberately. A session still lands on this list when it carries no
+// role claim at all: the signup trigger hasn't committed yet, or the
+// access-token hook is disabled. Read-only is the right shape for "we don't
+// know who this is yet", so the list stays rather than being deleted.
 const PREVIEW_ACTIONS: Action[] = ['community:read-overview', 'contests:view', 'opportunities:view']
 
 export function can(user: AuthUser | null, action: Action): boolean {

@@ -41,17 +41,18 @@ export function Auth() {
 
   // Real Supabase OAuth: signInWithProvider redirects the browser to the
   // provider and back to `redirectPath`, where detectSessionInUrl completes the
-  // handshake. Google returns a preview (no profile → read-only); GitHub/LinkedIn
-  // return a verified Builder. New Builders land on /onboarding, returning ones
-  // on /dashboard; preview can only reach /dashboard/community.
+  // handshake. All three providers now return a full member; only GitHub and
+  // LinkedIn also set verified.
+  //
+  // Google no longer skips /onboarding. Its profile is filled in automatically
+  // from the Google account, but the age gate on that page is a hard
+  // requirement for every new account regardless of provider — under-13 signups
+  // are refused outright, and 13–17 need a guardian's email. Onboarding renders
+  // a cut-down version for Google (see its `compact` branch): the date of
+  // birth, and nothing else.
   function handleOAuth(provider: OAuthProvider) {
     setLoadingProvider(provider)
-    const redirectPath =
-      provider === 'google'
-        ? '/dashboard/community'
-        : mode === 'signup'
-          ? '/onboarding'
-          : '/dashboard'
+    const redirectPath = mode === 'signup' ? '/onboarding' : '/dashboard'
     signInWithProvider(provider, redirectPath)
   }
 
@@ -97,9 +98,9 @@ export function Auth() {
             <div className="flex items-start gap-2.5 rounded border border-amber-600/25 bg-amber-600/8 px-4 py-3 mb-4 max-w-[420px]">
               <TriangleAlert size={15} strokeWidth={1.8} className="text-amber-800 flex-shrink-0 mt-0.5" />
               <p className="font-sans text-[0.75rem] leading-[1.5] text-amber-900">
-                That section is only open to verified Builders. Sign in with GitHub to
-                upgrade from Google preview and unlock full access (LinkedIn sign-in is
-                coming soon).
+                We couldn't confirm your account yet — sign in again below. If you were
+                browsing with Google, note that your session may still be finishing setup;
+                reloading usually clears it.
               </p>
             </div>
           )}

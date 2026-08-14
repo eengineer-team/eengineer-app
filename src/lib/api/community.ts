@@ -3,6 +3,7 @@ import { ME_ID } from '@/lib/profile-data'
 import type { Attachment } from '@/lib/attachments'
 import type { Comment, Discipline, Introduction, Post, Question, Webinar } from '@/lib/community-data'
 import type { JoinedClub } from '@/lib/clubs-data'
+import { verifiedProviderFrom, type VerifiedProvider } from '@/lib/verification'
 
 // Supabase-backed replacement for the Community domain 3 surfaces (Q&A,
 // clubs, webinars/RSVP, networking intros, discussion feed). Each fetch
@@ -10,6 +11,34 @@ import type { JoinedClub } from '@/lib/clubs-data'
 // Webinars / JoinedClubs / Networking / Discussion keep their existing JSX
 // and only swap where their state comes from. RLS is the real authorization
 // boundary — every write below relies on it, never re-checks it.
+
+// Every feed here embeds the author's profile row purely to resolve a display
+// name. Widening that embed by two columns is what lets a byline carry the
+// verified check without a second query per item.
+type AuthorProfileRow = {
+  display_name: string
+  verified: boolean
+  oauth_provider: string | null
+}
+
+const UNKNOWN_AUTHOR = 'A Builder'
+
+function authorNameOf(row: AuthorProfileRow | null | undefined): string {
+  return row?.display_name ?? UNKNOWN_AUTHOR
+}
+
+// A null embed means RLS hid the profile from this viewer (preview sessions
+// cannot read profiles at all) — that has to read as "unknown", never as
+// "unverified", which is why the badge is simply absent rather than negated.
+function authorTrustOf(row: AuthorProfileRow | null | undefined): {
+  verified: boolean
+  verifiedVia: VerifiedProvider | undefined
+} {
+  return {
+    verified: row?.verified ?? false,
+    verifiedVia: row?.verified ? verifiedProviderFrom(row.oauth_provider) : undefined,
+  }
+}
 
 export async function currentUid(): Promise<string | null> {
   // getSession() reads the cached session locally; getUser() used to be here
@@ -56,11 +85,11 @@ function attachmentFromRow(row: {
 // query 300s. Naming the constraint pins the one relationship we mean.
 const QUESTION_SELECT = `
   id, discipline, author_id, text, reported, created_at,
-  profiles!questions_author_id_fkey ( display_name ),
+  profiles!questions_author_id_fkey ( display_name, verified, oauth_provider ),
   question_votes ( user_id, vote ),
   question_comments (
     id, author_id, text, created_at,
-    profiles!question_comments_author_id_fkey ( display_name )
+    profiles!question_comments_author_id_fkey ( display_name, verified, oauth_provider )
   )
 `
 
@@ -71,14 +100,14 @@ type QuestionRow = {
   text: string
   reported: boolean
   created_at: string
-  profiles: { display_name: string } | null
+  profiles: AuthorProfileRow | null
   question_votes: { user_id: string; vote: 'approve' | 'disapprove' }[]
   question_comments: {
     id: string
     author_id: string
     text: string
     created_at: string
-    profiles: { display_name: string } | null
+    profiles: AuthorProfileRow | null
   }[]
 }
 
@@ -95,7 +124,8 @@ export async function fetchQuestions(): Promise<Question[]> {
       authorId: uid && r.author_id === uid ? ME_ID : r.author_id,
       category: r.discipline,
       text: r.text,
-      author: r.profiles?.display_name ?? 'A Builder',
+      author: authorNameOf(r.profiles),
+      ...authorTrustOf(r.profiles),
       time: formatRelativeTime(r.created_at),
       approvals: r.question_votes.filter((v) => v.vote === 'approve').length,
       disapprovals: r.question_votes.filter((v) => v.vote === 'disapprove').length,
@@ -107,7 +137,8 @@ export async function fetchQuestions(): Promise<Question[]> {
         .map((c): Comment => ({
           id: c.id,
           authorId: uid && c.author_id === uid ? ME_ID : c.author_id,
-          author: c.profiles?.display_name ?? 'A Builder',
+          author: authorNameOf(c.profiles),
+          ...authorTrustOf(c.profiles),
           text: c.text,
           time: formatRelativeTime(c.created_at),
         })),
@@ -211,13 +242,13 @@ export interface LatestGroupMessage {
 // Generic `profiles ( display_name )` is safe here (no `!constraint` hint
 // needed) -- discussion_posts has no junction table into profiles, unlike
 // questions (see the PGRST201 fix in api/admin.ts's resolveTargetContent).
-const LATEST_MESSAGES_SELECT = `discipline, text, created_at, profiles ( display_name )`
+const LATEST_MESSAGES_SELECT = `discipline, text, created_at, profiles ( display_name, verified, oauth_provider )`
 
 type LatestMessageRow = {
   discipline: Discipline
   text: string
   created_at: string
-  profiles: { display_name: string } | null
+  profiles: AuthorProfileRow | null
 }
 
 // "Latest message" preview in the JoinedClubs sidebar widget used to be
@@ -237,7 +268,7 @@ export async function fetchLatestGroupMessages(): Promise<Partial<Record<Discipl
   for (const row of (data ?? []) as unknown as LatestMessageRow[]) {
     if (result[row.discipline]) continue
     result[row.discipline] = {
-      author: row.profiles?.display_name ?? 'A Builder',
+      author: authorNameOf(row.profiles),
       text: row.text,
       time: formatRelativeTime(row.created_at),
     }
@@ -355,7 +386,7 @@ export async function toggleWebinarRegistration(uid: string, webinarId: string, 
 
 const INTRODUCTION_SELECT = `
   id, profile_id, discipline, text, attachment_kind, attachment_url, attachment_name, created_at,
-  profiles ( display_name )
+  profiles ( display_name, verified, oauth_provider )
 `
 
 type IntroductionRow = {
@@ -367,7 +398,7 @@ type IntroductionRow = {
   attachment_url: string | null
   attachment_name: string | null
   created_at: string
-  profiles: { display_name: string } | null
+  profiles: AuthorProfileRow | null
 }
 
 export async function fetchIntroductions(): Promise<Introduction[]> {
@@ -377,7 +408,8 @@ export async function fetchIntroductions(): Promise<Introduction[]> {
   return ((data ?? []) as unknown as IntroductionRow[]).map((r): Introduction => ({
     id: r.id,
     authorId: uid && r.profile_id === uid ? ME_ID : r.profile_id,
-    name: r.profiles?.display_name ?? 'A Builder',
+    name: authorNameOf(r.profiles),
+    ...authorTrustOf(r.profiles),
     discipline: r.discipline,
     text: r.text,
     time: formatRelativeTime(r.created_at),
@@ -412,7 +444,7 @@ export async function deleteIntroduction(id: string): Promise<void> {
 
 const DISCUSSION_SELECT = `
   id, profile_id, discipline, text, attachment_kind, attachment_url, attachment_name, created_at,
-  profiles ( display_name )
+  profiles ( display_name, verified, oauth_provider )
 `
 
 type DiscussionRow = {
@@ -424,7 +456,7 @@ type DiscussionRow = {
   attachment_url: string | null
   attachment_name: string | null
   created_at: string
-  profiles: { display_name: string } | null
+  profiles: AuthorProfileRow | null
 }
 
 export async function fetchDiscussionPosts(): Promise<Post[]> {
@@ -434,7 +466,8 @@ export async function fetchDiscussionPosts(): Promise<Post[]> {
   return ((data ?? []) as unknown as DiscussionRow[]).map((r): Post => ({
     id: r.id,
     authorId: uid && r.profile_id === uid ? ME_ID : r.profile_id,
-    name: r.profiles?.display_name ?? 'A Builder',
+    name: authorNameOf(r.profiles),
+    ...authorTrustOf(r.profiles),
     discipline: r.discipline,
     text: r.text,
     time: formatRelativeTime(r.created_at),

@@ -4,6 +4,7 @@ import type { Discipline, Post } from '@/lib/community-data'
 import { readFileAsAttachment, type Attachment } from '@/lib/attachments'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
+import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { supabase } from '@/lib/supabase'
 import * as api from '@/lib/api/community'
@@ -168,7 +169,10 @@ export function Discussion({ discipline }: { discipline?: Discipline } = {}) {
                 <Avatar name={p.name} size="md" theme="dashboard" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <div className="font-sans text-[0.875rem] font-semibold text-dark-text">{p.name}</div>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                    <div className="font-sans text-[0.875rem] font-semibold text-dark-text truncate">{p.name}</div>
+                    {p.verified && <VerifiedBadge provider={p.verifiedVia} />}
+                  </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <span className="font-sans text-[12px] text-dark-muted">{p.time}</span>
                       {p.authorId === 'me' && (

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Link } from 'react-router-dom'
-import { TriangleAlert } from 'lucide-react'
+import { BadgeCheck } from 'lucide-react'
 import type { OAuthProvider } from '@/lib/auth-context'
 import { cn } from '@/lib/utils'
 
@@ -37,9 +37,9 @@ const PRIMARY_PROVIDERS: {
   id: OAuthProvider
   label: string
   icon: React.ReactNode
-  // LinkedIn OAuth isn't wired up yet (2026-07) -- GitHub is the only
-  // working "full access" provider for now. Kept in the list rather than
-  // removed so the option is visibly on the way, not silently gone.
+  // LinkedIn OAuth isn't wired up yet -- GitHub is the only working verifying
+  // provider for now. Kept in the list rather than removed so the option is
+  // visibly on the way, not silently gone.
   comingSoon?: boolean
 }[] = [
   { id: 'github', label: 'GitHub', icon: <GithubMark /> },
@@ -88,7 +88,9 @@ export function AuthForm({ mode, loadingProvider, onOAuth }: AuthFormProps) {
                 p.comingSoon ? 'text-corn-900/40' : 'text-corn-100/60'
               )}
             >
-              {p.comingSoon ? 'Coming soon' : 'Full access'}
+              {/* Was "Full access" — which is now true of Google too, so it no
+                  longer says anything. The badge is the actual difference. */}
+              {p.comingSoon ? 'Coming soon' : 'Verified badge'}
             </span>
           </button>
         ))}
@@ -98,7 +100,7 @@ export function AuthForm({ mode, loadingProvider, onOAuth }: AuthFormProps) {
       <div className="flex items-center gap-3 mb-4">
         <div className="h-px flex-1 bg-corn-900/12" />
         <span className="font-sans text-[13px] font-medium uppercase tracking-wide text-corn-700">
-          or preview with Google
+          or continue with Google
         </span>
         <div className="h-px flex-1 bg-corn-900/12" />
       </div>
@@ -121,20 +123,21 @@ export function AuthForm({ mode, loadingProvider, onOAuth }: AuthFormProps) {
             <GoogleMark />
             {loadingProvider === 'google' ? 'Connecting…' : 'Continue with Google'}
           </span>
-          <span className="font-sans text-[12px] font-semibold tracking-wide uppercase border rounded px-1.5 py-0.5 bg-amber-600/10 text-amber-800 border-amber-600/25">
-            Limited preview
+          <span className="font-sans text-[12px] font-semibold tracking-wide uppercase border rounded px-1.5 py-0.5 border-corn-900/15 text-corn-700">
+            No badge
           </span>
         </button>
       </div>
 
-      {/* Warning banner */}
-      <div className="flex items-start gap-2.5 rounded border border-amber-600/25 bg-amber-600/8 px-4 py-3 mb-6">
-        <TriangleAlert size={15} strokeWidth={1.8} className="text-amber-800 flex-shrink-0 mt-0.5" />
-        <p className="font-sans text-[0.75rem] leading-[1.5] text-amber-900">
-          Google gets you a quick, read-only look around — nothing saved, nothing created.
-          Want full access? Sign up with GitHub instead (LinkedIn sign-in is coming soon).
-          We don't touch your data either way — it's just there to prove you're a real
-          person, not a bot.
+      {/* Not a warning any more — every door leads to the same place. The only
+          thing left to explain is what the badge is and why you'd want one. */}
+      <div className="flex items-start gap-2.5 rounded border border-corn-900/12 bg-corn-900/4 px-4 py-3 mb-6">
+        <BadgeCheck size={15} strokeWidth={1.8} className="text-corn-700 flex-shrink-0 mt-0.5" />
+        <p className="font-sans text-[0.75rem] leading-[1.5] text-corn-800">
+          All three give you the same access. Signing up with GitHub also puts a verified
+          check next to your name, which tells other members there's an established account
+          behind your posts. You can add it later from Settings without losing anything —
+          and either way we only read your public profile.
         </p>
       </div>
 

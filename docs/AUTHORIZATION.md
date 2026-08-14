@@ -187,8 +187,12 @@ Legend: ✔ allowed with the stated predicate · ✘ denied · rows are `auth.ui
 - **Preview identity:** Supabase anonymous auth with a `status=preview` claim, or true
   unauthenticated + a public read policy? (Anonymous auth is cleaner for "prove you're a person".)
 - **ProjectEntry vs Project:** keep both tables or merge portfolio into the hub entity?
-- **`verified` source:** provider = github/linkedin ⇒ verified; is LinkedIn-only enough, or must
-  the GitHub/LinkedIn account meet a minimum (age/history) to count as "real"?
+- ~~**`verified` source:**~~ **Resolved** (2026-08-14, `20260814120000_oauth_verification.sql`):
+  a linked github/linkedin identity ⇒ verified, with no minimum account age or history. It is
+  written only by `app.apply_verified_identity()` and guarded against forgery by checking
+  `auth.identities` rather than the request. Note the provider string is `linkedin_oidc`, not
+  `linkedin` — the original trigger's `prov in ('github','linkedin')` matched neither and
+  dropped every LinkedIn signup into preview. See `docs/VERIFICATION.md`.
 - **Networking / Discussion / current-activity feeds:** confirm their row shapes (not fully read
   here) before writing their policies — same builder-post / builder+preview-read pattern assumed.
 - **Moderation reach:** metadata-only reports vs admin content review (founder sign-off, block 18).

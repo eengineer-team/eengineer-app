@@ -6,6 +6,7 @@ import { ME_ID } from '@/lib/profile-data'
 import { useMessages } from '@/lib/messages-context'
 import type { DirectMessage } from '@/lib/api/messages'
 import { Avatar } from '@/components/ui/avatar'
+import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 import { LabelCaps } from '@/components/ui/label-caps'
 import { ProfilePreviewPopover } from '@/components/profile/ProfilePreviewPopover'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -211,12 +212,15 @@ export function Messages() {
                   </button>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <button
-                        onClick={(e) => openListPreview(e, c.id)}
-                        className="font-sans text-[0.8125rem] font-medium text-dark-text truncate hover:underline"
-                      >
-                        {c.withName}
-                      </button>
+                      <span className="flex items-center gap-1.5 min-w-0">
+                        <button
+                          onClick={(e) => openListPreview(e, c.id)}
+                          className="font-sans text-[0.8125rem] font-medium text-dark-text truncate hover:underline"
+                        >
+                          {c.withName}
+                        </button>
+                        {c.withVerified && <VerifiedBadge provider={c.withVerifiedVia} />}
+                      </span>
                       {c.unread > 0 && (
                         <span className="flex-shrink-0 w-4 h-4 rounded-full bg-gold-dark text-dark-900 font-sans text-[12px] font-bold flex items-center justify-center">
                           {c.unread}
@@ -259,7 +263,10 @@ export function Messages() {
             >
               <Avatar name={active.withName} src={active.avatarUrl} theme="dashboard" size="sm" />
               <div className="min-w-0">
-                <div className="font-sans text-[0.875rem] font-semibold text-dark-text leading-tight truncate">{active.withName}</div>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="font-sans text-[0.875rem] font-semibold text-dark-text leading-tight truncate">{active.withName}</span>
+                  {active.withVerified && <VerifiedBadge provider={active.withVerifiedVia} />}
+                </div>
                 <div className="font-sans text-[13px] text-dark-muted truncate">{active.discipline}</div>
               </div>
             </button>
