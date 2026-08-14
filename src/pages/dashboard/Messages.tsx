@@ -329,8 +329,18 @@ export function Messages() {
             {active.messages.map((m) => {
               const isMine = m.senderId === ME_ID
               return (
-                <div key={m.id} className={cn('flex flex-col', isMine ? 'items-end' : 'items-start')}>
-                  <div className="flex items-end gap-1.5">
+                // w-full on the column and the max-width on the ROW, not on
+                // the bubble. With max-w-[85%] sitting on the bubble, the
+                // percentage resolved against a parent that was itself
+                // shrink-to-fit (align-items: end/start), so bubble width and
+                // parent width each depended on the other; the browser broke
+                // the cycle at min-content and every message collapsed into a
+                // one-or-two-character column. Incoming messages got it worst
+                // because the bubble was the row's only child — outgoing ones
+                // had the delete button beside it, which gave the row some
+                // intrinsic width to work from and hid the bug.
+                <div key={m.id} className={cn('flex w-full flex-col', isMine ? 'items-end' : 'items-start')}>
+                  <div className="flex items-end gap-1.5 max-w-[85%] sm:max-w-[70%]">
                     {isMine && (
                       <div className="relative">
                         <button
@@ -352,7 +362,7 @@ export function Messages() {
                       </div>
                     )}
                     <div
-                      className={`w-fit max-w-[85%] sm:max-w-[70%] rounded-lg font-sans text-[0.8125rem] leading-snug ${
+                      className={`w-fit min-w-0 rounded-lg font-sans text-[0.8125rem] leading-snug ${
                         m.attachment?.kind === 'image' || m.attachment?.kind === 'video' ? 'overflow-hidden' : ''
                       } ${
                         isMine ? 'bg-gold-dark/15 border border-gold-dark/25 text-dark-text' : 'bg-dark-surface2 border border-white/8 text-white/85'
