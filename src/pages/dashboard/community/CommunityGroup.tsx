@@ -49,15 +49,28 @@ export function CommunityGroup() {
   const Icon = getDisciplineIcon(discipline)
 
   return (
-    <div className="relative flex-1 w-full px-8 py-8 max-w-[720px] mx-auto overflow-hidden">
+    <div className="relative flex-1 w-full px-8 py-8 max-w-[720px] mx-auto">
       {/* Faded discipline icon — same idea as the hub card banners, so a
           group's background reads as "which discipline" (via color + icon)
-          even before you read any text. */}
-      <Icon
-        size={340}
-        strokeWidth={1}
-        className={cn('absolute -top-10 -right-16 opacity-[0.05]', color.text)}
-      />
+          even before you read any text.
+
+          The clipping lives on this decorative layer, NOT on the page column.
+          overflow-hidden used to sit on the column itself (to hide the icon's
+          -right-16 bleed), and that quietly capped the page: this column is
+          `flex-1` inside the dashboard's h-screen scroll container, so
+          flex-basis is 0, and overflow-hidden turns off the min-height:auto
+          that would otherwise let it grow to its content. The column therefore
+          stopped at exactly one viewport, and anything past the fold — most of
+          a long group feed, including the composer — was clipped with no way
+          to scroll to it. An absolutely positioned layer clips the icon
+          without constraining the column's height. */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <Icon
+          size={340}
+          strokeWidth={1}
+          className={cn('absolute -top-10 -right-16 opacity-[0.05]', color.text)}
+        />
+      </div>
 
       <div className="relative">
       {/* Breadcrumb */}
