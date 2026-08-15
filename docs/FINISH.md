@@ -136,6 +136,9 @@ unconfigured providers would break login in production.
 
 - `supabase/migrations/*.sql` — schema, RLS, auth, block 18, storage, opportunities widen.
 - `supabase/seed.sql` — competitions / webinars / opportunities reference data.
+- `supabase/seed_community_bots.sql` — seeded members + Community-tab conversation for the
+  four discipline groups. Optional, safe to re-run, and removable in one statement
+  (`delete from auth.users where email like '%@seed.eengineer.local'`).
 - `supabase/tests/authorization_test.sql` — RLS positive/negative tests.
 - `docs/AUTHORIZATION.md` — the permission matrix + Action→RLS map + gaps.
 - `docs/claude-code-fix-prompts.md` — blocks 1–15 (UX/UI), 16–18 (backend), 19 (frontend migration).
