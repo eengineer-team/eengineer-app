@@ -26,6 +26,7 @@ export type Action =
   | 'profiles:view'
   | 'calendar:view'
   | 'messages:view'
+  | 'prompt-lab:view'
   | 'moderation:queue:view' // community-lead/admin/super-admin — mirrors reports SELECT RLS
   | 'moderation:content:remove' // community-lead/admin/super-admin — mirrors intro/disc staff DELETE + reports UPDATE RLS
   | 'moderation:users:view' // admin/super-admin only — mirrors user_roles SELECT RLS
@@ -52,6 +53,7 @@ const BUILDER_ACTIONS: Action[] = [
   'profiles:view',
   'calendar:view',
   'messages:view',
+  'prompt-lab:view',
 ]
 
 const ROLE_ACTIONS: Record<Role, Action[]> = {

@@ -14,6 +14,229 @@ export type Database = {
   }
   public: {
     Tables: {
+      prompt_categories: {
+        Row: {
+          id: string
+          slug: string
+          label: string
+          icon_emoji: string | null
+          sort_order: number
+          is_visible: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          label: string
+          icon_emoji?: string | null
+          sort_order?: number
+          is_visible?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
+          label?: string
+          icon_emoji?: string | null
+          sort_order?: number
+          is_visible?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      prompts: {
+        Row: {
+          id: string
+          category_id: string
+          slug: string
+          title: string
+          difficulty: "starter" | "intermediate" | "advanced"
+          tools: string[]
+          prompt_text: string
+          when_to_use: string | null
+          why_it_works: string | null
+          pro_tips: string | null
+          sort_order: number
+          is_active: boolean
+          is_featurable: boolean
+          featured_date: string | null
+          published_at: string
+          author_type: "team" | "community"
+          author_name: string | null
+          pack_slug: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          category_id: string
+          slug: string
+          title: string
+          difficulty: "starter" | "intermediate" | "advanced"
+          tools?: string[]
+          prompt_text: string
+          when_to_use?: string | null
+          why_it_works?: string | null
+          pro_tips?: string | null
+          sort_order?: number
+          is_active?: boolean
+          is_featurable?: boolean
+          featured_date?: string | null
+          published_at?: string
+          author_type?: "team" | "community"
+          author_name?: string | null
+          pack_slug?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          category_id?: string
+          slug?: string
+          title?: string
+          difficulty?: "starter" | "intermediate" | "advanced"
+          tools?: string[]
+          prompt_text?: string
+          when_to_use?: string | null
+          why_it_works?: string | null
+          pro_tips?: string | null
+          sort_order?: number
+          is_active?: boolean
+          is_featurable?: boolean
+          featured_date?: string | null
+          published_at?: string
+          author_type?: "team" | "community"
+          author_name?: string | null
+          pack_slug?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_categories"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      prompt_variables: {
+        Row: {
+          id: string
+          prompt_id: string
+          name: string
+          description: string
+          is_multiline: boolean
+          sort_order: number
+        }
+        Insert: {
+          id?: string
+          prompt_id: string
+          name: string
+          description: string
+          is_multiline?: boolean
+          sort_order?: number
+        }
+        Update: {
+          id?: string
+          prompt_id?: string
+          name?: string
+          description?: string
+          is_multiline?: boolean
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_variables_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "prompts"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      prompt_usage_stats: {
+        Row: {
+          id: string
+          prompt_id: string
+          profile_id: string | null
+          action: "copy" | "view"
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          prompt_id: string
+          profile_id?: string | null
+          action: "copy" | "view"
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          prompt_id?: string
+          profile_id?: string | null
+          action?: "copy" | "view"
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_usage_stats_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "prompts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prompt_usage_stats_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      prompt_submissions: {
+        Row: {
+          id: string
+          profile_id: string
+          title: string
+          category_slug: string
+          prompt_text: string
+          variables: Json
+          status: "pending" | "approved" | "rejected"
+          reviewer_notes: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          title: string
+          category_slug: string
+          prompt_text: string
+          variables?: Json
+          status?: "pending" | "approved" | "rejected"
+          reviewer_notes?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          profile_id?: string
+          title?: string
+          category_slug?: string
+          prompt_text?: string
+          variables?: Json
+          status?: "pending" | "approved" | "rejected"
+          reviewer_notes?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_submissions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+
       activity_updates: {
         Row: {
           attachment_kind: string | null

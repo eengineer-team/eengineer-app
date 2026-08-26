@@ -24,6 +24,7 @@ import { ContestsHub } from '@/pages/dashboard/contests/ContestsHub'
 import { ContestDetail } from '@/pages/dashboard/contests/ContestDetail'
 import { Opportunities } from '@/pages/dashboard/Opportunities'
 import { ProjectsHub } from '@/pages/dashboard/projects/ProjectsHub'
+import { PromptsHub } from '@/pages/dashboard/PromptsHub'
 import { ProjectDetail } from '@/pages/dashboard/projects/ProjectDetail'
 import { MyProjectRedirect } from '@/pages/dashboard/projects/MyProjectRedirect'
 import { ProfilesLayout } from '@/pages/dashboard/profiles/ProfilesLayout'
@@ -113,6 +114,10 @@ export default function App() {
                 <Route
                   path="projects"
                   element={<RequireAction action="projects:view"><ProjectsHub /></RequireAction>}
+                />
+                <Route
+                  path="prompt-lab"
+                  element={<RequireAction action="prompt-lab:view"><PromptsHub /></RequireAction>}
                 />
                 {/* Stable "My Project" nav target — mirrors ProfileDetail's
                     isOwn branching (one component handles both edit + view)
