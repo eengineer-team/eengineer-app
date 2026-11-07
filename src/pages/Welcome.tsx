@@ -62,6 +62,13 @@ export function Welcome() {
           transition={{ duration: 0.4, delay: 0.15 }}
           className="flex items-center gap-1"
         >
+          {/* Physics prep is a separate app on this domain (physics-prep/), so a plain link, not a router Link. */}
+          <a
+            href="/physics"
+            className="mr-1 sm:mr-2 px-2 py-2 rounded whitespace-nowrap font-sans text-[0.8125rem] font-medium text-[#2A2118] hover:text-corn-700 underline underline-offset-4 decoration-[#2A2118]/25 hover:decoration-corn-700 transition-colors"
+          >
+            Physics prep
+          </a>
           <FeedbackMenu />
           <SettingsMenu />
         </motion.div>

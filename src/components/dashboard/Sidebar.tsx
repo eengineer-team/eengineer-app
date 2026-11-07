@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle, Settings, LogOut, X, PanelLeftClose, PanelLeftOpen, Rocket, ShieldCheck, Trophy, UserPlus, Sparkles } from 'lucide-react'
+import { Home, Users, Briefcase, UserCircle, CalendarDays, MessageSquare, HelpCircle, Settings, LogOut, X, PanelLeftClose, PanelLeftOpen, Rocket, ShieldCheck, Trophy, UserPlus, Sparkles, Atom } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '@/lib/auth-context'
 import { useProfiles } from '@/lib/profiles-context'
@@ -21,6 +21,8 @@ interface NavItem {
   label: string
   icon: typeof Home
   action: Action
+  /** A separate app on the same domain (e.g. /physics): needs a full page load, not a router link. */
+  external?: boolean
 }
 
 // Community listed first among sections (after Home) — spec: highest-priority product surface.
@@ -31,6 +33,8 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard/contests', label: 'Contests', icon: Trophy, action: 'contests:view' },
   { to: '/dashboard/projects', label: 'Projects', icon: Rocket, action: 'projects:view' },
   { to: '/dashboard/prompt-lab', label: 'Prompt Lab', icon: Sparkles, action: 'prompt-lab:view' },
+  // Physics prep is its own app (physics-prep/), served at /physics by the same deploy.
+  { to: '/physics', label: 'Physics Prep', icon: Atom, action: 'dashboard:home:view', external: true },
   { to: '/dashboard/opportunities', label: 'Opportunities', icon: Briefcase, action: 'opportunities:view' },
   { to: '/dashboard/profiles', label: 'Profiles', icon: UserCircle, action: 'profiles:view' },
   { to: '/dashboard/connections', label: 'Connections', icon: UserPlus, action: 'community:network:connect' },
@@ -126,6 +130,16 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               // someone actually needs to act on, not an unread/activity
               // count like the notifications bell.
               const pendingCount = item.to === '/dashboard/connections' ? incomingRequests.length : 0
+              if (item.external) {
+                return (
+                  <Tooltip key={item.to} label={item.label} disabled={!collapsed} className="md:block">
+                    <a href={item.to} className={navItemClass({ isActive: false })}>
+                      <Icon size={19} strokeWidth={1.8} className="flex-shrink-0" />
+                      <span className={cn('flex-1', collapsed && 'md:hidden')}>{item.label}</span>
+                    </a>
+                  </Tooltip>
+                )
+              }
               return (
                 <Tooltip key={item.to} label={item.label} disabled={!collapsed} className="md:block">
                   <NavLink to={item.to} end={item.end} onClick={onClose} className={navItemClass}>
