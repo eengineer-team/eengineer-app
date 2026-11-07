@@ -108,7 +108,7 @@ export function PromptDetail({ prompt, open, onClose }: PromptDetailProps) {
 
             {prompt.when_to_use && (
               <p className="font-sans text-xs sm:text-[0.8125rem] text-dark-muted/90 leading-relaxed mt-1">
-                <span className="text-gold-dark font-medium mr-1.5">Когда использовать:</span>
+                <span className="text-gold-dark font-medium mr-1.5">When to use:</span>
                 {prompt.when_to_use}
               </p>
             )}
