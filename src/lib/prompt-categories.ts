@@ -114,7 +114,7 @@ export interface CategoryTabItem {
 }
 
 export const CATEGORY_TABS: CategoryTabItem[] = [
-  { slug: 'all', label: 'Все' },
+  { slug: 'all', label: 'All' },
   ...VISIBLE_CATEGORIES.map((c) => ({
     slug: c.slug,
     label: c.label,

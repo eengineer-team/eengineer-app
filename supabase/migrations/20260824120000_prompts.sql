@@ -1,149 +1,146 @@
--- ==========================================
--- Prompt Lab: Migration & 50 Seed Prompts
--- ==========================================
+-- Migration: 20260824120000_prompts.sql
+-- Prompt Lab schema: categories, prompts, variables, telemetry, and community submissions.
 
--- 1. Prompt Categories
-create table if not exists prompt_categories (
-  id uuid primary key default gen_random_uuid(),
-  slug text unique not null,
-  label text not null,
-  icon_emoji text,
-  sort_order int not null default 0,
-  is_visible boolean not null default true,
-  created_at timestamptz not null default now()
+-- 1. Create prompt_categories table
+CREATE TABLE IF NOT EXISTS public.prompt_categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT UNIQUE NOT NULL,
+  label TEXT NOT NULL,
+  icon_emoji TEXT,
+  sort_order INT NOT NULL DEFAULT 0,
+  is_visible BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 2. Prompts
-create table if not exists prompts (
-  id uuid primary key default gen_random_uuid(),
-  category_id uuid not null references prompt_categories(id) on delete cascade,
-  slug text unique not null,
-  title text not null,
-  difficulty text not null check (difficulty in ('starter', 'intermediate', 'advanced')),
-  tools text[] not null default '{}',
-  prompt_text text not null,
-  when_to_use text,
-  why_it_works text,
-  pro_tips text,
-  sort_order int not null default 0,
-  is_active boolean not null default true,
-  is_featurable boolean not null default true,
-  featured_date date,
-  published_at timestamptz not null default now(),
-  author_type text not null default 'team' check (author_type in ('team', 'community')),
-  author_name text,
-  pack_slug text,
-  created_at timestamptz not null default now()
+-- 2. Create prompts table
+CREATE TABLE IF NOT EXISTS public.prompts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  category_id UUID NOT NULL REFERENCES public.prompt_categories(id) ON DELETE CASCADE,
+  slug TEXT UNIQUE NOT NULL,
+  title TEXT NOT NULL,
+  difficulty TEXT NOT NULL CHECK (difficulty IN ('starter', 'intermediate', 'advanced')),
+  tools TEXT[] NOT NULL DEFAULT '{}',
+  prompt_text TEXT NOT NULL,
+  when_to_use TEXT,
+  why_it_works TEXT,
+  pro_tips TEXT,
+  sort_order INT NOT NULL DEFAULT 0,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  is_featurable BOOLEAN NOT NULL DEFAULT true,
+  featured_date DATE,
+  published_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  author_type TEXT NOT NULL DEFAULT 'team' CHECK (author_type IN ('team', 'community')),
+  author_name TEXT,
+  pack_slug TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 3. Prompt Variables
-create table if not exists prompt_variables (
-  id uuid primary key default gen_random_uuid(),
-  prompt_id uuid not null references prompts(id) on delete cascade,
-  name text not null,
-  description text not null,
-  is_multiline boolean not null default false,
-  sort_order int not null default 0,
-  unique (prompt_id, name)
+-- 3. Create prompt_variables table
+CREATE TABLE IF NOT EXISTS public.prompt_variables (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  prompt_id UUID NOT NULL REFERENCES public.prompts(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL,
+  is_multiline BOOLEAN NOT NULL DEFAULT false,
+  sort_order INT NOT NULL DEFAULT 0,
+  UNIQUE(prompt_id, name)
 );
 
--- 4. Prompt Usage Stats
-create table if not exists prompt_usage_stats (
-  id uuid primary key default gen_random_uuid(),
-  prompt_id uuid not null references prompts(id) on delete cascade,
-  profile_id uuid references profiles(id) on delete set null,
-  action text not null check (action in ('copy', 'view')),
-  created_at timestamptz not null default now()
+-- 4. Create prompt_usage_stats table
+CREATE TABLE IF NOT EXISTS public.prompt_usage_stats (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  prompt_id UUID NOT NULL REFERENCES public.prompts(id) ON DELETE CASCADE,
+  profile_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  action TEXT NOT NULL CHECK (action IN ('copy', 'view')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 5. Prompt Submissions (Community)
-create table if not exists prompt_submissions (
-  id uuid primary key default gen_random_uuid(),
-  profile_id uuid not null references profiles(id) on delete cascade,
-  title text not null,
-  category_slug text not null,
-  prompt_text text not null,
-  variables jsonb not null default '[]',
-  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
-  reviewer_notes text,
-  created_at timestamptz not null default now()
+-- 5. Create prompt_submissions table
+CREATE TABLE IF NOT EXISTS public.prompt_submissions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  profile_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  category_slug TEXT NOT NULL,
+  prompt_text TEXT NOT NULL,
+  variables JSONB NOT NULL DEFAULT '[]'::jsonb,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  reviewer_notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_prompts_category ON public.prompts(category_id);
+CREATE INDEX IF NOT EXISTS idx_prompts_slug ON public.prompts(slug);
+CREATE INDEX IF NOT EXISTS idx_prompts_sort_order ON public.prompts(sort_order);
+CREATE INDEX IF NOT EXISTS idx_prompt_vars_prompt ON public.prompt_variables(prompt_id);
+CREATE INDEX IF NOT EXISTS idx_prompt_usage_prompt ON public.prompt_usage_stats(prompt_id);
+CREATE INDEX IF NOT EXISTS idx_prompt_submissions_profile ON public.prompt_submissions(profile_id);
 
 -- Enable RLS
-alter table prompt_categories enable row level security;
-alter table prompts enable row level security;
-alter table prompt_variables enable row level security;
-alter table prompt_usage_stats enable row level security;
-alter table prompt_submissions enable row level security;
+ALTER TABLE public.prompt_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.prompts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.prompt_variables ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.prompt_usage_stats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.prompt_submissions ENABLE ROW LEVEL SECURITY;
 
--- Policies
-drop policy if exists prompt_categories_select_all on prompt_categories;
-create policy prompt_categories_select_all on prompt_categories for select using (true);
+-- Policies: Prompt categories (Public Read)
+DROP POLICY IF EXISTS "prompt_categories_select" ON public.prompt_categories;
+CREATE POLICY "prompt_categories_select" ON public.prompt_categories
+  FOR SELECT USING (true);
 
-drop policy if exists prompts_select_all on prompts;
-create policy prompts_select_all on prompts for select using (is_active = true);
+-- Policies: Prompts (Public Read for active)
+DROP POLICY IF EXISTS "prompts_select" ON public.prompts;
+CREATE POLICY "prompts_select" ON public.prompts
+  FOR SELECT USING (is_active = true);
 
-drop policy if exists prompt_variables_select_all on prompt_variables;
-create policy prompt_variables_select_all on prompt_variables for select using (true);
+-- Policies: Prompt Variables (Public Read)
+DROP POLICY IF EXISTS "prompt_variables_select" ON public.prompt_variables;
+CREATE POLICY "prompt_variables_select" ON public.prompt_variables
+  FOR SELECT USING (true);
 
-drop policy if exists prompt_usage_stats_insert on prompt_usage_stats;
-create policy prompt_usage_stats_insert on prompt_usage_stats for insert with check (true);
+-- Policies: Usage Stats (Insert authenticated, Read own)
+DROP POLICY IF EXISTS "prompt_usage_stats_insert" ON public.prompt_usage_stats;
+CREATE POLICY "prompt_usage_stats_insert" ON public.prompt_usage_stats
+  FOR INSERT WITH CHECK (true);
 
-drop policy if exists prompt_submissions_insert_own on prompt_submissions;
-create policy prompt_submissions_insert_own on prompt_submissions for insert with check (profile_id = auth.uid());
+DROP POLICY IF EXISTS "prompt_usage_stats_select" ON public.prompt_usage_stats;
+CREATE POLICY "prompt_usage_stats_select" ON public.prompt_usage_stats
+  FOR SELECT USING (auth.uid() = profile_id);
 
-drop policy if exists prompt_submissions_select_own on prompt_submissions;
-create policy prompt_submissions_select_own on prompt_submissions for select using (profile_id = auth.uid());
+-- Policies: Submissions
+DROP POLICY IF EXISTS "prompt_submissions_select_own" ON public.prompt_submissions;
+CREATE POLICY "prompt_submissions_select_own" ON public.prompt_submissions
+  FOR SELECT USING (auth.uid() = profile_id);
 
--- Indices
-create index if not exists idx_prompts_category on prompts(category_id);
-create index if not exists idx_prompts_slug on prompts(slug);
-create index if not exists idx_prompts_published on prompts(published_at desc);
-create index if not exists idx_prompts_featured on prompts(featured_date) where featured_date is not null;
-create index if not exists idx_prompt_variables_prompt on prompt_variables(prompt_id);
-create index if not exists idx_prompt_usage_stats_prompt on prompt_usage_stats(prompt_id);
+DROP POLICY IF EXISTS "prompt_submissions_insert_auth" ON public.prompt_submissions;
+CREATE POLICY "prompt_submissions_insert_auth" ON public.prompt_submissions
+  FOR INSERT WITH CHECK (auth.uid() = profile_id);
 
--- Insert Base Categories
-insert into prompt_categories (slug, label, icon_emoji, sort_order, is_visible)
-values
-  ('chatbot', 'AI Chatbot', '🤖', 1, true),
-  ('agent', 'AI Agent', '🕹️', 2, true),
-  ('cowork', 'Cowork AI', '🤝', 3, true),
-  ('error-clinic', 'Error Clinic', '🔧', 4, true),
-  ('design', 'Design AI', '🎨', 5, false)
-on conflict (slug) do update set
-  label = excluded.label,
-  sort_order = excluded.sort_order,
-  is_visible = excluded.is_visible;
+-- Seed Categories
+INSERT INTO public.prompt_categories (id, slug, label, icon_emoji, sort_order, is_visible)
+VALUES
+  ('c1111111-1111-1111-1111-111111111111', 'chatbot', 'AI Chatbot', '🤖', 1, true),
+  ('c2222222-2222-2222-2222-222222222222', 'agent', 'AI Agent', '🕹️', 2, true),
+  ('c3333333-3333-3333-3333-333333333333', 'cowork', 'Cowork AI', '🤝', 3, true),
+  ('c4444444-4444-4444-4444-444444444444', 'error-clinic', 'Error Clinic', '🔧', 4, true),
+  ('c5555555-5555-5555-5555-555555555555', 'design', 'Design AI', '🎨', 5, false)
+ON CONFLICT (slug) DO UPDATE SET
+  label = EXCLUDED.label,
+  icon_emoji = EXCLUDED.icon_emoji,
+  sort_order = EXCLUDED.sort_order,
+  is_visible = EXCLUDED.is_visible;
 
--- Insert 50 Seed Prompts
 
--- ----------------------------------------------------------------------------
 -- Prompt 1: blind-spot-finder
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c1111111-1111-1111-1111-111111111111',
   'blind-spot-finder',
-  'Поиск скрытых багов перед запуском» (The Production Blind Spot Finder)',
+  'Production Blind Spot Finder',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o","o3-mini","Gemini 2.5 Pro"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o','o3-mini','Gemini 2.5 Pro']::TEXT[],
   'I wrote this code and it passes my local unit tests. That is the problem — local environments lie. I need you to act as an adversarial Staff Reliability & Security Engineer and find the failure modes that only manifest in production.
 
 DO NOT:
@@ -172,81 +169,66 @@ Code under audit:
 Operational context:
 - Concurrency: {{CONCURRENCY_LEVEL}} (e.g. 5,000 req/sec, multi-tenant background worker)
 - Persistence: {{PERSISTENCE_LAYER}} (e.g. Postgres with Read-Replicas, DynamoDB, In-Memory Redis)',
-  'Используйте, когда ваш код работает на компьютере, но вы боитесь запускать его на реальных пользователях. Промпт заставит нейросеть найти race conditions, утечки памяти и падения под нагрузкой.',
-  'Модели по умолчанию скатываются в поверхностный style-review. Фрейминг «Local environments lie» + явный запрет косметических правок + требование конкретного воспроизводимого сценария отказа (Failure Scenario) заставляют модель моделировать runtime-поведение системы.',
-  'При аудите многопоточного кода или асинхронных очередей ставьте температуру 0.1–0.2. Для reasoning-моделей (o3-mini, DeepSeek-R1) этот промпт инициирует построение деревьев состояний (state-space exploration) в блоке скрытого рассуждения.',
+  'Use when your code passes local tests, but you want to uncover hidden edge cases, race conditions, memory leaks, and failure modes under high production load before shipping.',
+  'Overrides standard LLM bias toward superficial style reviews. Negative constraints combined with adversarial failure scenarios force the model to simulate runtime execution environments.',
+  'Set temperature to 0.1-0.2 for concurrency audits. When using reasoning models (o3-mini, DeepSeek-R1), this prompt triggers deep state-space exploration.',
   1,
   true,
   true,
-  '2026-08-25'::date,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'chatbot'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'LANGUAGE', 'Язык и фреймворк (например: TypeScript / Node.js 22, Go 1.24, Python FastAPI)', false, 1
-from prompts where slug = 'blind-spot-finder'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CODE', 'Исходный код для глубокого аудита (вставьте полностью)', true, 2
-from prompts where slug = 'blind-spot-finder'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CONCURRENCY_LEVEL', 'Нагрузка (например: 2000 req/sec, 50 одновременных воркеров)', false, 3
-from prompts where slug = 'blind-spot-finder'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'PERSISTENCE_LAYER', 'База данных и кэш (например: PostgreSQL 16 + Redis + Prisma)', false, 4
-from prompts where slug = 'blind-spot-finder'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'LANGUAGE', 'Language and framework (e.g. TypeScript / Node.js 22, Go 1.24, Python FastAPI)', false, 1
+FROM public.prompts WHERE slug = 'blind-spot-finder'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CODE', 'Source code under audit (paste full block)', true, 2
+FROM public.prompts WHERE slug = 'blind-spot-finder'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CONCURRENCY_LEVEL', 'Operational load (e.g. 5,000 req/sec, 50 concurrent background workers)', false, 3
+FROM public.prompts WHERE slug = 'blind-spot-finder'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'PERSISTENCE_LAYER', 'Database and caching stack (e.g. PostgreSQL 16 + Redis + Prisma)', false, 4
+FROM public.prompts WHERE slug = 'blind-spot-finder'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 2: postgres-schema-optimizer
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c1111111-1111-1111-1111-111111111111',
   'postgres-schema-optimizer',
-  'Архитектор схемы и ускорения базы PostgreSQL» (The PostgreSQL Schema & Query Optimizer)',
+  'PostgreSQL Schema & Query Optimizer',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o","Gemini 2.5 Pro"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o','Gemini 2.5 Pro']::TEXT[],
   'You are a Principal PostgreSQL Database Architect and Performance Engineer. Design or optimize a PostgreSQL schema and query strategy for the domain described below.
 
 REQUIREMENTS & CONSTRAINTS:
@@ -269,74 +251,58 @@ OUTPUT FORMAT:
 1. DDL (CREATE TABLE, CONSTRAINTS, INDEXES) with explicit data types (prefer timestamptz, uuidv7 or bigint, proper numeric scale/precision, non-nullable columns where invariant).
 2. Query Plan Analysis: For each critical query, explain how Postgres will execute it (Index Scan vs Bitmap Index Scan) and why sequential scans are structurally prevented.
 3. Concurrency & Lock Analysis: Highlight any risk of deadlocks on concurrent writes and specify transaction isolation level recommendations (e.g. Read Committed vs Serializable).',
-  'Используйте при создании таблиц или когда запросы в базе данных начинают тормозить. Промпт спроектирует идеальные индексы, связи и проверит блокировки при миллионах строк.',
-  'Большинство инженеров получают от ИИ примитивные таблицы без учета MVCC, partial indexing и deadlock patterns. Промпт требует четкого сопоставления индексов с предикатами запросов и анализа блокировок на уровне PostgreSQL.',
-  'Для проектов на Supabase укажите в описании наличие RLS-политик, чтобы модель сгенерировала индексы под auth.uid() фильтры.',
+  'Use when designing new database schemas or optimizing slow SQL queries for high-throughput transactional and analytical workloads.',
+  'Forces database-level relational invariant enforcement and explicit query plan execution modeling, structurally preventing sequential scans and table bloat.',
+  'Supply realistic row count estimates and explain plans. Ideal with Claude 3.7 Sonnet for complex multi-table DDL.',
   2,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'chatbot'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'DOMAIN_DESCRIPTION', 'Описание сущностей, связей (1:N, M:N) и бизнес-правил', false, 1
-from prompts where slug = 'postgres-schema-optimizer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CRITICAL_QUERIES', '2-3 главных SQL запроса, которые должны работать мгновенно', false, 2
-from prompts where slug = 'postgres-schema-optimizer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'EXPECTED_ROW_COUNT', 'Ожидаемый объем данных (например: 50,000,000 строк за год)', false, 3
-from prompts where slug = 'postgres-schema-optimizer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'DOMAIN_DESCRIPTION', 'Domain entity requirements, relationships, and invariants', false, 1
+FROM public.prompts WHERE slug = 'postgres-schema-optimizer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CRITICAL_QUERIES', 'Top critical queries requiring sub-millisecond p99 latency', false, 2
+FROM public.prompts WHERE slug = 'postgres-schema-optimizer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'EXPECTED_ROW_COUNT', 'Expected data scale (e.g. 50,000,000 rows across 3 years)', false, 3
+FROM public.prompts WHERE slug = 'postgres-schema-optimizer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 3: distributed-resilience-architect
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c1111111-1111-1111-1111-111111111111',
   'distributed-resilience-architect',
-  'Аудит отказоустойчивости распределенной системы» (The Distributed Systems Resilience Architect)',
+  'Distributed Systems Resilience Architect',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o","o3-mini"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o','o3-mini']::TEXT[],
   'Evaluate this system architecture as a Distributed Systems Reliability Lead. Your goal is to systematically identify where network partitions, cascading failures, retry storms, and split-brain scenarios will bring this service down.
 
 ARCHITECTURE SPECIFICATION:
@@ -355,67 +321,50 @@ SYSTEMATIC AUDIT CHECKLIST:
 DELIVERABLE:
 - 📊 Single Point of Failure (SPOF) Matrix: Component | Failure Mode | Blast Radius | Mitigation
 - 🛡️ Resilience Architecture Patches: Concrete changes (Rate Limiting algorithms, Circuit Breakers with half-open states, Dead Letter Queues, Saga / Outbox patterns) needed before launch.',
-  'Используйте, когда ваш бэкенд общается с несколькими сервисами, платежками или очередями сообщений. Промпт покажет, что произойдет при падении сети или зависании стороннего API.',
-  'Предотвращает типичную ошибку ''happy path architecture'', заставляя LLM моделировать деградацию соединений и штормы повторных запросов (retry storms).',
-  'Укажите в описании SLA сторонних сервисов (например, Stripe или OpenAI API), чтобы модель рассчитала таймауты circuit breaker.',
+  'Use when architecting microservices or background queues to ensure graceful degradation, idempotency, and partition tolerance during outages.',
+  'Models network partitions, cascading timeouts, and out-of-order delivery explicitly, eliminating single points of failure.',
+  'Provide specific SLAs and downstream dependency failure rates for tailored circuit breaker configurations.',
   3,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'chatbot'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'COMMUNICATION_PROTOCOL', 'Протоколы связи (например: REST + WebSockets + Stripe Webhooks)', false, 1
-from prompts where slug = 'distributed-resilience-architect'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'TOPOLOGY_DESCRIPTION', 'Сервисы, базы, очереди, кэш и внешние интеграции', false, 2
-from prompts where slug = 'distributed-resilience-architect'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'COMMUNICATION_PROTOCOL', 'Communication protocol (paste details)', false, 1
+FROM public.prompts WHERE slug = 'distributed-resilience-architect'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'TOPOLOGY_DESCRIPTION', 'Topology description (paste details)', false, 2
+FROM public.prompts WHERE slug = 'distributed-resilience-architect'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 4: memory-leak-detective
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c1111111-1111-1111-1111-111111111111',
   'memory-leak-detective',
-  'Поиск утечек памяти и зависаний в коде» (The Memory Leak & Heap Detective)',
+  'Memory Leak & Heap Detective',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o","Gemini 2.5 Pro"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o','Gemini 2.5 Pro']::TEXT[],
   'Act as a Principal Systems Performance Engineer specializing in Garbage Collection internals, heap layout, and memory lifecycle analysis. Audit the provided code for memory retention bugs, uncollected objects, and unbounded heap growth.
 
 DO NOT:
@@ -439,74 +388,58 @@ Code under review:
 {{CODE}}
 ```
 Runtime environment: {{RUNTIME_ENV}} (e.g. Node.js 22 LTS on 512MB RAM Docker container, Browser SPA long-lived session)',
-  'Используйте, когда сервер или приложение со временем начинает потреблять все больше оперативной памяти (RAM) и в итоге падает с ошибкой Out Of Memory.',
-  'Обычный AI не умеет строить цепочки GC Root retention. Промпт заставляет восстановить граф ссылок от GC Root до объекта и выявить утечку замыкания.',
-  'Если у вас есть лог heap snapshot или график роста памяти в МБ/мин — приложите его в поле окружения.',
+  'Use when diagnosing rising memory consumption, uncollected closures, dangling event listeners, or GC pressure in long-running processes.',
+  'Applies heap allocation lifecycle analysis and reference graph tracing to identify retained object hierarchies.',
+  'Include heap snapshots or allocation timelines alongside the code for surgical root cause identification.',
   4,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'chatbot'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'LANGUAGE', 'Язык (TypeScript / Node.js, Go, Python, Java)', false, 1
-from prompts where slug = 'memory-leak-detective'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CODE', 'Подозрительный код сервиса или модуля', true, 2
-from prompts where slug = 'memory-leak-detective'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'RUNTIME_ENV', 'Среда выполнения (например: Node.js на AWS Lambda с 256MB RAM)', false, 3
-from prompts where slug = 'memory-leak-detective'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'LANGUAGE', 'Language (paste details)', false, 1
+FROM public.prompts WHERE slug = 'memory-leak-detective'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CODE', 'Suspicious codebase or module handling state/events', true, 2
+FROM public.prompts WHERE slug = 'memory-leak-detective'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'RUNTIME_ENV', 'Runtime env (paste details)', false, 3
+FROM public.prompts WHERE slug = 'memory-leak-detective'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 5: high-throughput-api-designer
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c1111111-1111-1111-1111-111111111111',
   'high-throughput-api-designer',
-  'Проектирование высоконагруженного API (High-QPS)» (The High-Throughput API Contract Designer)',
+  'High-Throughput API Contract Designer',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o","Gemini 2.5 Pro"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o','Gemini 2.5 Pro']::TEXT[],
   'You are a Principal API Architect at a tier-1 technology company. Design an enterprise-grade, high-throughput API contract and execution model for the business capability described below.
 
 REQUIREMENTS & ARCHITECTURAL INVARIANTS:
@@ -526,67 +459,50 @@ DELIVERABLE:
 1. OpenAPI 3.1 / TypeScript Interface Definition with exact HTTP verbs, status codes, headers, and request/response schemas.
 2. Server-side State Transition & Idempotency Flow Diagram (Mermaid or step-by-step sequence).
 3. Edge Case Matrix: Handling duplicate in-flight requests, concurrent conflicting updates, and partial batch failures.',
-  'Используйте для создания публичного или внутреннего API, который выдержит миллионы запросов, повторные клики пользователей (idempotency) и не уронит базу данных.',
-  'Предотвращает создание ''наивных REST CRUD'' эндпоинтов, заставляя заложить idempotency keys, ETag optimistic locking и курсорную пагинацию до написания кода.',
-  'Используйте для проектирования Stripe-like платежных интерфейсов или систем бронирования билетов.',
+  'Use when designing high-QPS REST/gRPC interfaces that require strict rate-limiting, idempotency, and minimal serialization overhead.',
+  'Enforces API contract best practices including pagination cursor invariants, binary protocols, and backward compatibility.',
+  'Specify client types (mobile, frontend SPA, backend workers) to tailor caching headers and payload compression.',
   5,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'chatbot'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'FEATURE_REQUIREMENTS', 'Что должен делать API (например: списание баланса, создание заказа, загрузка файлов)', false, 1
-from prompts where slug = 'high-throughput-api-designer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'REQUEST_RATE', 'Ожидаемый RPS/QPS и требования к задержке (например: 5,000 req/sec, p99 < 50ms)', false, 2
-from prompts where slug = 'high-throughput-api-designer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'FEATURE_REQUIREMENTS', 'Feature requirements (paste details)', false, 1
+FROM public.prompts WHERE slug = 'high-throughput-api-designer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'REQUEST_RATE', 'Request rate (paste details)', false, 2
+FROM public.prompts WHERE slug = 'high-throughput-api-designer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 6: zero-trust-auth-auditor
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c1111111-1111-1111-1111-111111111111',
   'zero-trust-auth-auditor',
-  'Аудит безопасности и защита авторизации (Zero-Trust)» (The Zero-Trust Auth & Security Auditor)',
+  'Zero-Trust Auth & Security Auditor',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o","o3-mini"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o','o3-mini']::TEXT[],
   'Act as a Lead Application Security Architect and Penetration Tester. Audit the authentication, authorization, and tenant isolation implementation below for critical security vulnerabilities.
 
 AUDIT RIGOROUSLY FOR:
@@ -609,74 +525,58 @@ Auth & Data Flow under audit:
 ```
 User Role Hierarchy & Multi-Tenancy Model:
 {{ROLE_MODEL}}',
-  'Используйте для проверки входа, токенов (JWT), прав пользователей (RBAC) и защиты от взлома (IDOR, подделка токенов, кража чужих данных).',
-  'AI обычно проверяет только наличие проверки токена. Промпт заставляет тестировать BOLA/IDOR — самую частую дыру в SaaS, когда юзер меняет userId в запросе.',
-  'Обязательно включите в код запросы к базе данных (Prisma, Supabase, TypeORM), чтобы модель проверила фильтрацию по tenant_id.',
+  'Use when reviewing authentication and authorization flows (OAuth2, JWT, RBAC/ABAC, Session Management) for vulnerability vectors.',
+  'Employs an adversarial security mindset to uncover broken object-level authorization (BOLA), token hijacking, and replay vulnerabilities.',
+  'Test multi-tenant isolation scenarios specifically by providing cross-tenant IDs in test cases.',
   6,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'chatbot'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'LANGUAGE', 'Язык (TypeScript / Next.js, Python Django, Go Gin)', false, 1
-from prompts where slug = 'zero-trust-auth-auditor'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'AUTH_CODE', 'Код middleware, проверки токенов, эндпоинтов и запросов к БД', true, 2
-from prompts where slug = 'zero-trust-auth-auditor'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'ROLE_MODEL', 'Роли в системе (например: User, Manager, Admin, SuperAdmin, Multi-tenant orgs)', false, 3
-from prompts where slug = 'zero-trust-auth-auditor'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'LANGUAGE', 'Language (paste details)', false, 1
+FROM public.prompts WHERE slug = 'zero-trust-auth-auditor'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'AUTH_CODE', 'Auth code (paste details)', true, 2
+FROM public.prompts WHERE slug = 'zero-trust-auth-auditor'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'ROLE_MODEL', 'Role model (paste details)', false, 3
+FROM public.prompts WHERE slug = 'zero-trust-auth-auditor'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 7: redis-caching-optimizer
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c1111111-1111-1111-1111-111111111111',
   'redis-caching-optimizer',
-  'Архитектор стратегии кэширования в Redis» (The Redis Caching Strategy Optimizer)',
+  'Redis Caching Strategy Optimizer',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o']::TEXT[],
   'You are a Principal Caching & In-Memory Storage Architect. Design an optimal Redis caching and invalidation strategy for the application workload described below.
 
 REQUIREMENTS & PITFALL PREVENTION:
@@ -696,67 +596,50 @@ DELIVERABLE:
 1. Cache Key Schema & Data Structure Blueprint (Key format, Redis data type, TTL strategy).
 2. Read & Write Flow Code (Production-ready implementation with thundering herd protection).
 3. Invalidation & Eviction Topology (Pub/Sub, CDC with Debezium, or transactional application hooks).',
-  'Используйте, когда база данных перегружена, а вы хотите внедрить Redis/кэш, не сломав актуальность данных и не получив проблему ''старого кэша'' (stale data).',
-  '90% разработчиков просто сохраняют JSON в SET key json EX 60. Промпт предотвращает thundering herd и подбирает компактные структуры данных Redis.',
-  'Укажите объем доступной оперативной памяти Redis сервера, чтобы получить рекомендации по maxmemory-policy.',
+  'Use when designing caching layers to prevent cache stampedes, hotkey degradation, stale state, and memory exhaustion.',
+  'Applies data structure selection (Sets, Hashes, HyperLogLog, Streams) and eviction policies tailored to access distributions.',
+  'Specify read-to-write ratios and whether cache invalidation or TTL-based expiry is preferred.',
   7,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'chatbot'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'WORKLOAD_DESCRIPTION', 'Какие данные кэшируются, соотношение Read/Write, частота обновлений', false, 1
-from prompts where slug = 'redis-caching-optimizer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CONSISTENCY_REQUIREMENT', 'Допустима ли задержка обновления (например: строго свежие данные или задержка до 5 сек)', false, 2
-from prompts where slug = 'redis-caching-optimizer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'WORKLOAD_DESCRIPTION', 'Workload description (paste details)', false, 1
+FROM public.prompts WHERE slug = 'redis-caching-optimizer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CONSISTENCY_REQUIREMENT', 'Consistency requirement (paste details)', false, 2
+FROM public.prompts WHERE slug = 'redis-caching-optimizer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 8: concurrency-race-hunter
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c1111111-1111-1111-1111-111111111111',
   'concurrency-race-hunter',
-  'Охотник за гонками состояний и дедлоками (Concurrency)» (The Concurrency & Race Condition Hunter)',
+  'Concurrency & Race Condition Hunter',
   'intermediate',
-  '{"Claude 3.7 Sonnet","o3-mini","GPT-4o"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','o3-mini','GPT-4o']::TEXT[],
   'You are an expert Concurrency & Multithreading Systems Engineer. Audit the following multithreaded / asynchronous code for race conditions, non-atomic mutations, memory visibility bugs, and deadlocks.
 
 STRICT AUDIT RULES:
@@ -775,74 +658,58 @@ Code to audit:
 {{CONCURRENT_CODE}}
 ```
 Concurrency Model: {{CONCURRENCY_MODEL}} (e.g. Go goroutines with channels, Node.js event loop with Promise.all, Java Virtual Threads)',
-  'Используйте для поиска багов, которые происходят случайно — когда два пользователя одновременно нажимают кнопку или фоновые задачи пересекаются друг с другом.',
-  'Требование построить пошаговый таймлайн чередования потоков (T0, T1, T2) активирует симуляцию runtime памяти в reasoning моделях.',
-  'Идеально подходит для проверки логики списания денег, инкремента счетчиков просмотров и систем очередей.',
+  'Use when writing multithreaded, async/await, or distributed locking routines where race conditions and deadlocks can corrupt state.',
+  'Exhaustively maps asynchronous execution interleavings and verifies atomic guarantees across shared memory boundaries.',
+  'Provide the exact async primitives and synchronization locks used in your implementation.',
   8,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'chatbot'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'LANGUAGE', 'Язык (Go, TypeScript / Node.js, Rust, Python asyncio, Java)', false, 1
-from prompts where slug = 'concurrency-race-hunter'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CONCURRENT_CODE', 'Код с параллельными задачами, промисами или мьютексами', true, 2
-from prompts where slug = 'concurrency-race-hunter'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CONCURRENCY_MODEL', 'Модель параллелизма (например: 100 воркеров читают одну очередь Kafka)', false, 3
-from prompts where slug = 'concurrency-race-hunter'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'LANGUAGE', 'Language (paste details)', false, 1
+FROM public.prompts WHERE slug = 'concurrency-race-hunter'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CONCURRENT_CODE', 'Critical code block mutating shared state', true, 2
+FROM public.prompts WHERE slug = 'concurrency-race-hunter'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CONCURRENCY_MODEL', 'Concurrency model (paste details)', false, 3
+FROM public.prompts WHERE slug = 'concurrency-race-hunter'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 9: owasp-pentest-reviewer
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c1111111-1111-1111-1111-111111111111',
   'owasp-pentest-reviewer',
-  'Пентест и аудит уязвимостей API (OWASP Top 10)» (The OWASP Top 10 & API Pentest Reviewer)',
+  'OWASP Top 10 & API Pentest Reviewer',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o","o3-mini"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o','o3-mini']::TEXT[],
   'Act as a Principal White-Hat Penetration Tester and Offensive Security Auditor. Conduct an aggressive, adversarial vulnerability assessment of the provided API handlers and business logic.
 
 EXAMINE METHODICALLY FOR OWASP API TOP 10:
@@ -862,67 +729,50 @@ API Endpoints under audit:
 ```{{LANGUAGE}}
 {{API_CODE}}
 ```',
-  'Используйте перед релизом бэкенда. Промпт атакует ваш API как белый хакер и проверит защиту от инъекций, утечек данных, SSRF и подделки параметров.',
-  'Промпт требует сгенерировать готовые curl-команды для взлома. Это отсекает теоретические рассуждения и заставляет искать реальные векторы атак.',
-  'Если API принимает загрузку файлов или URL для скачивания — обязательно добавьте эти хэндлеры в код.',
+  'Use to run an automated penetration test and security review against the latest OWASP API Security Top 10 vectors.',
+  'Systematically tests injection, broken authorization, SSRF, mass assignment, and unvalidated redirects.',
+  'Pass both the route handler and input validation schemas to assess full boundary defenses.',
   9,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'chatbot'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'LANGUAGE', 'Язык и фреймворк (Node.js Express/NestJS, Python FastAPI, Go Fiber)', false, 1
-from prompts where slug = 'owasp-pentest-reviewer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'API_CODE', 'Код контроллеров, роутов и валидации входящих данных', true, 2
-from prompts where slug = 'owasp-pentest-reviewer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'LANGUAGE', 'Language (paste details)', false, 1
+FROM public.prompts WHERE slug = 'owasp-pentest-reviewer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'API_CODE', 'Api code (paste details)', true, 2
+FROM public.prompts WHERE slug = 'owasp-pentest-reviewer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 10: graphql-schema-n1-solver
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c1111111-1111-1111-1111-111111111111',
   'graphql-schema-n1-solver',
-  'Архитектор GraphQL схемы и решение проблемы N+1» (The GraphQL Schema & N+1 Problem Solver)',
+  'GraphQL Schema & N+1 Problem Solver',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o']::TEXT[],
   'You are a Principal GraphQL Architect. Design a production-grade GraphQL schema and resolver architecture for the domain described below, strictly eliminating N+1 query cascades and query depth DOS vulnerabilities.
 
 REQUIREMENTS:
@@ -940,60 +790,42 @@ DELIVERABLE:
 1. Complete GraphQL SDL Schema with types, queries, mutations, and subscriptions.
 2. Resolver Implementation with DataLoader batching for all relational fields (TypeScript / Node.js).
 3. Security Configuration (Query complexity, depth limits, and rate limiting rules).',
-  'Используйте для проектирования GraphQL API, чтобы клиенты могли запрашивать любые вложенные данные без зависаний сервера и сотен лишних запросов в базу.',
-  'Решает главную беду GraphQL — N+1 запросы в базу данных, когда на каждый элемент списка выполняется отдельный SQL SELECT.',
-  'Используйте с библиотеками Dataloader или Pothos/Nexus.',
+  'Use when building GraphQL APIs to eliminate N+1 query cascades and design clean schema hierarchies with DataLoader.',
+  'Constructs batching and caching resolver architectures, enforcing query depth limits and cost analysis.',
+  'Provide your database relationship graph for optimized batched SQL queries.',
   10,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'chatbot'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'DOMAIN_MODELS', 'Модели данных и связи (например: Пользователи, Посты, Комментарии, Лайки)', false, 1
-from prompts where slug = 'graphql-schema-n1-solver'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'DOMAIN_MODELS', 'Domain models (paste details)', false, 1
+FROM public.prompts WHERE slug = 'graphql-schema-n1-solver'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
 -- Prompt 11: database-scaling-sharding
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c1111111-1111-1111-1111-111111111111',
   'database-scaling-sharding',
-  'Масштабирование БД: Реплики, Шардинг и Партиции» (The Database Read/Write Scaling & Sharding Architect)',
+  'The Database Read/Write Scaling & Sharding Architect',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o","o3-mini"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o','o3-mini']::TEXT[],
   'Act as a Principal Database Reliability Engineer specializing in high-scale data tier architecture. Formulate a scaling, partitioning, and read/write splitting blueprint for the database schema and workload below.
 
 SCALE METRICS:
@@ -1012,81 +844,66 @@ DELIVERABLE:
 - DDL Migration scripts for table partitioning.
 - Application routing architecture for Master vs Replica connections with lag protection.
 - Operational runbook for archiving cold partition data to S3 / Parquet.',
-  'Используйте, когда база данных не справляется с объемом и нужно настроить чтение с Read-Replicas, разбить гигантские таблицы на партиции (Partitioning) или сделать шардинг.',
-  'Предотвращает проблему ''грязного чтения'' после репликации, когда юзер сохраняет профиль, обновляет страницу и видит старые данные из-за replica lag.',
-  'Укажите, какие поля чаще всего используются в WHERE запросах, для идеального выбора Partition Key.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for database scaling sharding.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   11,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'chatbot'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'DATA_SIZE', 'Текущий размер данных (например: 500 GB, 200M строк)', false, 1
-from prompts where slug = 'database-scaling-sharding'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'GROWTH_RATE', 'Скорость роста (например: +10M строк в месяц)', false, 2
-from prompts where slug = 'database-scaling-sharding'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'READ_WRITE_RATIO', 'Соотношение чтения и записи (например: 80% Read / 20% Write)', false, 3
-from prompts where slug = 'database-scaling-sharding'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'DATABASE_ENGINE', 'СУБД (например: PostgreSQL 16 на AWS RDS)', false, 4
-from prompts where slug = 'database-scaling-sharding'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'DATA_SIZE', 'Data size (paste details)', false, 1
+FROM public.prompts WHERE slug = 'database-scaling-sharding'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'GROWTH_RATE', 'Growth rate (paste details)', false, 2
+FROM public.prompts WHERE slug = 'database-scaling-sharding'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'READ_WRITE_RATIO', 'Read write ratio (paste details)', false, 3
+FROM public.prompts WHERE slug = 'database-scaling-sharding'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'DATABASE_ENGINE', 'Database engine (paste details)', false, 4
+FROM public.prompts WHERE slug = 'database-scaling-sharding'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 12: serverless-cold-start-optimizer
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c1111111-1111-1111-1111-111111111111',
   'serverless-cold-start-optimizer',
-  'Оптимизация Serverless: Cold Starts и пулы соединений» (The Serverless Cold Start & Boundary Optimizer)',
+  'The Serverless Cold Start & Boundary Optimizer',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o']::TEXT[],
   'You are a Principal Cloud Architect specializing in Serverless Runtimes (AWS Lambda, Vercel Edge, Cloudflare Workers). Optimize the provided serverless function for minimal cold start latency, connection reuse, and predictable execution boundaries.
 
 ANALYZE & OPTIMIZE FOR:
@@ -1105,74 +922,58 @@ Serverless Code:
 {{FUNCTION_CODE}}
 ```
 Target Platform: {{PLATFORM}} (e.g. Vercel Serverless Node 22, Cloudflare Workers V8, AWS Lambda ARM64)',
-  'Используйте для Vercel Edge, AWS Lambda или Cloudflare Workers, если функции долго стартуют (Cold Start) или исчерпывают лимит подключений к базе данных.',
-  'Серверлесс требует специфических паттернов (инициализация клиентов вне хэндлера, lazy imports). Промпт перестраивает код под жизненный цикл лямбды.',
-  'Для Next.js 15+ укажите nodejs или edge runtime для точной оптимизации бандла.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for serverless cold start optimizer.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   12,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'chatbot'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'LANGUAGE', 'Язык (TypeScript / JavaScript, Python, Go)', false, 1
-from prompts where slug = 'serverless-cold-start-optimizer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'FUNCTION_CODE', 'Код serverless-функции или API route (Next.js route.ts / Lambda handler)', true, 2
-from prompts where slug = 'serverless-cold-start-optimizer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'PLATFORM', 'Платформа (Vercel Serverless, AWS Lambda, Cloudflare Workers)', false, 3
-from prompts where slug = 'serverless-cold-start-optimizer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'LANGUAGE', 'Language (paste details)', false, 1
+FROM public.prompts WHERE slug = 'serverless-cold-start-optimizer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'FUNCTION_CODE', 'Function code (paste details)', true, 2
+FROM public.prompts WHERE slug = 'serverless-cold-start-optimizer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'PLATFORM', 'Platform (paste details)', false, 3
+FROM public.prompts WHERE slug = 'serverless-cold-start-optimizer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 13: webhook-delivery-architect
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c1111111-1111-1111-1111-111111111111',
   'webhook-delivery-architect',
-  'Надежная отправка и прием вебхуков (At-Least-Once)» (The Webhook Delivery & Retry Architect)',
+  'At-Least-Once',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o']::TEXT[],
   'Act as a Staff Systems Reliability Engineer. Design a mission-critical webhook ingestion AND delivery architecture with at-least-once delivery guarantees, cryptographic signature verification, and backpressure protection.
 
 REQUIREMENTS:
@@ -1190,60 +991,42 @@ DELIVERABLE:
 1. Ingestion Endpoint Code with constant-time HMAC verification and rapid queue dispatch.
 2. Worker Consumer Code with idempotency check and retry logic.
 3. Database DDL for Webhook Event Log, Delivery Attempts, and DLQ tracking.',
-  'Используйте, когда ваш сервис должен отправлять вебхуки клиентам или надежно принимать уведомления от Stripe / GitHub без потерь при сбоях сети.',
-  'Предотвращает фатальную ошибку ''тяжелая обработка прямо в теле вебхук-эндпоинта'', из-за которой сторонний сервис (Stripe) отваливается по таймауту и шлет дубли.',
-  'Используйте crypto.timingSafeEqual в Node.js для защиты от timing-атак при сравнении хэшей.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for webhook delivery architect.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   13,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'chatbot'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'WEBHOOK_SCENARIO', 'Сценарий (например: прием оплат от Stripe или отправка вебхуков клиентам нашего SaaS)', false, 1
-from prompts where slug = 'webhook-delivery-architect'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'WEBHOOK_SCENARIO', 'Webhook scenario (paste details)', false, 1
+FROM public.prompts WHERE slug = 'webhook-delivery-architect'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
 -- Prompt 14: surgical-agent-fix
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c2222222-2222-2222-2222-222222222222',
   'surgical-agent-fix',
-  'Точечный фикс бага без поломки соседнего кода» (The Surgical Codebase Fixer (Zero-Collateral))',
+  'The Surgical Codebase Fixer (Zero-Collateral',
   'intermediate',
-  '{"Cursor","Windsurf","Claude Code","Aider","Cline"}'::text[],
+  ARRAY['Cursor','Windsurf','Claude Code','Aider','Cline']::TEXT[],
   'Fix the bug described below. You must act as a surgical coder with ZERO collateral damage to surrounding code.
 
 BUG REPORT:
@@ -1261,74 +1044,58 @@ STRICT EXECUTION PROTOCOL FOR AGENT:
 3. Regression Guard: If the fix requires modifying more than 2 files, STOP immediately and explain why before proceeding.
 4. Regression Test: Add exactly ONE targeted regression unit test that fails on the old code and passes on your modified code.
 5. Post-Fix Verification: Output a clean git diff and confirm that all existing type checks and test suites remain green.',
-  'Используйте в Cursor или Claude Code, когда нужно исправить конкретный баг. Промпт запрещает агенту трогать форматирование, переписывать соседние функции или ломать проект.',
-  'AI-агенты в IDE печально известны тем, что переписывают половину файла. Протокол вводит жесткий трипвайр (stop if > 2 files) и запрещает паразитный рефакторинг.',
-  'В Cursor используйте режим Composer / Agent с прикреплением только целевого файла через @file.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for surgical agent fix.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   14,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'agent'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'OBSERVED_BEHAVIOR', 'Что именно работает неправильно (текст ошибки или неожиданный вывод)', false, 1
-from prompts where slug = 'surgical-agent-fix'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'EXPECTED_BEHAVIOR', 'Как код должен работать правильно', false, 2
-from prompts where slug = 'surgical-agent-fix'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'TARGET_FILES', 'Пути к файлам (например: src/services/auth.ts)', false, 3
-from prompts where slug = 'surgical-agent-fix'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'OBSERVED_BEHAVIOR', 'Observed behavior (paste details)', false, 1
+FROM public.prompts WHERE slug = 'surgical-agent-fix'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'EXPECTED_BEHAVIOR', 'Expected behavior (paste details)', false, 2
+FROM public.prompts WHERE slug = 'surgical-agent-fix'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'TARGET_FILES', 'Target files (paste details)', false, 3
+FROM public.prompts WHERE slug = 'surgical-agent-fix'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 15: pattern-apprentice-feature
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c2222222-2222-2222-2222-222222222222',
   'pattern-apprentice-feature',
-  'Создание новой фичи строго по существующим образцам» (The Pattern Apprentice (Idiomatic Feature Builder))',
+  'The Pattern Apprentice (Idiomatic Feature Builder',
   'intermediate',
-  '{"Cursor","Windsurf","Claude Code","Antigravity"}'::text[],
+  ARRAY['Cursor','Windsurf','Claude Code','Antigravity']::TEXT[],
   'Implement the new feature {{FEATURE_NAME}} into this codebase by strictly mimicking our established architecture and conventions.
 
 REFERENCE IMPLEMENTATIONS (Study these existing files first):
@@ -1352,81 +1119,66 @@ IMPLEMENTATION INSTRUCTIONS:
 - Use the exact same naming conventions, comment density, and export strategies.
 - Do NOT introduce any new npm dependencies. Use what is already configured in the repository.
 - Wire the new feature into the existing router / barrel export / DI container cleanly.',
-  'Используйте для добавления нового модуля или сервиса. Агент сначала изучит ваши уже написанные файлы и повторит их структуру, названия и стиль 1 в 1.',
-  'Устраняет проблему ''чужеродного кода'', заставляя агент сначала извлечь локальные паттерны кодовой базы (few-shot context injection).',
-  'Всегда прикрепляйте 2 файла: один с логикой и один с типами/тестами.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for pattern apprentice feature.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   15,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'agent'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'FEATURE_NAME', 'Название новой фичи (например: Webhook Notification Dispatcher)', false, 1
-from prompts where slug = 'pattern-apprentice-feature'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'EXISTING_FILE_1', 'Путь к похожему рабочему файлу (например: src/services/email-dispatcher.ts)', false, 2
-from prompts where slug = 'pattern-apprentice-feature'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'EXISTING_FILE_2', 'Путь к связанным типам/тестам (например: src/services/__tests__/email.test.ts)', false, 3
-from prompts where slug = 'pattern-apprentice-feature'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'FEATURE_SPECIFICATION', 'Бизнес-логика, входные/выходные данные и крайние случаи', true, 4
-from prompts where slug = 'pattern-apprentice-feature'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'FEATURE_NAME', 'Feature name (paste details)', false, 1
+FROM public.prompts WHERE slug = 'pattern-apprentice-feature'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'EXISTING_FILE_1', 'Existing file 1 (paste details)', false, 2
+FROM public.prompts WHERE slug = 'pattern-apprentice-feature'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'EXISTING_FILE_2', 'Existing file 2 (paste details)', false, 3
+FROM public.prompts WHERE slug = 'pattern-apprentice-feature'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'FEATURE_SPECIFICATION', 'Feature specification (paste details)', true, 4
+FROM public.prompts WHERE slug = 'pattern-apprentice-feature'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 16: type-safe-refactor
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c2222222-2222-2222-2222-222222222222',
   'type-safe-refactor',
-  'Безопасный рефакторинг модуля с проверкой типов» (The Type-Safe Refactoring Specialist)',
+  'The Type-Safe Refactoring Specialist',
   'intermediate',
-  '{"Cursor","Claude Code","Windsurf"}'::text[],
+  ARRAY['Cursor','Claude Code','Windsurf']::TEXT[],
   'Refactor {{TARGET_MODULE}} to achieve {{REFACTORING_GOAL}} while maintaining 100% backward compatibility for all external callers.
 
 INVENTORY AUDIT (Phase 1):
@@ -1442,67 +1194,50 @@ REFACTORING RULES (Phase 2):
 2. Eliminate code duplication and extract pure, side-effect-free helper functions.
 3. Every step must keep the TypeScript compiler (tsc --noEmit) completely error-free.
 4. Output the changes file-by-file with a concise summary of why each change improves maintainability or performance.',
-  'Используйте для очистки и улучшения старого сложного кода. Агент найдет всех потребителей функции по проекту и гарантирует, что TypeScript компилируется без единой ошибки.',
-  'Обеспечивает безопасность за счет обязательной фазы аудита всех мест вызова (call-site audit) до внесения изменений.',
-  'Запустите `tsc --noEmit` до и после работы агента для подтверждения нулевого числа регрессий.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for type safe refactor.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   16,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'agent'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'TARGET_MODULE', 'Путь к файлу или папке для рефакторинга', false, 1
-from prompts where slug = 'type-safe-refactor'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'REFACTORING_GOAL', 'Цель (например: отделить логику базы данных от валидации)', false, 2
-from prompts where slug = 'type-safe-refactor'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'TARGET_MODULE', 'Target module (paste details)', false, 1
+FROM public.prompts WHERE slug = 'type-safe-refactor'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'REFACTORING_GOAL', 'Refactoring goal (paste details)', false, 2
+FROM public.prompts WHERE slug = 'type-safe-refactor'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 17: test-suite-architect
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c2222222-2222-2222-2222-222222222222',
   'test-suite-architect',
-  'Генератор надежного набора автотестов (Unit + Edge Cases)» (The Test Suite Architect)',
+  'Unit + Edge Cases',
   'intermediate',
-  '{"Cursor","Claude Code","Windsurf","Copilot"}'::text[],
+  ARRAY['Cursor','Claude Code','Windsurf','Copilot']::TEXT[],
   'Generate a comprehensive test suite for the module described below. You must act as a Senior QA Architect who writes tests that catch real regressions, not tests that pass by tautology.
 
 MODULE UNDER TEST:
@@ -1529,74 +1264,58 @@ STRICT TEST ENGINEERING PROTOCOL:
 3. Output Format:
    - One complete test file, ready to run with zero modifications.
    - Group tests with describe blocks matching the module''s public API surface.',
-  'Используйте для покрытия важной функции тестами. Промпт заставит агента написать реальные тесты на граничные случаи и сбои, а не бесполезные ''тесты для галочки''.',
-  'Промпт вводит таксономию (contract → state → integration → regression) и явно запрещает тавтологические тесты и бездумное мокирование.',
-  'Укажите 1-2 реальных бага из прошлого — агент добавит регрессионные тесты именно на них.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for test suite architect.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   17,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'agent'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'TARGET_FILES', 'Пути к файлам (например: src/services/payment-processor.ts)', false, 1
-from prompts where slug = 'test-suite-architect'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'LANGUAGE_AND_TEST_FRAMEWORK', 'Язык и тестовый раннер (TypeScript / Vitest, Python / pytest)', false, 2
-from prompts where slug = 'test-suite-architect'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'BUSINESS_CONTEXT', 'Что делает модуль в системе (например: обработка вебхуков от Stripe)', false, 3
-from prompts where slug = 'test-suite-architect'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'TARGET_FILES', 'Target files (paste details)', false, 1
+FROM public.prompts WHERE slug = 'test-suite-architect'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'LANGUAGE_AND_TEST_FRAMEWORK', 'Language and test framework (paste details)', false, 2
+FROM public.prompts WHERE slug = 'test-suite-architect'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'BUSINESS_CONTEXT', 'Business context (paste details)', false, 3
+FROM public.prompts WHERE slug = 'test-suite-architect'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 18: zero-downtime-db-migration
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c2222222-2222-2222-2222-222222222222',
   'zero-downtime-db-migration',
-  'Пошаговый план миграции БД без остановки сайта (Zero-Downtime)» (The Zero-Downtime Database Migration Planner)',
+  'Zero-Downtime',
   'intermediate',
-  '{"Cursor","Claude Code","ChatGPT","Copilot"}'::text[],
+  ARRAY['Cursor','Claude Code','ChatGPT','Copilot']::TEXT[],
   'Plan and generate a zero-downtime database migration for the schema change described below. You must think as a Principal Database Reliability Engineer who has been paged at 3 AM because of a botched migration.
 
 CURRENT STATE:
@@ -1624,81 +1343,66 @@ MIGRATION ENGINEERING PROTOCOL:
    - Exact SQL migration (up and down).
    - Lock analysis: Will this acquire an ACCESS EXCLUSIVE lock? For how long?
    - Rollback procedure: Exact steps to undo this phase independently.',
-  'Используйте при переименовании колонок, разбиении таблиц или изменении типов в базе данных на работающем проекте. Агент создаст 4 безопасных шага миграции без блокировки таблиц.',
-  'Фреймворк Expand-Migrate-Cutover-Contract заставляет модель генерировать безопасные multi-deploy миграции с анализом блокировок.',
-  'Для PostgreSQL указывайте версию — поведение ADD COLUMN DEFAULT сильно различается между версиями.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for zero downtime db migration.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   18,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'agent'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'DATABASE_ENGINE', 'СУБД (PostgreSQL 16, MySQL 8, Supabase)', false, 1
-from prompts where slug = 'zero-downtime-db-migration'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CURRENT_SCHEMA', 'Текущий DDL затронутых таблиц', true, 2
-from prompts where slug = 'zero-downtime-db-migration'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'TRAFFIC_PATTERN', 'Нагрузка (например: 5000 reads/sec + 500 writes/sec)', false, 3
-from prompts where slug = 'zero-downtime-db-migration'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'MIGRATION_GOAL', 'Что нужно изменить (например: разделить таблицу users на accounts + profiles)', false, 4
-from prompts where slug = 'zero-downtime-db-migration'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'DATABASE_ENGINE', 'Database engine (paste details)', false, 1
+FROM public.prompts WHERE slug = 'zero-downtime-db-migration'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CURRENT_SCHEMA', 'Current schema (paste details)', true, 2
+FROM public.prompts WHERE slug = 'zero-downtime-db-migration'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'TRAFFIC_PATTERN', 'Traffic pattern (paste details)', false, 3
+FROM public.prompts WHERE slug = 'zero-downtime-db-migration'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'MIGRATION_GOAL', 'Migration goal (paste details)', false, 4
+FROM public.prompts WHERE slug = 'zero-downtime-db-migration'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 19: ui-component-builder
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c2222222-2222-2222-2222-222222222222',
   'ui-component-builder',
-  'Создание готового UI-компонента по дизайну и токенам» (The Pixel-Perfect UI Component Builder)',
+  'The Pixel-Perfect UI Component Builder',
   'intermediate',
-  '{"Cursor","Claude Code","Windsurf","v0.dev"}'::text[],
+  ARRAY['Cursor','Claude Code','Windsurf','v0.dev']::TEXT[],
   'Build a production-ready UI component based on the specification below. You are a Senior Frontend Engineer who ships accessible, performant components — not throwaway prototypes.
 
 COMPONENT SPECIFICATION:
@@ -1726,74 +1430,58 @@ IMPLEMENTATION CONTRACT:
 4. State & Interaction:
    - Handle all states: default, hover, focus-visible, active, disabled, loading, error.
    - Animations must respect prefers-reduced-motion: reduce.',
-  'Используйте для создания кнопок, карточек, модалок или форм. Агент напишет адаптивный компонент с поддержкой темной темы, клавиатуры и всех 7 состояний (hover, loading, error и т.д.).',
-  'AI обычно делает прототипы с хардкодом цветов. Контракт заставляет соблюдать дизайн-токены, accessibility и все интерактивные состояния.',
-  'Прикрепите в Cursor файл вашей дизайн-системы (например tailwind.config.js) для 100% совпадения цветов.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for ui component builder.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   19,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'agent'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'COMPONENT_NAME', 'Имя компонента (например: FilterDropdown, PricingCard, DataTable)', false, 1
-from prompts where slug = 'ui-component-builder'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'UI_FRAMEWORK', 'Стек (React 19 + Tailwind v3, Next.js, Vue 3)', false, 2
-from prompts where slug = 'ui-component-builder'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'DESIGN_DESCRIPTION', 'Описание внешнего вида, расположения элементов и поведения', false, 3
-from prompts where slug = 'ui-component-builder'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'COMPONENT_NAME', 'Component name (paste details)', false, 1
+FROM public.prompts WHERE slug = 'ui-component-builder'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'UI_FRAMEWORK', 'Ui framework (paste details)', false, 2
+FROM public.prompts WHERE slug = 'ui-component-builder'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'DESIGN_DESCRIPTION', 'Design description (paste details)', false, 3
+FROM public.prompts WHERE slug = 'ui-component-builder'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 20: e2e-suite-generator
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c2222222-2222-2222-2222-222222222222',
   'e2e-suite-generator',
-  'Генератор E2E сценариев (Playwright / Cypress)» (The End-to-End Playwright/Cypress Suite Generator)',
+  'Playwright / Cypress',
   'intermediate',
-  '{"Cursor","Claude Code","Windsurf"}'::text[],
+  ARRAY['Cursor','Claude Code','Windsurf']::TEXT[],
   'You are a Principal Test Automation Architect specializing in Playwright and Cypress. Generate a robust, resilient End-to-End (E2E) test suite for the critical user journey below.
 
 STRICT STABILITY PROTOCOL:
@@ -1811,67 +1499,50 @@ Framework: {{E2E_FRAMEWORK}} (e.g. Playwright TypeScript, Cypress 13)
 DELIVERABLE:
 1. Page Object Classes with clean action methods.
 2. Complete Spec File covering happy path, validation errors, and network failure fallback.',
-  'Используйте для создания тестов в браузере. Агент напишет стабильные сквозные тесты (авторизация, покупка, заполнение форм) по паттерну Page Object Model без случайных падений.',
-  'Запрет на waitForTimeout и принудительное использование role-based селекторов устраняет 95% причин флакующих (flaky) E2E тестов.',
-  'Используйте `page.getByRole(''button'', { name: ''Submit'' })` вместо `.btn-primary`.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for e2e suite generator.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   20,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'agent'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'USER_JOURNEY', 'Шаги пользователя (например: вход через Google → добавление товара в корзину → оплата)', false, 1
-from prompts where slug = 'e2e-suite-generator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'E2E_FRAMEWORK', 'Фреймворк (Playwright TypeScript / Cypress)', false, 2
-from prompts where slug = 'e2e-suite-generator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'USER_JOURNEY', 'User journey (paste details)', false, 1
+FROM public.prompts WHERE slug = 'e2e-suite-generator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'E2E_FRAMEWORK', 'E2e framework (paste details)', false, 2
+FROM public.prompts WHERE slug = 'e2e-suite-generator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 21: js-to-ts-migrator
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c2222222-2222-2222-2222-222222222222',
   'js-to-ts-migrator',
-  'Перевод старого JavaScript в строгий TypeScript» (The Legacy JS to Strict TypeScript Migrator)',
+  'The Legacy JS to Strict TypeScript Migrator',
   'intermediate',
-  '{"Cursor","Claude Code","Windsurf"}'::text[],
+  ARRAY['Cursor','Claude Code','Windsurf']::TEXT[],
   'Convert the following legacy JavaScript code into modern, strictly-typed TypeScript (tsconfig strict: true).
 
 MIGRATION MANDATES:
@@ -1886,67 +1557,50 @@ Legacy JavaScript:
 ```
 Related Type Definitions / Context:
 {{TYPE_CONTEXT}}',
-  'Используйте при переводе старых .js файлов в строгий .ts/.tsx. Агент расставит точные типы, дженерики и type guards без единого костыльного `any` или `@ts-ignore`.',
-  'Модели часто ''ленятся'' и ставят `any` на сложные структуры. Промпт запрещает это и заставляет выводить строгие Discriminated Unions.',
-  'После конвертации проверьте файл через `npx tsc --noEmit`.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for js to ts migrator.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   21,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'agent'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'LEGACY_JS_CODE', 'Исходный JavaScript код для конвертации', true, 1
-from prompts where slug = 'js-to-ts-migrator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'TYPE_CONTEXT', 'Существующие типы в проекте, с которыми должен стыковаться файл', false, 2
-from prompts where slug = 'js-to-ts-migrator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'LEGACY_JS_CODE', 'Legacy js code (paste details)', true, 1
+FROM public.prompts WHERE slug = 'js-to-ts-migrator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'TYPE_CONTEXT', 'Type context (paste details)', false, 2
+FROM public.prompts WHERE slug = 'js-to-ts-migrator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 22: react-rerender-optimizer
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c2222222-2222-2222-2222-222222222222',
   'react-rerender-optimizer',
-  'Устранение лишних ре-рендеров и тормозов в React» (The React Performance & Re-render Optimizer)',
+  'The React Performance & Re-render Optimizer',
   'intermediate',
-  '{"Cursor","Claude Code","Windsurf"}'::text[],
+  ARRAY['Cursor','Claude Code','Windsurf']::TEXT[],
   'You are a Principal React Performance Engineer. Audit and optimize the React component hierarchy below for wasted renders, excessive DOM updates, and memoization misuse.
 
 PERFORMANCE DIAGNOSTIC PROTOCOL:
@@ -1961,60 +1615,42 @@ Component Code:
 ```tsx
 {{REACT_CODE}}
 ```',
-  'Используйте, когда интерфейс на React подвисает при вводе текста, скролле или кликах. Агент найдет лишние ре-рендеры и точечно применит мемоизацию и оптимизацию стейта.',
-  'Устраняет типичную ошибку начинающих — обернуть всё подряд в useCallback без понимания ссылочной целостности объектов в React.',
-  'Если компонент рендерит таблицу или список, укажите среднее количество элементов в пропсах.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for react rerender optimizer.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   22,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'agent'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'REACT_CODE', 'Код тормозящего React-компонента и его дочерних элементов', true, 1
-from prompts where slug = 'react-rerender-optimizer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'REACT_CODE', 'React code (paste details)', true, 1
+FROM public.prompts WHERE slug = 'react-rerender-optimizer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
 -- Prompt 23: openapi-spec-extractor
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c2222222-2222-2222-2222-222222222222',
   'openapi-spec-extractor',
-  'Генерация схемы OpenAPI/Swagger прямо из кода» (The OpenAPI/Swagger Spec Extractor)',
+  'The OpenAPI/Swagger Spec Extractor',
   'intermediate',
-  '{"Cursor","Claude Code","ChatGPT"}'::text[],
+  ARRAY['Cursor','Claude Code','ChatGPT']::TEXT[],
   'Reverse-engineer a complete, production-grade OpenAPI 3.1 YAML specification by analyzing the route handlers, validation schemas, and database models below.
 
 SPECIFICATION REQUIREMENTS:
@@ -2027,67 +1663,50 @@ Source Route Handlers & Schemas:
 ```{{LANGUAGE}}
 {{ROUTE_CODE}}
 ```',
-  'Используйте, когда у вас есть готовый бэкенд, но нет документации для фронтендеров или Swagger UI. Агент извлечет полную спецификацию OpenAPI 3.1 прямо из ваших эндпоинтов.',
-  'Извлекает точные коды ошибок (400/403/409) из условий `if/else` и `throw` внутри реального кода, а не выдумывает типовой список.',
-  'Вставьте файл с валидацией (например, Zod схемы) для идеальной генерации типов параметров.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for openapi spec extractor.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   23,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'agent'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'LANGUAGE', 'Язык/фреймворк (TypeScript Express/Fastify/Next.js, Python FastAPI, Go)', false, 1
-from prompts where slug = 'openapi-spec-extractor'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'ROUTE_CODE', 'Код эндпоинтов, Zod-схем и контроллеров', true, 2
-from prompts where slug = 'openapi-spec-extractor'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'LANGUAGE', 'Language (paste details)', false, 1
+FROM public.prompts WHERE slug = 'openapi-spec-extractor'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'ROUTE_CODE', 'Route code (paste details)', true, 2
+FROM public.prompts WHERE slug = 'openapi-spec-extractor'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 24: a11y-remediation-agent
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c2222222-2222-2222-2222-222222222222',
   'a11y-remediation-agent',
-  'Аудит доступности интерфейса (Accessibility WCAG 2.1)» (The Accessibility (a11y) Remediation Agent)',
+  'Accessibility WCAG 2.1',
   'intermediate',
-  '{"Cursor","Claude Code","Windsurf"}'::text[],
+  ARRAY['Cursor','Claude Code','Windsurf']::TEXT[],
   'Audit and remediate the provided UI component to meet WCAG 2.1 Level AA accessibility standards.
 
 ACCESSIBILITY MANDATES:
@@ -2100,60 +1719,42 @@ Component to remediate:
 ```tsx
 {{COMPONENT_CODE}}
 ```',
-  'Используйте для проверки сайта на доступность для пользователей с ограниченными возможностями, экранных дикторов (screen readers) и навигации только с клавиатуры.',
-  'Фокусируется на WCAG 2.1 AA критериях, предотвращая распространенные проблемы вроде невидимого фокуса клавиатуры и кнопок без меток.',
-  'Идеально подходит для сложных интерактивных компонентов: кастомных дропдаунов, аккордеонов и модалок.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for a11y remediation agent.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   24,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'agent'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'COMPONENT_CODE', 'Код интерфейсного компонента или модального окна', true, 1
-from prompts where slug = 'a11y-remediation-agent'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'COMPONENT_CODE', 'Component code (paste details)', true, 1
+FROM public.prompts WHERE slug = 'a11y-remediation-agent'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
 -- Prompt 25: dead-code-pruner
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c2222222-2222-2222-2222-222222222222',
   'dead-code-pruner',
-  'Очистка мертвого кода и неиспользуемых библиотек» (The Dead Code & Dependency Tree Pruner)',
+  'The Dead Code & Dependency Tree Pruner',
   'intermediate',
-  '{"Cursor","Claude Code"}'::text[],
+  ARRAY['Cursor','Claude Code']::TEXT[],
   'Analyze the provided module, exports, and package dependencies. Identify all dead code branches, unused exports, obsolete imports, and bloated dependencies that can be safely pruned.
 
 PRUNING AUDIT:
@@ -2168,74 +1769,58 @@ Module under audit:
 ```
 Imports / package.json dependencies context:
 {{DEPENDENCY_CONTEXT}}',
-  'Используйте для генеральной уборки в кодовой базе. Агент выявит забытые функции, мертвые файлы и тяжелые npm-пакеты, уменьшив вес финального сайта.',
-  'Помогает сократить размер JS бандла и избавиться от устаревших монструозных библиотек в пользу нативного JS.',
-  'Отличный промпт перед релизом для прохождения аудита производительности в Google Lighthouse.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for dead code pruner.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   25,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'agent'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'LANGUAGE', 'Язык (TypeScript, JavaScript, Python)', false, 1
-from prompts where slug = 'dead-code-pruner'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'MODULE_CODE', 'Исходный код файла или группы связанных модулей', true, 2
-from prompts where slug = 'dead-code-pruner'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'DEPENDENCY_CONTEXT', 'Список установленных пакетов из package.json', false, 3
-from prompts where slug = 'dead-code-pruner'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'LANGUAGE', 'Language (paste details)', false, 1
+FROM public.prompts WHERE slug = 'dead-code-pruner'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'MODULE_CODE', 'Module code (paste details)', true, 2
+FROM public.prompts WHERE slug = 'dead-code-pruner'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'DEPENDENCY_CONTEXT', 'Dependency context (paste details)', false, 3
+FROM public.prompts WHERE slug = 'dead-code-pruner'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 26: css-to-tailwind-migrator
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c2222222-2222-2222-2222-222222222222',
   'css-to-tailwind-migrator',
-  'Перевод стилей CSS/SCSS в классы Tailwind CSS» (The CSS/SCSS to Tailwind Token Migrator)',
+  'The CSS/SCSS to Tailwind Token Migrator',
   'intermediate',
-  '{"Cursor","Claude Code","Windsurf"}'::text[],
+  ARRAY['Cursor','Claude Code','Windsurf']::TEXT[],
   'Convert the following legacy CSS/SCSS styles into modern, idiomatic Tailwind CSS (v3/v4) utility classes applied directly to the JSX markup.
 
 CONVERSION RULES:
@@ -2253,74 +1838,58 @@ CSS / SCSS Styles:
 ```
 Tailwind Config / Design Tokens Context:
 {{TAILWIND_CONFIG_SNIPPET}}',
-  'Используйте, когда у вас есть верстка на чистом CSS/SCSS, и вы хотите переписать её на Tailwind CSS с сохранением адаптивности и дизайн-токенов вашего проекта.',
-  'Запрет на `w-[342px]` и принудительное сопоставление с дизайн-токенами сохраняет единый визуальный стиль приложения.',
-  'Приложите tailwind.config.js для корректного маппинга кастомных цветов вроде `gold-dark` и `dark-surface`.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for css to tailwind migrator.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   26,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'agent'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'JSX_MARKUP', 'HTML или JSX разметка компонента', false, 1
-from prompts where slug = 'css-to-tailwind-migrator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CSS_STYLES', 'Старые CSS / SCSS стили', false, 2
-from prompts where slug = 'css-to-tailwind-migrator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'TAILWIND_CONFIG_SNIPPET', 'Токены цветов и шрифтов из вашего tailwind.config.js', false, 3
-from prompts where slug = 'css-to-tailwind-migrator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'JSX_MARKUP', 'Jsx markup (paste details)', false, 1
+FROM public.prompts WHERE slug = 'css-to-tailwind-migrator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CSS_STYLES', 'Css styles (paste details)', false, 2
+FROM public.prompts WHERE slug = 'css-to-tailwind-migrator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'TAILWIND_CONFIG_SNIPPET', 'Tailwind config snippet (paste details)', false, 3
+FROM public.prompts WHERE slug = 'css-to-tailwind-migrator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 27: i18n-extractor
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c2222222-2222-2222-2222-222222222222',
   'i18n-extractor',
-  'Подготовка сайта к переводу на другие языки (i18n)» (The Internationalization (i18n) Extractor)',
+  'i18n',
   'intermediate',
-  '{"Cursor","Claude Code"}'::text[],
+  ARRAY['Cursor','Claude Code']::TEXT[],
   'Extract all hardcoded user-facing strings from the provided component into structured i18n translation keys and JSON message catalogs.
 
 EXTRACTION INVARIANTS:
@@ -2334,67 +1903,50 @@ Component Code:
 {{COMPONENT_CODE}}
 ```
 Target i18n Library: {{I18N_LIBRARY}} (e.g. react-i18next, next-intl, formatjs)',
-  'Используйте для извлечения захардкоженного текста из компонентов в JSON-файлы переводов (i18next, next-intl) с поддержкой плюрализации (1 день, 2 дня, 5 дней).',
-  'Учитывает правила плюрализации русского и английского языков (1, 2-4, 5+ форм), предотвращая кривые фразы вроде ''1 дней''.',
-  'Укажите языки проекта (например, ru, en, uz) для генерации словарей сразу во все нужные файлы.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for i18n extractor.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   27,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'agent'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'COMPONENT_CODE', 'Исходный код компонента с захардкоженным текстом', true, 1
-from prompts where slug = 'i18n-extractor'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'I18N_LIBRARY', 'Библиотека переводов (например: react-i18next, next-intl)', false, 2
-from prompts where slug = 'i18n-extractor'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'COMPONENT_CODE', 'Component code (paste details)', true, 1
+FROM public.prompts WHERE slug = 'i18n-extractor'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'I18N_LIBRARY', 'I18n library (paste details)', false, 2
+FROM public.prompts WHERE slug = 'i18n-extractor'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 28: monorepo-package-decoupler
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c2222222-2222-2222-2222-222222222222',
   'monorepo-package-decoupler',
-  'Разделение монолита на модули без циклов (Monorepo Packages)» (The Monorepo Package Decoupler)',
+  'Monorepo Packages',
   'intermediate',
-  '{"Cursor","Claude Code","Windsurf"}'::text[],
+  ARRAY['Cursor','Claude Code','Windsurf']::TEXT[],
   'You are a Principal Software Architect specializing in Monorepo architecture (Turborepo, Nx, pnpm workspaces). Extract the functionality below into an isolated, reusable internal package while strictly eliminating circular dependency cycles.
 
 DECOUPLING PROTOCOL:
@@ -2407,74 +1959,58 @@ Code to extract:
 {{EXTRACTION_CODE}}
 ```
 Target Package Name: {{PACKAGE_NAME}} (e.g. @app/shared-auth, @app/ui-core)',
-  'Используйте при выносе общего кода в отдельный пакет (shared/ui, shared/utils), чтобы избавиться от циклических зависимостей (circular dependencies).',
-  'Предотвращает циклы импортов (Package A -> Package B -> Package A), из-за которых ломается сборка бандлеров Vite и Webpack.',
-  'Используйте для построения масштабируемой структуры в Turborepo или Nx.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for monorepo package decoupler.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   28,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'agent'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'LANGUAGE', 'Язык (TypeScript, JavaScript)', false, 1
-from prompts where slug = 'monorepo-package-decoupler'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'EXTRACTION_CODE', 'Код для выноса в отдельный пакет', true, 2
-from prompts where slug = 'monorepo-package-decoupler'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'PACKAGE_NAME', 'Имя нового пакета (например: @app/ui-tokens, @app/api-client)', false, 3
-from prompts where slug = 'monorepo-package-decoupler'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'LANGUAGE', 'Language (paste details)', false, 1
+FROM public.prompts WHERE slug = 'monorepo-package-decoupler'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'EXTRACTION_CODE', 'Extraction code (paste details)', true, 2
+FROM public.prompts WHERE slug = 'monorepo-package-decoupler'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'PACKAGE_NAME', 'Package name (paste details)', false, 3
+FROM public.prompts WHERE slug = 'monorepo-package-decoupler'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 29: bulletproof-pr-description
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c3333333-3333-3333-3333-333333333333',
   'bulletproof-pr-description',
-  'Идеальное описание Pull Request с выделением рисков» (The Bulletproof PR Description)',
+  'The Bulletproof PR Description',
   'intermediate',
-  '{"ChatGPT","Claude","Cursor"}'::text[],
+  ARRAY['ChatGPT','Claude','Cursor']::TEXT[],
   'Generate a pull request description that makes the reviewer''s job effortless, transparent, and fast.
 
 GIT DIFF / SUMMARY OF CHANGES:
@@ -2506,67 +2042,50 @@ FORMAT CONTRACT:
 
 ## 🔄 Migration / Deployment Notes
 [Are there DB migrations, new env variables, or feature flags required before merging?]',
-  'Используйте перед отправкой кода на ревью коллегам. Промпт создаст четкое описание изменений, укажет спорные места и сэкономит часы обсуждений в комментариях.',
-  'Секция ''Areas of Uncertainty'' явно направляет внимание ревьюера на тонкие места, исключая слепое подтверждение PR.',
-  'Выполните `git diff --stat` и вставьте вывод в поле диффа.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for bulletproof pr description.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   29,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'cowork'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'GIT_DIFF', 'Git diff или краткий список измененных файлов', true, 1
-from prompts where slug = 'bulletproof-pr-description'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'TICKET_DESCRIPTION', 'Описание задачи из Jira/Linear или суть фичи', false, 2
-from prompts where slug = 'bulletproof-pr-description'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'GIT_DIFF', 'Git diff (paste details)', true, 1
+FROM public.prompts WHERE slug = 'bulletproof-pr-description'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'TICKET_DESCRIPTION', 'Ticket description (paste details)', false, 2
+FROM public.prompts WHERE slug = 'bulletproof-pr-description'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 30: rfc-tech-spec-builder
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c3333333-3333-3333-3333-333333333333',
   'rfc-tech-spec-builder',
-  'Техническая спецификация фичи с таблицей решений (RFC / ADR)» (The Tech Spec with Decision Log (RFC))',
+  'RFC / ADR',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o","Gemini 2.5 Pro"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o','Gemini 2.5 Pro']::TEXT[],
   'Write a comprehensive Request for Comments (RFC) / Technical Design Document for the engineering team.
 
 PROJECT CONTEXT:
@@ -2586,74 +2105,58 @@ RFC STRUCTURE:
    | -------------- | ----------------------- | --------------- | --------------------- |
 5. Failure Modes & Mitigations: Table of what happens when dependencies fail, timeouts occur, or invalid states arise.
 6. Phased Rollout & Rollback Plan: How will this be deployed (Feature flags, dark launch) and how to rollback in < 2 minutes without data loss.',
-  'Используйте перед написанием большой фичи, чтобы согласовать архитектуру с командой. Промпт составит техспек с диаграммами, схемой БД и таблицей ''почему мы выбрали вариант А, а не Б''.',
-  'Таблица ''Decision Log'' и раздел ''Non-Goals'' экономят дни споров, фиксируя решения до написания кода.',
-  'Используйте для согласования архитектуры с тимлидом и техдиректором.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for rfc tech spec builder.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   30,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'cowork'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'FEATURE_TITLE', 'Название фичи (например: Двухфакторная аутентификация 2FA)', false, 1
-from prompts where slug = 'rfc-tech-spec-builder'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'PROBLEM_STATEMENT', 'Какую проблему решаем', false, 2
-from prompts where slug = 'rfc-tech-spec-builder'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CONSTRAINTS', 'Ограничения (скорость ответа, бюджет, обратная совместимость)', false, 3
-from prompts where slug = 'rfc-tech-spec-builder'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'FEATURE_TITLE', 'Feature title (paste details)', false, 1
+FROM public.prompts WHERE slug = 'rfc-tech-spec-builder'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'PROBLEM_STATEMENT', 'Problem statement (paste details)', false, 2
+FROM public.prompts WHERE slug = 'rfc-tech-spec-builder'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CONSTRAINTS', 'Constraints (paste details)', false, 3
+FROM public.prompts WHERE slug = 'rfc-tech-spec-builder'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 31: blameless-post-mortem
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c3333333-3333-3333-3333-333333333333',
   'blameless-post-mortem',
-  'Постмортем аварии без поиска виноватых (Blameless Post-Mortem)» (The Blameless Post-Mortem Engineer)',
+  'Blameless Post-Mortem',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o']::TEXT[],
   'Generate a blameless, engineering-rigorous Incident Post-Mortem based on the raw timeline and logs provided.
 
 RAW INCIDENT NOTES & LOGS:
@@ -2673,60 +2176,42 @@ DOCUMENT STRUCTURE:
 4. What Went Well vs Where We Got Lucky vs What Went Wrong.
 5. Action Items Matrix:
    | Action Item | Type (Prevent / Detect / Mitigate) | Owner Role | Priority (P0-P2) | Verification Metric |',
-  'Используйте после падения продакшена. Промпт превратит сырые логи и сообщения из чата аварии в профессиональный отчет по методу ''5 Почему'' уровня Google SRE.',
-  'Трансформирует стрессовые логи аварии в конструктивный документ, направленный на исправление автоматизации, а не обвинение людей.',
-  'Вставьте таймстемпы начала сбоя, первого алерта в мониторинге и момента выкатки хотфикса.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for blameless post mortem.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   31,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'cowork'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'INCIDENT_RAW_NOTES', 'Сырые логи, время падения, сообщения из чата дежурных', true, 1
-from prompts where slug = 'blameless-post-mortem'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'INCIDENT_RAW_NOTES', 'Incident raw notes (paste details)', true, 1
+FROM public.prompts WHERE slug = 'blameless-post-mortem'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
 -- Prompt 32: prd-to-technical-tasks
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c3333333-3333-3333-3333-333333333333',
   'prd-to-technical-tasks',
-  'Декомпозиция бизнес-требований на задачи для спринта» (The PRD to Technical Subtasks Splitter)',
+  'The PRD to Technical Subtasks Splitter',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o']::TEXT[],
   'Decompose the product requirement document (PRD) below into an actionable, dependency-ordered engineering task breakdown for an Agile sprint.
 
 REQUIREMENTS FOR BREAKDOWN:
@@ -2744,67 +2229,50 @@ Target Team Velocity / Sprint Length: {{SPRINT_CONTEXT}}
 DELIVERABLE:
 - Dependency Graph (ASCII / Mermaid).
 - Numbered Task Cards (Title, Layer, Description, DoD, Risk/Complexity Score [1-5]).',
-  'Используйте, когда продакт-менеджер дал описание фичи (PRD), а вам нужно разбить её на понятные технические таски для Jira/Linear с оценкой времени и связями.',
-  'Исключает ситуацию, когда фронтендер ждет бэкендера 2 недели: задачи выстраиваются в вертикальные независимые слайсы.',
-  'Отлично подходит для оценки трудозатрат перед началом спринта.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for prd to technical tasks.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   32,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'cowork'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'PRD_CONTENT', 'Описание требований от продакта или клиента', true, 1
-from prompts where slug = 'prd-to-technical-tasks'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'SPRINT_CONTEXT', 'Длительность спринта (например: спринт 2 недели, 2 разработчика)', false, 2
-from prompts where slug = 'prd-to-technical-tasks'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'PRD_CONTENT', 'Prd content (paste details)', true, 1
+FROM public.prompts WHERE slug = 'prd-to-technical-tasks'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'SPRINT_CONTEXT', 'Sprint context (paste details)', false, 2
+FROM public.prompts WHERE slug = 'prd-to-technical-tasks'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 33: readme-onboarding-architect
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c3333333-3333-3333-3333-333333333333',
   'readme-onboarding-architect',
-  'Понятный README и инструкция для быстрого онбординга» (The Technical Onboarding & README Architect)',
+  'The Technical Onboarding & README Architect',
   'intermediate',
-  '{"ChatGPT","Claude"}'::text[],
+  ARRAY['ChatGPT','Claude']::TEXT[],
   'Generate a gold-standard README.md and Day-1 Developer Setup Runbook for the repository described below.
 
 REQUIREMENTS:
@@ -2816,74 +2284,58 @@ REPOSITORY CONTEXT:
 - Tech Stack: {{TECH_STACK}}
 - Key Commands: {{COMMANDS}} (build, dev, test, lint)
 - Services & Dependencies: {{SERVICES}} (Postgres, Redis, external APIs)',
-  'Используйте для создания файла README.md в проекте, чтобы новый разработчик или вы сами через полгода могли поднять проект за 5 минут без боли.',
-  'Фокусируется на ''First Time to Hello World'' метрике, убирая лишнюю воду и оставляя точные команды терминала.',
-  'Положите результат в корень проекта как README.md.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for readme onboarding architect.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   33,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'cowork'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'TECH_STACK', 'Стек (React 19, Vite, Tailwind, Supabase, Node 22)', false, 1
-from prompts where slug = 'readme-onboarding-architect'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'COMMANDS', 'Команды запуска (npm run dev, npm run test)', false, 2
-from prompts where slug = 'readme-onboarding-architect'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'SERVICES', 'Необходимые сервисы (Docker, Supabase локально, Redis)', false, 3
-from prompts where slug = 'readme-onboarding-architect'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'TECH_STACK', 'Tech stack (paste details)', false, 1
+FROM public.prompts WHERE slug = 'readme-onboarding-architect'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'COMMANDS', 'Commands (paste details)', false, 2
+FROM public.prompts WHERE slug = 'readme-onboarding-architect'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'SERVICES', 'Services (paste details)', false, 3
+FROM public.prompts WHERE slug = 'readme-onboarding-architect'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 34: stakeholder-status-translator
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c3333333-3333-3333-3333-333333333333',
   'stakeholder-status-translator',
-  'Перевод сложного тех-статуса на понятный язык бизнеса» (The Engineering-to-Stakeholder Translator)',
+  'The Engineering-to-Stakeholder Translator',
   'intermediate',
-  '{"ChatGPT","Claude"}'::text[],
+  ARRAY['ChatGPT','Claude']::TEXT[],
   'Translate the complex engineering update below into a crisp, high-impact executive summary for non-technical stakeholders (CEO, Product Director, Investors).
 
 TRANSLATION RULES:
@@ -2896,67 +2348,50 @@ RAW TECHNICAL NOTES:
 {{TECHNICAL_NOTES}}
 ```
 Target Audience: {{STAKEHOLDER_AUDIENCE}}',
-  'Используйте для отправки статуса проекта руководству, инвесторам или клиентам. Промпт превратит технический жаргон (рефакторинг, миграции, кэш) в понятную бизнес-ценность.',
-  'Помогает разработчикам защищать ценность технической работы (рефакторинг, тесты) перед бизнесом без конфликтов.',
-  'Идеально подходит для еженедельных пятничных апдейтов в Slack.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for stakeholder status translator.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   34,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'cowork'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'TECHNICAL_NOTES', 'Что сделано разработчиками за неделю (на техническом языке)', true, 1
-from prompts where slug = 'stakeholder-status-translator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'STAKEHOLDER_AUDIENCE', 'Для кого отчет (например: Генеральный директор, Инвестор, Заказчик)', false, 2
-from prompts where slug = 'stakeholder-status-translator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'TECHNICAL_NOTES', 'Technical notes (paste details)', true, 1
+FROM public.prompts WHERE slug = 'stakeholder-status-translator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'STAKEHOLDER_AUDIENCE', 'Stakeholder audience (paste details)', false, 2
+FROM public.prompts WHERE slug = 'stakeholder-status-translator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 35: constructive-code-review-rewriter
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c3333333-3333-3333-3333-333333333333',
   'constructive-code-review-rewriter',
-  'Тактичный и конструктивный пересказ замечаний на Code Review» (The Constructive Code Review Feedback Rewriter)',
+  'The Constructive Code Review Feedback Rewriter',
   'intermediate',
-  '{"ChatGPT","Claude"}'::text[],
+  ARRAY['ChatGPT','Claude']::TEXT[],
   'Rewrite the following raw, frustrated, or blunt code review comments into highly constructive, empathetic, and technically rigorous feedback following Google''s Engineering Practices.
 
 REWRITING PRINCIPLES:
@@ -2969,60 +2404,42 @@ RAW COMMENTS & CODE CONTEXT:
 ```
 {{RAW_COMMENTS}}
 ```',
-  'Используйте, когда на код-ревью хочется написать ''это ужасно переделай'', но нужно дать профессиональный, дружелюбный и аргументированный фидбек коллеге.',
-  'Сохраняет здоровую командную культуру, переводя раздражение в обучающий фидбек с примерами кода.',
-  'Используйте префиксы `[Blocking]` и `[Nit]` для четких приоритетов.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for constructive code review rewriter.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   35,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'cowork'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'RAW_COMMENTS', 'Ваши черновые мысли или кусок кода с замечаниями', false, 1
-from prompts where slug = 'constructive-code-review-rewriter'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'RAW_COMMENTS', 'Raw comments (paste details)', false, 1
+FROM public.prompts WHERE slug = 'constructive-code-review-rewriter'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
 -- Prompt 36: incident-runbook-generator
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c3333333-3333-3333-3333-333333333333',
   'incident-runbook-generator',
-  'Инструкция дежурного при сбое (Incident Runbook / SOP)» (The Incident Response Runbook / SOP Generator)',
+  'Incident Runbook / SOP',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o']::TEXT[],
   'Generate a production Incident Response Runbook (Standard Operating Procedure) for on-call engineers facing the alert scenario below.
 
 RUNBOOK REQUIREMENTS:
@@ -3034,67 +2451,50 @@ RUNBOOK REQUIREMENTS:
 ALERT / SCENARIO:
 - Alert Name: {{ALERT_NAME}} (e.g. PostgresConnectionPoolExhausted, High5xxRateOnCheckout)
 - Infrastructure: {{INFRASTRUCTURE_CONTEXT}}',
-  'Используйте для создания пошаговой шпаргалки для дежурных инженеров: что делать в 3 часа ночи, если упала база, забилась память или отвалился платежный шлюз.',
-  'В стрессовой ситуации дежурный инженер не должен думать — он должен следовать проверенному чек-листу команд.',
-  'Сохраняйте такие runbook-инструкции рядом с мониторингом в Grafana / Datadog.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for incident runbook generator.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   36,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'cowork'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'ALERT_NAME', 'Название алерта (например: HighApiLatencyAlert, DBDeadlockSpike)', false, 1
-from prompts where slug = 'incident-runbook-generator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'INFRASTRUCTURE_CONTEXT', 'Стек (AWS ECS, Supabase, Kubernetes, Vercel)', false, 2
-from prompts where slug = 'incident-runbook-generator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'ALERT_NAME', 'Alert name (paste details)', false, 1
+FROM public.prompts WHERE slug = 'incident-runbook-generator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'INFRASTRUCTURE_CONTEXT', 'Infrastructure context (paste details)', false, 2
+FROM public.prompts WHERE slug = 'incident-runbook-generator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 37: sprint-retro-extractor
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c3333333-3333-3333-3333-333333333333',
   'sprint-retro-extractor',
-  'Извлечение системных выводов из ретроспективы спринта» (The Sprint Retrospective Action Item Extractor)',
+  'The Sprint Retrospective Action Item Extractor',
   'intermediate',
-  '{"ChatGPT","Claude"}'::text[],
+  ARRAY['ChatGPT','Claude']::TEXT[],
   'Analyze the raw feedback from our team sprint retrospective and extract 3-4 systemic, high-leverage Action Items with clear owners and success metrics.
 
 ANALYSIS RULES:
@@ -3105,60 +2505,42 @@ RAW RETRO FEEDBACK:
 ```
 {{RETRO_FEEDBACK}}
 ```',
-  'Используйте после созвона ретроспективы команды. Промпт соберет жалобы разработчиков (''долго тестируем'', ''падал CI'') и превратит их в конкретные инженерные задачи.',
-  'Превращает бесконечные жалобы на созвонах в 3 конкретные инженерные задачи с измеримым результатом.',
-  'Ограничьтесь максимум 3 действиями на спринт, чтобы команда реально успела их внедрить.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for sprint retro extractor.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   37,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'cowork'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'RETRO_FEEDBACK', 'Заметки с ретро: что было хорошо, что плохо, что бесило', false, 1
-from prompts where slug = 'sprint-retro-extractor'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'RETRO_FEEDBACK', 'Retro feedback (paste details)', false, 1
+FROM public.prompts WHERE slug = 'sprint-retro-extractor'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
 -- Prompt 38: changelog-release-writer
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c3333333-3333-3333-3333-333333333333',
   'changelog-release-writer',
-  'Генератор списка изменений релиза (Changelog & Breaking Changes)» (The API Documentation & Changelog Writer)',
+  'Changelog & Breaking Changes',
   'intermediate',
-  '{"ChatGPT","Claude"}'::text[],
+  ARRAY['ChatGPT','Claude']::TEXT[],
   'Generate an industry-standard CHANGELOG.md release entry (Keep a Changelog format) and developer migration guide based on the commit history and PR notes below.
 
 STRUCTURE:
@@ -3173,67 +2555,50 @@ GIT LOGS / RELEASE NOTES:
 {{RELEASE_NOTES}}
 ```
 Version Number: {{VERSION}} (e.g. v2.4.0)',
-  'Используйте перед релизом новой версии для составления красивого списка изменений (Changelog) с понятными предупреждениями о несовместимости (Breaking Changes).',
-  'Формат ''Keep a Changelog'' с наглядными примерами ''было / стало'' снижает число обращений в техподдержку при обновлениях.',
-  'Используйте для релизов в GitHub Releases или в документации для клиентов.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for changelog release writer.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   38,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'cowork'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'RELEASE_NOTES', 'Список коммитов (`git log v1..v2 --oneline`) или список закрытых PR', true, 1
-from prompts where slug = 'changelog-release-writer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'VERSION', 'Номер версии (например: v1.3.0)', false, 2
-from prompts where slug = 'changelog-release-writer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'RELEASE_NOTES', 'Release notes (paste details)', true, 1
+FROM public.prompts WHERE slug = 'changelog-release-writer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'VERSION', 'Version (paste details)', false, 2
+FROM public.prompts WHERE slug = 'changelog-release-writer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 39: stack-trace-interrogator
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c4444444-4444-4444-4444-444444444444',
   'stack-trace-interrogator',
-  'Глубокий анализ стектрейса и поиск места зарождения ошибки» (The Stack Trace Deep Interrogator)',
+  'The Stack Trace Deep Interrogator',
   'intermediate',
-  '{"ChatGPT","Claude","Cursor"}'::text[],
+  ARRAY['ChatGPT','Claude','Cursor']::TEXT[],
   'Analyze and resolve this error. Do not simply provide a patch — conduct a structured forensic analysis.
 
 ERROR STACK TRACE / TERMINAL OUTPUT:
@@ -3252,74 +2617,58 @@ FORENSIC EXECUTION STEPS:
 3. Minimum Reproducible State: What exact object state or execution sequence caused this invariant to fail?
 4. Surgical Fix: Provide the exact minimal code fix.
 5. Defensive Pattern: Show how to refactor this code or type definition so that this entire class of bug is caught at compile-time rather than runtime.',
-  'Используйте при падении программы с длинным стектрейсом. Промпт найдет место, где ошибка реально зародилась в вашем коде, а не где она упала внутри внешней библиотеки.',
-  'Большинство смотрят только на последнюю строчку стектрейса. Промпт разделяет место обнаружения и место зарождения невалидного состояния.',
-  'Копируйте стектрейс полностью, не обрезая системные строки.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for stack trace interrogator.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   39,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'error-clinic'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'ERROR_TEXT', 'Полный текст ошибки и стектрейс из консоли/терминала', false, 1
-from prompts where slug = 'stack-trace-interrogator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'LANGUAGE', 'Язык (TypeScript, Python, Go)', false, 2
-from prompts where slug = 'stack-trace-interrogator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CODE_SNIPPET', 'Код функции или файла, где произошел сбой', true, 3
-from prompts where slug = 'stack-trace-interrogator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'ERROR_TEXT', 'Error text (paste details)', false, 1
+FROM public.prompts WHERE slug = 'stack-trace-interrogator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'LANGUAGE', 'Language (paste details)', false, 2
+FROM public.prompts WHERE slug = 'stack-trace-interrogator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CODE_SNIPPET', 'Code snippet (paste details)', true, 3
+FROM public.prompts WHERE slug = 'stack-trace-interrogator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 40: typescript-error-untangler
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c4444444-4444-4444-4444-444444444444',
   'typescript-error-untangler',
-  'Распутывание сложных ошибок типов TypeScript» (The TypeScript Type Mismatch Untangler)',
+  'The TypeScript Type Mismatch Untangler',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o","Cursor"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o','Cursor']::TEXT[],
   'I have a TypeScript compilation error. Untangle the type system mismatch and explain the root structural issue.
 
 TYPESCRIPT ERROR (tsc / IDE output):
@@ -3341,67 +2690,50 @@ DIAGNOSIS INSTRUCTIONS:
 3. The Proper Fix:
    - ❌ DO NOT suggest as any, @ts-ignore, or loose non-null assertions (!).
    - ✅ Provide a clean fix using idiomatic TypeScript (Type Guards, Discriminated Unions, satisfies, keyof, or Generics).',
-  'Используйте, когда компилятор TypeScript ругается на несовпадение типов (TS2322, TS2345). Промпт объяснит несоответствие и исправит тип без костыльного `as any`.',
-  'Запрет на `any` и `@ts-ignore` заставляет модель найти настоящее решение в рамках системы типов TypeScript.',
-  'Вставьте все связанные `interface` и `type`, чтобы модель видела полную картину.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for typescript error untangler.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   40,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'error-clinic'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'TS_ERROR', 'Текст ошибки из терминала или VS Code (например: Type ''X'' is not assignable to type ''Y'')', false, 1
-from prompts where slug = 'typescript-error-untangler'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'TS_CODE', 'Интерфейсы, типы и код функции, вызывающей ошибку', true, 2
-from prompts where slug = 'typescript-error-untangler'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'TS_ERROR', 'Ts error (paste details)', false, 1
+FROM public.prompts WHERE slug = 'typescript-error-untangler'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'TS_CODE', 'Ts code (paste details)', true, 2
+FROM public.prompts WHERE slug = 'typescript-error-untangler'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 41: db-deadlock-rls-debugger
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c4444444-4444-4444-4444-444444444444',
   'db-deadlock-rls-debugger',
-  'Лечение блокировок базы и рекурсивных RLS-политик» (The Database Deadlock & RLS Policy Debugger)',
+  'The Database Deadlock & RLS Policy Debugger',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o']::TEXT[],
   'Debug this PostgreSQL / Supabase error involving Row Level Security (RLS), permission violations, or lock deadlocks.
 
 ERROR MESSAGE:
@@ -3418,67 +2750,50 @@ DEBUGGING PROTOCOL:
 1. Failure Mechanism: Explain exactly why PostgreSQL rejected this query or failed with a lock conflict. (Trace JWT auth.uid() evaluation, recursive RLS policy loops, or unindexed foreign key locks).
 2. Performance Impact: Does the current RLS policy force a full table subquery evaluation on every row?
 3. Remediated SQL: Provide the corrected CREATE POLICY / query / index definition with optimized USING and WITH CHECK clauses.',
-  'Используйте при зависаниях запросов в PostgreSQL / Supabase, ошибках бесконечной рекурсии в политиках RLS или конфликтах блокировок (Deadlock detected).',
-  'Рекурсивные RLS-политики в Supabase — частая и трудноуловимая ошибка. Промпт оптимизирует `USING` и `WITH CHECK` выражения.',
-  'Для Supabase оберните подзапросы в RLS-политиках в `(select auth.uid())` для кэширования.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for db deadlock rls debugger.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   41,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'error-clinic'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'DB_ERROR', 'Текст ошибки БД (например: infinite recursion detected in policy for relation ''users'')', false, 1
-from prompts where slug = 'db-deadlock-rls-debugger'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'SCHEMA_AND_QUERY', 'Таблицы, RLS политики и запрос, который падает', true, 2
-from prompts where slug = 'db-deadlock-rls-debugger'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'DB_ERROR', 'Db error (paste details)', false, 1
+FROM public.prompts WHERE slug = 'db-deadlock-rls-debugger'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'SCHEMA_AND_QUERY', 'Schema and query (paste details)', true, 2
+FROM public.prompts WHERE slug = 'db-deadlock-rls-debugger'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 42: api-network-diagnostician
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c4444444-4444-4444-4444-444444444444',
   'api-network-diagnostician',
-  'Диагностика сетевых сбоев, таймаутов и API ошибок» (The API & Network Failure Diagnostician)',
+  'The API & Network Failure Diagnostician',
   'intermediate',
-  '{"ChatGPT","Claude","Cursor"}'::text[],
+  ARRAY['ChatGPT','Claude','Cursor']::TEXT[],
   'Diagnose this API or network-related failure. Determine whether the root cause is client-side, server-side, infrastructure, or a protocol mismatch.
 
 ERROR CONTEXT:
@@ -3497,74 +2812,58 @@ DIAGNOSTIC PROTOCOL:
 2. Reproduction Command: Provide an exact curl command with all headers and body.
 3. Root Cause Lifecycle Tracing: Where did the failure occur? (DNS → TCP → TLS → HTTP Request → Server Processing → Client Parsing).
 4. Surgical Fix & Defensive Pattern: Provide code fix and retry/timeout middleware.',
-  'Используйте, когда запрос к API завершается с 4xx/5xx ошибкой, таймаутом или возвращает пустой экран. Промпт проверит весь путь запроса от DNS до парсинга JSON.',
-  'Сетевые ошибки часто маскируют реальную причину (CORS-ошибка часто следствие 500 падения бэкенда). Протокол трассирует весь lifecycle.',
-  'Сгенерированная curl-команда позволит воспроизвести ошибку прямо в терминале.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for api network diagnostician.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   42,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'error-clinic'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'ERROR_OUTPUT', 'Код статуса (400, 502, 504) и тело ошибки', false, 1
-from prompts where slug = 'api-network-diagnostician'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'REQUEST_DETAILS', 'URL, метод, заголовки и тело запроса', true, 2
-from prompts where slug = 'api-network-diagnostician'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'ENVIRONMENT', 'Окружение (например: Next.js на Vercel, бэкенд на NestJS за Nginx)', false, 3
-from prompts where slug = 'api-network-diagnostician'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'ERROR_OUTPUT', 'Error output (paste details)', false, 1
+FROM public.prompts WHERE slug = 'api-network-diagnostician'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'REQUEST_DETAILS', 'Request details (paste details)', true, 2
+FROM public.prompts WHERE slug = 'api-network-diagnostician'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'ENVIRONMENT', 'Environment (paste details)', false, 3
+FROM public.prompts WHERE slug = 'api-network-diagnostician'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 43: git-conflict-surgeon
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c4444444-4444-4444-4444-444444444444',
   'git-conflict-surgeon',
-  'Безопасное разрешение конфликтов в Git (Merge / Rebase)» (The Git Conflict & History Surgeon)',
+  'Merge / Rebase',
   'intermediate',
-  '{"ChatGPT","Claude","Cursor"}'::text[],
+  ARRAY['ChatGPT','Claude','Cursor']::TEXT[],
   'Resolve this Git error or conflict situation. You are a Version Control Systems specialist who understands Git''s internal object model (commits, trees, blobs, refs).
 
 GIT ERROR / SITUATION:
@@ -3581,74 +2880,58 @@ RESOLUTION PROTOCOL:
 2. Conflict Resolution: For each conflicting file, explain what "ours" and "theirs" represent in this specific context (they are inverted between merge and rebase!).
 3. Recovery Commands: Provide the exact sequence of Git commands with safety backup checkpoints.
 4. DO NOT: Suggest git push --force blindly or recommend deleting and re-cloning the repo.',
-  'Используйте, когда застряли в посреди git rebase / git merge, и боитесь потерять код или случайно затереть чужие правки при ''ours'' vs ''theirs''.',
-  'Семантика ''ours/theirs'' инвертирована между merge и rebase. Промпт защищает от случайного затирания кода.',
-  'Сначала выполните команду создания резервной ветки (`git branch backup-before-fix`).',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for git conflict surgeon.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   43,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'error-clinic'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'GIT_ERROR', 'Вывод команды git status или текст ошибки из терминала', false, 1
-from prompts where slug = 'git-conflict-surgeon'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'BRANCH_CONTEXT', 'Текущая ветка и целевая ветка', false, 2
-from prompts where slug = 'git-conflict-surgeon'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'INTENDED_ACTION', 'Что вы пытались сделать (например: подтянуть main в feature ветку)', false, 3
-from prompts where slug = 'git-conflict-surgeon'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'GIT_ERROR', 'Git error (paste details)', false, 1
+FROM public.prompts WHERE slug = 'git-conflict-surgeon'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'BRANCH_CONTEXT', 'Branch context (paste details)', false, 2
+FROM public.prompts WHERE slug = 'git-conflict-surgeon'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'INTENDED_ACTION', 'Intended action (paste details)', false, 3
+FROM public.prompts WHERE slug = 'git-conflict-surgeon'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 44: docker-deploy-debugger
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c4444444-4444-4444-4444-444444444444',
   'docker-deploy-debugger',
-  'Починка ошибок сборки Docker и сбоев в CI/CD» (The Docker & Deployment Pipeline Debugger)',
+  'The Docker & Deployment Pipeline Debugger',
   'intermediate',
-  '{"ChatGPT","Claude","Cursor"}'::text[],
+  ARRAY['ChatGPT','Claude','Cursor']::TEXT[],
   'Debug this Docker build failure, container runtime error, or CI/CD deployment pipeline issue.
 
 ERROR OUTPUT:
@@ -3668,81 +2951,66 @@ DEBUGGING PROTOCOL:
 2. Environment Delta Analysis: Identify architecture differences (arm64 vs amd64), missing secrets, or cache invalidation issues.
 3. Root Cause Fix: Provide the exact corrected Dockerfile / docker-compose.yml / CI workflow.
 4. DO NOT: Suggest disabling security features (--privileged) or using latest tags in production.',
-  'Используйте, когда падает сборка Dockerfile, контейнер падает сразу после запуска (CrashLoopBackOff) или пайплайн в GitHub Actions завершился красным крестиком.',
-  'Анализ ''Environment Delta'' выявляет скрытые различия между локальным компьютером и сервером CI (разные архитектуры процессора, переменные окружения).',
-  'Для Node.js проверьте наличие `NODE_ENV=production` при установке devDependencies.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for docker deploy debugger.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   44,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'error-clinic'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'DEPLOY_ERROR', 'Лог падения сборки или запуска контейнера', false, 1
-from prompts where slug = 'docker-deploy-debugger'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CONFIG_FORMAT', 'Формат (dockerfile, yaml, toml)', false, 2
-from prompts where slug = 'docker-deploy-debugger'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CONFIG_CONTENT', 'Содержимое Dockerfile, docker-compose.yml или .github/workflows', true, 3
-from prompts where slug = 'docker-deploy-debugger'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'DEPLOY_TARGET', 'Куда деплоим (Docker Compose, Vercel, AWS, GitHub Actions)', false, 4
-from prompts where slug = 'docker-deploy-debugger'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'DEPLOY_ERROR', 'Deploy error (paste details)', false, 1
+FROM public.prompts WHERE slug = 'docker-deploy-debugger'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CONFIG_FORMAT', 'Config format (paste details)', false, 2
+FROM public.prompts WHERE slug = 'docker-deploy-debugger'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CONFIG_CONTENT', 'Config content (paste details)', true, 3
+FROM public.prompts WHERE slug = 'docker-deploy-debugger'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'DEPLOY_TARGET', 'Deploy target (paste details)', false, 4
+FROM public.prompts WHERE slug = 'docker-deploy-debugger'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 45: react-hydration-resolver
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c4444444-4444-4444-4444-444444444444',
   'react-hydration-resolver',
-  'Исправление расхождения рендера React (Hydration Mismatch)» (The React Hydration Mismatch Resolver)',
+  'Hydration Mismatch',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o","Cursor"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o','Cursor']::TEXT[],
   'Diagnose and eliminate this React Server-Side Rendering (SSR) Hydration Mismatch error in Next.js / React 19.
 
 HYDRATION ERROR LOG:
@@ -3763,67 +3031,50 @@ FORENSIC AUDIT:
    - Invalid HTML nesting (e.g. <p> containing <div>, <tr> directly inside <table> without <tbody>).
    - Browser extensions mutating DOM before hydration.
 3. Clean Solution: Provide the proper pattern (useEffect mounting gate, suppressHydrationWarning where safe, or server-safe client components).',
-  'Используйте в Next.js / Remix, когда в консоли появляется ошибка ''Hydration failed because the initial UI does not match what was rendered on the server''.',
-  'Сравнивает дерево DOM сервера и клиента, локализуя несовпадающий тег или недетерминированное значение времени.',
-  'Используйте хук `useSyncExternalStore` или проверку `mounted` для клиентских значений.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for react hydration resolver.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   45,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'error-clinic'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'HYDRATION_ERROR', 'Полный текст ошибки Hydration failed из консоли браузера', false, 1
-from prompts where slug = 'react-hydration-resolver'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'COMPONENT_CODE', 'Код компонента, вызывающего расхождение', true, 2
-from prompts where slug = 'react-hydration-resolver'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'HYDRATION_ERROR', 'Hydration error (paste details)', false, 1
+FROM public.prompts WHERE slug = 'react-hydration-resolver'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'COMPONENT_CODE', 'Component code (paste details)', true, 2
+FROM public.prompts WHERE slug = 'react-hydration-resolver'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 46: nodejs-oom-investigator
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c4444444-4444-4444-4444-444444444444',
   'nodejs-oom-investigator',
-  'Лечение аварийного падения памяти (Node.js Heap OOM)» (The Node.js / V8 Out of Memory (OOM) Crash Investigator)',
+  'Node.js Heap OOM',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o']::TEXT[],
   'Investigate and fix this fatal Node.js / V8 JavaScript heap out of memory crash or Docker OOMKilled exit code 137.
 
 CRASH LOG & HEAP METRICS:
@@ -3840,67 +3091,50 @@ FORENSIC PROTOCOL:
 1. Allocation Hotspot: Identify where large arrays, buffers, or unpaginated DB query results are held in memory simultaneously.
 2. Stream & Transform Pattern: Convert bulk in-memory operations (JSON.parse of 50MB file, fetching 100k rows) into Node.js Streams / async iterators with backpressure.
 3. V8 Memory Configuration: Provide optimal --max-old-space-size flags for container memory limits.',
-  'Используйте, когда сервер падает с ошибкой ''JavaScript heap out of memory'' или контейнер убивается по OOMKilled в облаке.',
-  'Переводит код с жадной загрузки всего массива в память на потоковую обработку (Streams / Pipelines).',
-  'Никогда не делайте `SELECT *` без лимита или `fs.readFileSync` на больших файлах.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for nodejs oom investigator.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   46,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'error-clinic'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'OOM_LOGS', 'Лог падения памяти из терминала / Docker', true, 1
-from prompts where slug = 'nodejs-oom-investigator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'PIPELINE_CODE', 'Код функции, обрабатывающей большие данные или файлы', true, 2
-from prompts where slug = 'nodejs-oom-investigator'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'OOM_LOGS', 'Oom logs (paste details)', true, 1
+FROM public.prompts WHERE slug = 'nodejs-oom-investigator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'PIPELINE_CODE', 'Pipeline code (paste details)', true, 2
+FROM public.prompts WHERE slug = 'nodejs-oom-investigator'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 47: cors-preflight-fixer
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c4444444-4444-4444-4444-444444444444',
   'cors-preflight-fixer',
-  'Быстрое исправление блокировки CORS и preflight-запросов» (The CORS & Preflight Header Deep Fixer)',
+  'The CORS & Preflight Header Deep Fixer',
   'intermediate',
-  '{"ChatGPT","Claude","Cursor"}'::text[],
+  ARRAY['ChatGPT','Claude','Cursor']::TEXT[],
   'Resolve this Cross-Origin Resource Sharing (CORS) or OPTIONS Preflight failure.
 
 BROWSER CONSOLE CORS ERROR:
@@ -3919,88 +3153,74 @@ DIAGNOSIS & REMEDIATION:
 1. Exact Mismatch: What header is missing or misconfigured (Access-Control-Allow-Origin, Allow-Methods, Allow-Headers, Allow-Credentials with wildcard origin conflict)?
 2. OPTIONS Preflight Handling: Is the HTTP OPTIONS request returning 204/200 before authentication middleware, or is auth middleware rejecting OPTIONS?
 3. Remediated Configuration: Provide the exact CORS middleware configuration.',
-  'Используйте, когда в браузере горит красная ошибка ''Access to fetch at X from origin Y has been blocked by CORS policy'' при отправке запросов на бэкенд.',
-  'Решает частую причину 90% CORS-ошибок: когда middleware авторизации блокирует предварительный OPTIONS запрос до проверки CORS.',
-  'Не используйте `Access-Control-Allow-Origin: *` если включен `Allow-Credentials: true`.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for cors preflight fixer.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   47,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'error-clinic'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CORS_ERROR', 'Текст ошибки CORS из консоли браузера', false, 1
-from prompts where slug = 'cors-preflight-fixer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'LANGUAGE', 'Стек (Node.js Express, NestJS, FastAPI, Nginx)', false, 2
-from prompts where slug = 'cors-preflight-fixer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'BACKEND_CORS_CODE', 'Текущая настройка CORS на бэкенде или в Nginx', true, 3
-from prompts where slug = 'cors-preflight-fixer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CLIENT_ORIGIN', 'Адрес фронтенда (например: http://localhost:5173)', false, 4
-from prompts where slug = 'cors-preflight-fixer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'SERVER_URL', 'Адрес бэкенда (например: https://api.myapp.com)', false, 5
-from prompts where slug = 'cors-preflight-fixer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CORS_ERROR', 'Cors error (paste details)', false, 1
+FROM public.prompts WHERE slug = 'cors-preflight-fixer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'LANGUAGE', 'Language (paste details)', false, 2
+FROM public.prompts WHERE slug = 'cors-preflight-fixer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'BACKEND_CORS_CODE', 'Backend cors code (paste details)', true, 3
+FROM public.prompts WHERE slug = 'cors-preflight-fixer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CLIENT_ORIGIN', 'Client origin (paste details)', false, 4
+FROM public.prompts WHERE slug = 'cors-preflight-fixer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'SERVER_URL', 'Server url (paste details)', false, 5
+FROM public.prompts WHERE slug = 'cors-preflight-fixer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 48: orm-n1-query-fixer
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c4444444-4444-4444-4444-444444444444',
   'orm-n1-query-fixer',
-  'Поиск и устранение паразитных запросов N+1 в ORM (Prisma/TypeORM)» (The ORM N+1 Query Detector & Fixer)',
+  'Prisma/TypeORM',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o","Cursor"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o','Cursor']::TEXT[],
   'Eliminate the N+1 database query cascade in the ORM code below.
 
 OFFENDING ORM QUERY CODE:
@@ -4018,74 +3238,58 @@ REFACTORING CONTRACT:
 1. Query Cascade Analysis: Explain why the current code executes 1 + N queries instead of a single batched query or JOIN.
 2. Optimized Query Rewrite: Rewrite using eager loading (include/with/relations), lateral joins, or subqueries.
 3. Verification SQL: Show the raw SQL query generated before vs after the optimization.',
-  'Используйте, когда страница со списком пользователей или постов загружается несколько секунд, а в логах базы данных бегут сотни одинаковых SQL запросов.',
-  'Превращает N+1 отдельных сетевых обращений к базе в 1 эффективный SQL JOIN или батчинг по ключам.',
-  'В Prisma используйте `include: { relation: true }` вместо маппинга по массиву с `await prisma.relation.findFirst()`.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for orm n1 query fixer.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   48,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'error-clinic'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'ORM_CODE', 'Код запроса в базу данных через Prisma / Drizzle / TypeORM', true, 1
-from prompts where slug = 'orm-n1-query-fixer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'SCHEMA_SNIPPET', 'Связи и таблицы в базе данных', true, 2
-from prompts where slug = 'orm-n1-query-fixer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'ORM_FRAMEWORK', 'Используемый ORM (Prisma, Drizzle, TypeORM, Sequelize)', false, 3
-from prompts where slug = 'orm-n1-query-fixer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'ORM_CODE', 'Orm code (paste details)', true, 1
+FROM public.prompts WHERE slug = 'orm-n1-query-fixer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'SCHEMA_SNIPPET', 'Schema snippet (paste details)', true, 2
+FROM public.prompts WHERE slug = 'orm-n1-query-fixer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'ORM_FRAMEWORK', 'Orm framework (paste details)', false, 3
+FROM public.prompts WHERE slug = 'orm-n1-query-fixer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 49: bundler-circular-dependency-fixer
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c4444444-4444-4444-4444-444444444444',
   'bundler-circular-dependency-fixer',
-  'Починка циклических зависимостей и ошибок сборщика (Vite / Webpack)» (The Webpack/Vite Module Resolution & Circular Dependency Fixer)',
+  'Vite / Webpack',
   'intermediate',
-  '{"ChatGPT","Claude","Cursor"}'::text[],
+  ARRAY['ChatGPT','Claude','Cursor']::TEXT[],
   'Resolve this module resolution failure, circular dependency deadlock, or build-time bundler error.
 
 BUNDLER / TERMINAL ERROR:
@@ -4103,74 +3307,58 @@ RESOLUTION STEPS:
 1. Cycle / Resolution Trace: Map the circular dependency chain (A -> B -> C -> A) or path alias misconfiguration (tsconfig.json paths vs vite.config.ts resolve.alias).
 2. Clean Extraction: Show how to extract shared types/constants into a standalone leaf module to break the cycle.
 3. Config Alignment: Ensure tsconfig and bundler config resolve aliases identically.',
-  'Используйте, когда проект не собирается с ошибками ''Cannot resolve module'', ''Cannot access before initialization'' или циклическими импортами.',
-  'Синхронизирует `paths` в tsconfig.json и `resolve.alias` в vite.config.ts, устраняя циклы через вынос общих типов.',
-  'Используйте утилиту `madge` для визуализации графа циклических импортов.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for bundler circular dependency fixer.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   49,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'error-clinic'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'BUNDLER_ERROR', 'Текст ошибки из консоли сборщика Vite или Webpack', false, 1
-from prompts where slug = 'bundler-circular-dependency-fixer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'CONFIG_AND_IMPORTS', 'Файлы vite.config.ts, tsconfig.json и проблемные импорты', false, 2
-from prompts where slug = 'bundler-circular-dependency-fixer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'BUNDLER', 'Сборщик (Vite, Webpack 5, Next.js Turbopack)', false, 3
-from prompts where slug = 'bundler-circular-dependency-fixer'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'BUNDLER_ERROR', 'Bundler error (paste details)', false, 1
+FROM public.prompts WHERE slug = 'bundler-circular-dependency-fixer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
 
--- ----------------------------------------------------------------------------
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'CONFIG_AND_IMPORTS', 'Config and imports (paste details)', false, 2
+FROM public.prompts WHERE slug = 'bundler-circular-dependency-fixer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'BUNDLER', 'Bundler (paste details)', false, 3
+FROM public.prompts WHERE slug = 'bundler-circular-dependency-fixer'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
 -- Prompt 50: jwt-session-auth-debugger
--- ----------------------------------------------------------------------------
-insert into prompts (
-  category_id,
-  slug,
-  title,
-  difficulty,
-  tools,
-  prompt_text,
-  when_to_use,
-  why_it_works,
-  pro_tips,
-  sort_order,
-  is_active,
-  is_featurable,
-  featured_date,
-  author_type,
-  author_name
-)
-select
-  id,
+INSERT INTO public.prompts (
+  category_id, slug, title, difficulty, tools, prompt_text,
+  when_to_use, why_it_works, pro_tips, sort_order, is_active, is_featurable, author_type, author_name
+) VALUES (
+  'c4444444-4444-4444-4444-444444444444',
   'jwt-session-auth-debugger',
-  'Отладка сбоев токенов авторизации (JWT / OAuth / Cookie)» (The JWT / Session Auth State Corrupt Debugger)',
+  'JWT / OAuth / Cookie',
   'intermediate',
-  '{"Claude 3.7 Sonnet","GPT-4o","Cursor"}'::text[],
+  ARRAY['Claude 3.7 Sonnet','GPT-4o','Cursor']::TEXT[],
   'Debug and fix this authentication token / session corruption error (JWT, OAuth2 session, HttpOnly cookie mismatch).
 
 AUTH ERROR / SYMPTOM:
@@ -4188,44 +3376,44 @@ DIAGNOSIS PROTOCOL:
 1. Failure Point: Signature mismatch (secret vs public key), clock skew expiration, SameSite/Secure cookie policy dropping cookies on cross-subdomain requests.
 2. Token Lifecycle Verification: Refresh token rotation race conditions (concurrent requests using expired access token).
 3. Remediated Code: Correct token signing, verification, and cookie header configuration.',
-  'Используйте, когда юзера постоянно разлогинивает, токен выдает ошибку ''jwt expired / invalid signature'' или куки не сохраняются между доменами.',
-  'Учитывает тонкости междоменных куки (`SameSite=None`, `Secure`), timezone/clock-skew на серверах и гонки обновления refresh-токенов.',
-  'Для междоменных запросов убедитесь, что включен `credentials: ''include''` на клиенте.',
+  'Use when you need staff-level engineering precision, strict architectural invariants, and zero hallucinated code for jwt session auth debugger.',
+  'Applies negative constraints and step-by-step cognitive modeling to ensure production-ready output.',
+  'Recommended models: Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro with temperature set to 0.2.',
   50,
   true,
   true,
-  null,
   'team',
   'Eengineer Staff Lead'
-from prompt_categories where slug = 'error-clinic'
-on conflict (slug) do update set
-  title = excluded.title,
-  difficulty = excluded.difficulty,
-  tools = excluded.tools,
-  prompt_text = excluded.prompt_text,
-  when_to_use = excluded.when_to_use,
-  why_it_works = excluded.why_it_works,
-  pro_tips = excluded.pro_tips,
-  sort_order = excluded.sort_order;
+) ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  difficulty = EXCLUDED.difficulty,
+  tools = EXCLUDED.tools,
+  prompt_text = EXCLUDED.prompt_text,
+  when_to_use = EXCLUDED.when_to_use,
+  why_it_works = EXCLUDED.why_it_works,
+  pro_tips = EXCLUDED.pro_tips,
+  sort_order = EXCLUDED.sort_order;
 
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'AUTH_ERROR', 'Текст ошибки авторизации или описание бага (например: бесконечный редирект на /login)', false, 1
-from prompts where slug = 'jwt-session-auth-debugger'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'AUTH_CODE', 'Код проверки токена, обновления сессии или установки cookie', true, 2
-from prompts where slug = 'jwt-session-auth-debugger'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
-insert into prompt_variables (prompt_id, name, description, is_multiline, sort_order)
-select id, 'DOMAIN_CONTEXT', 'Домены клиента и сервера (например: localhost:5173 и api.myapp.com)', false, 3
-from prompts where slug = 'jwt-session-auth-debugger'
-on conflict (prompt_id, name) do update set
-  description = excluded.description,
-  is_multiline = excluded.is_multiline,
-  sort_order = excluded.sort_order;
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'AUTH_ERROR', 'Auth error (paste details)', false, 1
+FROM public.prompts WHERE slug = 'jwt-session-auth-debugger'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'AUTH_CODE', 'Auth code (paste details)', true, 2
+FROM public.prompts WHERE slug = 'jwt-session-auth-debugger'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.prompt_variables (prompt_id, name, description, is_multiline, sort_order)
+SELECT id, 'DOMAIN_CONTEXT', 'Domain context (paste details)', false, 3
+FROM public.prompts WHERE slug = 'jwt-session-auth-debugger'
+ON CONFLICT (prompt_id, name) DO UPDATE SET
+  description = EXCLUDED.description,
+  is_multiline = EXCLUDED.is_multiline,
+  sort_order = EXCLUDED.sort_order;
