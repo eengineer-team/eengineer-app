@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/physics", "destination": "/physics/index.html" },
+    { "source": "/physics/(.*)", "destination": "/physics/index.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

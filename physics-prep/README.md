@@ -17,6 +17,15 @@ problems build the habit; Pro (not live yet) adds the full problem bank, mock ex
 Shared contracts: `src/types/problem.ts` (problem shape, simulator presets), `src/components/ui.tsx`
 (primitives), `tailwind.config.js` + `src/index.css` (semantic color tokens, light + dark).
 
+## Where it lives on the website
+
+It is served at **eengineer.net/physics** by the main eengineer.net Vercel project. No separate Vercel
+setup is needed: the root `vite.config.ts` builds this app into `dist/physics` (with base `/physics/`) as
+part of the main build, and the root `vercel.json` routes `/physics/*` to it. Push to `main` and both deploy.
+
+Its Supabase settings are `VITE_PHYSICS_SUPABASE_URL` / `VITE_PHYSICS_SUPABASE_PUBLISHABLE_KEY`, kept
+separate from the main app's `VITE_SUPABASE_*` so it can never connect to the live eengineer database.
+
 ## Run it
 
 This folder currently uses the parent repo's `node_modules` (no separate install needed):

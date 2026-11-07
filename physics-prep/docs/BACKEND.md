@@ -127,8 +127,8 @@ Dashboard → **Project Settings → API Keys**. Copy the project URL and the **
 Create `physics-prep/.env.local` (already git-ignored):
 
 ```ini
-VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+VITE_PHYSICS_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+VITE_PHYSICS_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
 Restart the dev server (`npm run dev`) so Vite picks it up. For production, set the same two variables in your hosting provider's environment settings and rebuild.
