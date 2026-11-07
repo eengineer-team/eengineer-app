@@ -1,0 +1,8 @@
+# Minimal Supabase CLI config for eengineer Physics. `supabase link` fills in the remote project;
+# everything not listed here uses the CLI defaults.
+project_id = "eengineer-physics"
+
+[functions.tutor]
+# Keep the gateway's JWT check on: only requests carrying a valid Supabase session token
+# (the app signs students in anonymously) reach the function.
+verify_jwt = true

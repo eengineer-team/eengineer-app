@@ -1,0 +1,17 @@
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+
+// Null when env is not configured: the app must still run locally without a backend.
+// Callers check `supabase` and show an offline notice instead of throwing.
+const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
+const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
+
+export const supabase: SupabaseClient | null = url && key ? createClient(url, key) : null
+
+/** Ensures there is a session (anonymous sign-in) so Edge Functions can rate-limit per user. */
+export async function ensureSession(): Promise<boolean> {
+  if (!supabase) return false
+  const { data } = await supabase.auth.getSession()
+  if (data.session) return true
+  const { error } = await supabase.auth.signInAnonymously()
+  return !error
+}

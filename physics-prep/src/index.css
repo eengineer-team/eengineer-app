@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* eengineer has two fixed identities, not a light/dark toggle (same as eengineer-app):
+   - .theme-welcome   public/marketing pages: cornsilk graph paper, near-black CTA, amber accents
+   - .theme-dashboard in-app pages: dark radial, gold CTA/accents
+   Layout.tsx picks one per route. Values are space-separated RGB so Tailwind's /<alpha> works;
+   they mirror eengineer-app/tailwind.config.js (corn-*, dark-*, gold.dark). */
+.theme-welcome {
+  --bg: 255 248 220;         /* corn-100 #FFF8DC */
+  --surface: 255 253 240;    /* corn-50 #FFFDF0 */
+  --surface-2: 250 244 204;  /* corn-200 #FAF4CC */
+  --text: 42 33 24;          /* #2A2118 body ink */
+  --muted: 92 74 30;         /* corn-800 #5C4A1E */
+  --border: 232 230 217;     /* corn-900 at 10% over corn-50 */
+  --accent: 139 105 20;      /* corn-700 #8B6914 amber */
+  --accent-ink: 255 253 240;
+  --cta: 26 18 8;            /* corn-900 #1A1208, pre-auth dark CTA */
+  --cta-ink: 255 248 220;    /* corn-100 */
+  --cta-hover: 92 74 30;     /* corn-800 */
+  --good: 34 120 70;
+  --bad: 178 52 40;
+  --force: 196 64 44;
+  --velocity: 38 99 178;
+  --accel: 126 72 170;
+}
+.theme-dashboard {
+  --bg: 8 8 15;              /* dark-900 #08080F */
+  --surface: 22 21 15;       /* dark-surface #16150F */
+  --surface-2: 30 28 20;     /* dark-surface2 #1E1C14 */
+  --text: 245 240 223;       /* dark-text #F5F0DF */
+  --muted: 184 174 147;      /* dark-muted #B8AE93 */
+  --border: 45 44 39;        /* white at 10% over dark-surface */
+  --accent: 199 154 58;      /* gold-dark #C79A3A */
+  --accent-ink: 8 8 15;
+  --cta: 199 154 58;         /* dashboard solid CTA = gold-dark, dark-900 text */
+  --cta-ink: 8 8 15;
+  --cta-hover: 214 172 82;
+  --good: 126 168 140;       /* discipline-software green, calm on dark */
+  --bad: 248 113 113;        /* red-400, eengineer's danger text */
+  --force: 240 112 90;
+  --velocity: 110 160 230;
+  --accel: 186 140 230;
+}
+
+html, body, #root { min-height: 100%; }
+body {
+  @apply font-sans antialiased;
+  text-rendering: optimizeLegibility;
+}
+h1, h2, h3 { @apply font-display; }
+::selection { background: rgb(var(--accent) / 0.3); }
+
+@layer utilities {
+  /* eengineer engineer's-notebook graph paper (pre-auth surfaces only): 40px grid, ink at 6%. */
+  .bg-graph-paper {
+    background-color: #FFF8DC;
+    background-image:
+      linear-gradient(to right, rgba(42, 33, 24, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(42, 33, 24, 0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  /* eengineer dashboard background. */
+  .bg-dark-radial {
+    background-color: #08080F;
+    background-image: radial-gradient(ellipse 90% 70% at 75% 0%, #1C1C24 0%, #111118 55%, #08080F 100%);
+    background-attachment: fixed;
+  }
+}
